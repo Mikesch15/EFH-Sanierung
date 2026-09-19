@@ -1,59 +1,128 @@
-// Simulierte Dokumentenanalyse. Feste Demo-Werte, keine externe Schnittstelle.
-// So gekapselt, dass später nur diese eine Funktion durch einen echten Aufruf
-// (z.B. eine Edge Function mit serverseitigem Gemini-Key) ersetzt werden muss –
-// der Rest der App ruft ausschliesslich analysiereDokument() auf.
+// Echte Dokumentenanalyse. Die Datei wird in den privaten Speicher geladen und
+// anschliessend von der Edge Function "dokument-analysieren" ausgelesen (Google
+// Gemini). Der Schlüssel des KI-Dienstes liegt ausschliesslich serverseitig als
+// Supabase-Secret – er erreicht dieses Gerät nie.
+//
+// Die ganze App ruft nur analysiereDokument() auf. Soll der Dienst einmal
+// gewechselt werden, ist das die einzige Stelle, die sich ändert (im Browser;
+// dazu die Edge Function selbst).
 
-function warten(ms) { return new Promise((ok) => setTimeout(ok, ms)); }
+import { dokumentAnalysieren, DatenFehler } from "./daten.js";
+import { hochladen } from "./dateien.js";
 
-/**
- * @param {File} datei
- * @param {"offerte"|"beleg"} art
- * @param {(schritt: number) => void} [aufSchritt] wird pro Analyseschritt aufgerufen
- * @returns {Promise<object>} demo-Werte, passend zur Art
- */
-export async function analysiereDokument(datei, art, aufSchritt) {
-  const schritte = art === "beleg"
-    ? ["Datei wird gelesen", "Lieferant und Betrag werden gesucht", "Werte werden übernommen"]
-    : ["Datei wird gelesen", "Dokument wird ausgewertet", "Positionen werden übernommen"];
+// Grenze der Edge Function (Gemini nimmt grössere Anhänge nicht entgegen).
+const ANALYSE_MAX_BYTES = 15 * 1024 * 1024;
 
-  for (let i = 0; i < schritte.length; i++) {
-    await warten(550);
-    if (aufSchritt) aufSchritt(i);
+export const ANALYSE_SCHRITTE = {
+  offerte: ["Datei wird hochgeladen", "Dokument wird gelesen", "Positionen werden übernommen"],
+  beleg: ["Datei wird hochgeladen", "Dokument wird gelesen", "Werte werden übernommen"],
+};
+
+/** Aus den Fehlercodes der Edge Function eine Meldung machen, mit der man etwas anfangen kann. */
+export function analyseFehlerText(e) {
+  const code = e && e.code;
+  if (code === "kein_schluessel") {
+    return "Die KI-Auswertung ist auf dem Server noch nicht freigeschaltet (es fehlt der Zugang zum KI-Dienst). " +
+      "Das Dokument kann weiterhin von Hand erfasst werden.";
   }
-  await warten(450);
+  if (code === "schluessel_ungueltig") return "Der KI-Dienst lehnt den hinterlegten Zugang ab. Bitte den Schlüssel prüfen.";
+  if (code === "kontingent") return "Das Kontingent des KI-Dienstes ist erschöpft. Bitte später erneut versuchen.";
+  return "Auslesen fehlgeschlagen: " + ((e && e.message) || e);
+}
 
-  if (art === "beleg") {
-    const brutto = 8750;
-    const netto = Math.round((brutto / 1.081) * 100) / 100;
-    return {
-      demo: true,
-      lieferant: "Muster AG",
-      nummer: "RE-2026-235",
-      datum: "2026-11-12",
-      netto,
-      mwst: Math.round((brutto - netto) * 100) / 100,
-      brutto,
-      kategorie: "Elektro",
-    };
-  }
+function zahl(wert) {
+  if (wert === null || wert === undefined || wert === "") return 0;
+  const n = typeof wert === "number" ? wert : parseFloat(String(wert).replace(/['\s]/g, "").replace(",", "."));
+  return Number.isFinite(n) ? n : 0;
+}
+function runden(n) { return Math.round(n * 100) / 100; }
+function text(wert) { return wert === null || wert === undefined ? "" : String(wert).trim(); }
 
+/** Nur ein echtes ISO-Datum übernehmen – sonst lieber leer lassen als falsch. */
+function datumOderLeer(wert) {
+  const t = text(wert);
+  return /^\d{4}-\d{2}-\d{2}$/.test(t) ? t : "";
+}
+
+function offerteAufbereiten(w) {
+  const positionen = Array.isArray(w.positionen) ? w.positionen : [];
   return {
-    demo: true,
-    lieferant: "Muster AG",
-    nummer: "2026-1045",
-    datum: "2026-09-19",
-    mwstSatz: 8.1,
-    kategorie: "Elektro",
-    positionen: [
-      { nr: "1", beschreibung: "Baustelleninstallation", menge: 1, einheit: "pauschal", einzelpreis: 1500 },
-      { nr: "2", beschreibung: "Elektroinstallation EG", menge: 1, einheit: "pauschal", einzelpreis: 8500 },
-      { nr: "3", beschreibung: "Elektroinstallation OG", menge: 1, einheit: "pauschal", einzelpreis: 6800 },
-      { nr: "4", beschreibung: "Beleuchtung", menge: 1, einheit: "pauschal", einzelpreis: 2400 },
-    ],
+    lieferant: text(w.lieferant),
+    nummer: text(w.nummer),
+    datum: datumOderLeer(w.datum),
+    // null bedeutet ausdrücklich "ohne MWST geführt"; fehlt die Angabe ganz,
+    // bleibt es beim üblichen Satz, den die Person überschreiben kann.
+    mwstSatz: w.mwst_satz === null ? null : (zahl(w.mwst_satz) || 8.1),
+    hinweis: text(w.hinweis),
+    positionen: positionen
+      .map((p, i) => ({
+        nr: text(p.nr) || String(i + 1),
+        beschreibung: text(p.beschreibung),
+        menge: zahl(p.menge) || 1,
+        einheit: text(p.einheit) || "pauschal",
+        einzelpreis: runden(zahl(p.einzelpreis)),
+      }))
+      .filter((p) => p.beschreibung || p.einzelpreis),
   };
 }
 
-export const ANALYSE_SCHRITTE = {
-  offerte: ["Datei wird gelesen", "Dokument wird ausgewertet", "Positionen werden übernommen"],
-  beleg: ["Datei wird gelesen", "Lieferant und Betrag werden gesucht", "Werte werden übernommen"],
-};
+function belegAufbereiten(w) {
+  const brutto = runden(zahl(w.brutto));
+  const ohneMwst = w.mwst === null || w.mwst === undefined;
+  let mwst = ohneMwst ? null : runden(zahl(w.mwst));
+  let netto = runden(zahl(w.netto));
+  if (mwst === null) {
+    netto = brutto;
+  } else {
+    if (!netto && brutto) netto = runden(brutto - mwst);
+    if (!mwst && brutto && netto) mwst = runden(brutto - netto);
+  }
+  return {
+    lieferant: text(w.lieferant),
+    nummer: text(w.nummer),
+    datum: datumOderLeer(w.datum),
+    netto, mwst, brutto,
+    bezahlt: w.bezahlt === true,
+    zahlungsdatum: datumOderLeer(w.zahlungsdatum),
+    hinweis: text(w.hinweis),
+  };
+}
+
+/**
+ * Liest eine Offerte oder einen Beleg aus.
+ *
+ * @param {{datei?: File, pfad?: string, name?: string, projektId: string, bereich: string}} quelle
+ *        Entweder eine noch nicht hochgeladene Datei oder der Pfad einer bereits
+ *        gespeicherten Datei.
+ * @param {"offerte"|"beleg"} art
+ * @param {(schritt: number) => void} [aufSchritt] nach jedem erledigten Schritt
+ * @returns {Promise<object>} erkannte Werte plus datei_pfad/datei_name/modell
+ */
+export async function analysiereDokument(quelle, art, aufSchritt) {
+  const melden = (i) => { if (aufSchritt) aufSchritt(i); };
+
+  let pfad = quelle.pfad || null;
+  let name = quelle.name || (quelle.datei && quelle.datei.name) || "";
+
+  if (!pfad) {
+    if (!quelle.datei) throw new DatenFehler("Es wurde keine Datei ausgewählt.");
+    if (quelle.datei.size > ANALYSE_MAX_BYTES) {
+      throw new DatenFehler(
+        "Die Datei ist mit " + (quelle.datei.size / 1024 / 1024).toFixed(1) +
+        " MB zu gross für die Analyse (höchstens 15 MB). Sie kann trotzdem gespeichert werden."
+      );
+    }
+    const info = await hochladen(quelle.datei, quelle.projektId, quelle.bereich);
+    pfad = info.datei_pfad;
+    name = info.datei_name;
+  }
+  melden(0);
+
+  const antwort = await dokumentAnalysieren(pfad, art);
+  melden(1);
+
+  const werte = art === "beleg" ? belegAufbereiten(antwort.werte) : offerteAufbereiten(antwort.werte);
+  melden(2);
+
+  return { ...werte, datei_pfad: pfad, datei_name: name, modell: antwort.modell || "" };
+}

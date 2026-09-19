@@ -15,7 +15,7 @@ dieses auch nicht.
 | Web-App mit Login und Synchronisation | fertig, siehe `app/` |
 | Auf dem Handy installierbar (PWA) | fertig, siehe «Auf dem Handy installieren» |
 | Handwerker-Zugang für einzelne Offerten | fertig, siehe `app/handwerker.html` |
-| Echte Dokumentenanalyse (Gemini) | offen – im Prototyp und in der App simuliert |
+| Echte Dokumentenanalyse (Gemini) | fertig in der App, siehe «KI-Auswertung»; im Prototyp weiterhin simuliert |
 
 ## Supabase-Projekt
 
@@ -131,7 +131,7 @@ app/
   js/daten.js           alle Datenbankzugriffe, eine Funktion pro Vorgang
   js/dateien.js         Upload, signierte Links, Löschen, Typ-/Grössenprüfung
   js/format.js          CHF, Datum, Zahlen-Parser (aus dem Prototyp)
-  js/ki.js              simulierte Dokumentenanalyse (eine Funktion zum Austauschen)
+  js/ki.js              KI-Auswertung: hochladen und Edge Function rufen (eine Funktion zum Austauschen)
   js/import.js          Übernahme der Prototyp-Sicherung
   js/app.js             Start, Navigation, Modal, Realtime
   js/ansichten/*.js     Anmeldung, Übersicht, Budget, Offerten, Belege, Dokumente
@@ -282,6 +282,51 @@ Die App ist eine PWA und lässt sich wie eine App ablegen – die Seite muss daf
 
 Danach startet sie im Vollbild mit eigenem Icon. Die Anmeldung bleibt erhalten.
 
+## KI-Auswertung der Dokumente
+
+Offerten und Belege können ausgelesen werden: Lieferant, Nummer, Datum, MWST und –
+bei Offerten – sämtliche Positionen mit Menge, Einheit und Einzelpreis. Das passiert
+**nur auf Knopfdruck** (*Offerte auslesen* / *Beleg auslesen*), nie automatisch beim
+Hochladen.
+
+**Ablauf:** Die Datei wird zuerst in den privaten Bucket `projektdateien` geladen.
+Danach ruft die App die Edge Function `dokument-analysieren` auf. Diese lädt die Datei
+mit dem Token der aufrufenden Person wieder herunter – es gelten also dieselben
+Row-Level-Security-Regeln wie überall – und schickt sie an Google Gemini
+(`gemini-2.5-flash`, Rückfallebene `gemini-2.0-flash`) mit einem festen Antwortschema.
+Zurück kommen nur die erkannten Werte; sie werden als Vorschlag in das Formular
+geschrieben und sind bis zum Speichern frei änderbar. Der violette Hinweis
+«Von der KI ausgelesen – bitte prüfen» bleibt am Datensatz sichtbar (Abzeichen *KI*).
+
+**Datenschutz:** Beim Auslesen verlässt das Dokument Supabase und wird an Google
+übermittelt. Das steht auch in der App über dem Knopf. Wer das nicht möchte, erfasst
+von Hand – alle Felder funktionieren ohne KI.
+
+**Schlüssel hinterlegen (einmalig, nicht im Repo!).** Der API-Key liegt ausschliesslich
+als Supabase-Secret und erreicht den Browser nie:
+
+1. Key erstellen unter <https://aistudio.google.com/apikey>.
+2. Im Supabase-Dashboard: *Edge Functions → Secrets → Add new secret*,
+   Name `GEMINI_API_KEY`, Wert einfügen. Alternativ mit der CLI:
+
+   ```bash
+   supabase secrets set GEMINI_API_KEY=... --project-ref evozevkzwcvpbnvcmmfp
+   ```
+
+   Optional lässt sich mit `GEMINI_MODELL` ein anderes Modell wählen.
+3. Fertig – die Funktion ist bereits deployt. Nach einer Änderung am Code:
+
+   ```bash
+   supabase functions deploy dokument-analysieren --project-ref evozevkzwcvpbnvcmmfp
+   ```
+
+Solange kein Schlüssel hinterlegt ist, meldet die App im Klartext «Die KI-Auswertung ist
+auf dem Server noch nicht freigeschaltet» und man erfasst von Hand – es wird keine
+Funktion vorgetäuscht. Weitere Meldungen: abgelehnter Schlüssel, erschöpftes Kontingent,
+Datei grösser als 15 MB (dann ist nur das Auslesen nicht möglich, das Speichern schon).
+
+Der Quellcode der Funktion liegt in `supabase/functions/dokument-analysieren/index.ts`.
+
 ## Migrationen anwenden
 
 Die Migrationen sind im Supabase-Projekt bereits eingespielt. Für eine zweite Umgebung
@@ -306,8 +351,9 @@ Am besten auf zwei Geräten (oder einem normalen Fenster und einem privaten Fens
    Gerät: Übersicht → *Mitglieder* → *+ Mitglied* → ihre E-Mail-Adresse, Rolle
    *Bearbeiter*. Sie lädt neu und sieht dasselbe Projekt.
 4. **Budgetposition** anlegen, bearbeiten, löschen (Tab *Budget*).
-5. **Offerte**: Tab *Offerten* → *+ Offerte* → PDF wählen → *Offerte analysieren*.
-   Die Demo-Werte erscheinen mit violettem Abzeichen; Positionen korrigieren, speichern.
+5. **Offerte**: Tab *Offerten* → *+ Offerte* → PDF wählen → *Offerte auslesen*.
+   Die erkannten Werte erscheinen mit violettem Hinweis «Von der KI ausgelesen – bitte
+   prüfen»; Positionen kontrollieren, korrigieren, speichern.
    Die Datei lässt sich später über *Datei* wieder öffnen (signierter Link, 2 Minuten gültig).
 6. **Beleg** erfassen, einer Offerte zuordnen, *bezahlt* setzen (Zahlungsdatum wird
    automatisch auf heute gesetzt). Zwei der drei Beträge genügen, der dritte wird ergänzt.
@@ -351,9 +397,7 @@ signierte Links, und die Storage-Regeln prüfen die Projekt-Zugehörigkeit anhan
 
 ## Nächste Schritte
 
-1. Echte Dokumentenanalyse als Edge Function – der API-Key bleibt serverseitig.
-   In der App muss dafür nur `analysiereDokument()` in `app/js/ki.js` ersetzt werden.
-2. Offline-Betrieb: Warteschlange in `daten.js` (`schreiben()`) ergänzen.
+1. Offline-Betrieb: Warteschlange in `daten.js` (`schreiben()`) ergänzen.
 3. Beträge ohne Budgetkategorie erscheinen in den Kennzahlen, aber nicht im
    Kostenvergleich – dieser geht von den Budgetpositionen aus. Bei Bedarf als
    Zeile «Nicht zugeordnet» in einer neuen Migration ergänzen.

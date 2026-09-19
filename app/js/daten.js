@@ -49,6 +49,45 @@ async function schreiben(fn, grenze) {
 export { UPLOAD_ZEITLIMIT_MS };
 const lesen = schreiben;
 
+/* ------------------------------------------------------- KI-Dokumentanalyse */
+// Die Auswertung läuft in einer Edge Function auf dem Server ("dokument-analysieren").
+// Nur dort liegt der Schlüssel des KI-Dienstes; im Browser ist er nie vorhanden.
+export const ANALYSE_ZEITLIMIT_MS = 160000;
+
+export async function dokumentAnalysieren(pfad, art) {
+  let antwort;
+  try {
+    antwort = await mitZeitlimit(
+      supabase.functions.invoke("dokument-analysieren", { body: { pfad, art } }),
+      ANALYSE_ZEITLIMIT_MS
+    );
+  } catch (e) {
+    if (e instanceof DatenFehler) throw e;
+    if (istZeitueberschreitung(e)) throw new DatenFehler(MELDUNG_ZEITUEBERSCHREITUNG, true);
+    if (istVerbindungsfehler(e)) throw new DatenFehler(MELDUNG_KEINE_VERBINDUNG, true);
+    throw new DatenFehler(e.message || String(e));
+  }
+  if (antwort.error) {
+    // Die Funktion legt ihre eigene Begründung in den Antwortkörper – die ist für
+    // die Bedienung viel brauchbarer als "Edge Function returned a non-2xx status".
+    let text = antwort.error.message || "Die Analyse ist fehlgeschlagen.";
+    let code = null;
+    const rohantwort = antwort.error.context;
+    if (rohantwort && typeof rohantwort.json === "function") {
+      try {
+        const inhalt = await rohantwort.json();
+        if (inhalt && inhalt.fehler) text = inhalt.fehler;
+        if (inhalt && inhalt.code) code = inhalt.code;
+      } catch (e) { /* kein JSON – dann bleibt die allgemeine Meldung */ }
+    }
+    const fehler = new DatenFehler(text);
+    fehler.code = code;
+    throw fehler;
+  }
+  if (!antwort.data || !antwort.data.werte) throw new DatenFehler("Die Analyse hat keine Werte zurückgegeben.");
+  return antwort.data;
+}
+
 function pruefen({ data, error }) {
   if (error) throw error;
   return data;

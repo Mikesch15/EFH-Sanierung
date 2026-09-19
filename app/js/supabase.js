@@ -48,10 +48,17 @@ export const speicherIstFluechtig = (() => {
 // dass jemand erfährt, woran es liegt.
 export const ZEITLIMIT_MS = 12000;
 const ZEITLIMIT_UPLOAD_MS = 120000;
+// Die KI-Analyse liest ein ganzes PDF – das dauert regelmässig länger als eine
+// gewöhnliche Abfrage und darf nicht nach 12 Sekunden abgeschnitten werden.
+const ZEITLIMIT_FUNKTION_MS = 150000;
 
 function fetchMitZeitlimit(eingabe, optionen) {
   const adresse = typeof eingabe === "string" ? eingabe : (eingabe && eingabe.url) || "";
-  const grenze = adresse.includes("/storage/v1/object") ? ZEITLIMIT_UPLOAD_MS : ZEITLIMIT_MS;
+  const grenze = adresse.includes("/storage/v1/object")
+    ? ZEITLIMIT_UPLOAD_MS
+    : adresse.includes("/functions/v1/")
+      ? ZEITLIMIT_FUNKTION_MS
+      : ZEITLIMIT_MS;
   const abbruch = new AbortController();
   const uhr = setTimeout(() => abbruch.abort(), grenze);
   return fetch(eingabe, Object.assign({}, optionen, { signal: abbruch.signal }))

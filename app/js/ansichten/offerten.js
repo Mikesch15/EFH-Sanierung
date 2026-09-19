@@ -2,12 +2,13 @@ import { esc, chf, datumCH, zahl, heuteISO, meldung, bestaetigen } from "../form
 import { leerZustand, statusBadge, offerteNetto, offerteMwst, kategorieOptionen, kategorieName, ladeSchritte } from "./gemeinsam.js";
 import { offerteSpeichern, offerteLoeschen } from "../daten.js";
 import { hochladen, signierterLink, loeschen as dateiLoeschen } from "../dateien.js";
-import { analysiereDokument, ANALYSE_SCHRITTE } from "../ki.js";
+import { analysiereDokument, analyseFehlerText, ANALYSE_SCHRITTE } from "../ki.js";
 import { modalOeffnen, neuLaden, kannBearbeiten, istEigentuemer } from "../app.js";
 import { STATUS_LISTE } from "../konfig.js";
 
 let entwurf = null;
 let dateiWartend = null;
+let letzterHinweis = "";   // Anmerkung der KI zur zuletzt ausgelesenen Datei
 
 export function render(Z) {
   const bearbeitbar = kannBearbeiten();
@@ -27,7 +28,7 @@ export function render(Z) {
     '<th class="num">Netto</th><th class="num">Total inkl. MWST</th><th></th></tr></thead><tbody>';
   Z.offerten.slice().reverse().forEach((o) => {
     h += "<tr><td><b>" + esc(o.lieferant || "–") + "</b> " +
-      (o.ki_erkannt ? '<span class="badge demo">Demo</span>' : "") +
+      (o.ki_erkannt ? '<span class="badge demo">KI</span>' : "") +
       (o.datei_pfad ? ' <span class="badge">Datei</span>' : "") +
       (o.handwerker_id ? ' <span class="badge blau">Handwerker</span>' : "") + "</td>" +
       "<td>" + esc(o.nummer || "–") + "</td>" +
@@ -58,6 +59,7 @@ function entwurfMwst() {
 
 function formular(Z, o) {
   dateiWartend = null;
+  letzterHinweis = "";
   entwurf = o ? JSON.parse(JSON.stringify(o)) : {
     id: null, budgetposition_id: null, lieferant: "", nummer: "", datum: heuteISO(), status: "Entwurf",
     mwst_satz: 8.1, bemerkung: "", datei_pfad: null, datei_name: null, ki_erkannt: false, handwerker_id: null,
@@ -76,8 +78,10 @@ function koerper(Z) {
   const o = entwurf;
   let h = '<div id="o-analyse">' + analyseBlock() + "</div>";
   if (o.ki_erkannt) {
-    h += '<div class="hinweis demo" style="margin-bottom:14px"><div><b>Demo – simulierte KI-Erkennung</b>' +
-      "Diese Werte sind fest hinterlegte Beispieldaten und wurden nicht aus Ihrer Datei ausgelesen. Bitte prüfen.</div></div>";
+    h += '<div class="hinweis demo" style="margin-bottom:14px"><div><b>Von der KI ausgelesen – bitte prüfen</b>' +
+      "Automatisch erkannte Werte können falsch sein. Beträge, Mengen und das Datum bitte mit der Offerte vergleichen." +
+      (letzterHinweis ? "<br>Hinweis der Auswertung: " + esc(letzterHinweis) : "") +
+      "</div></div>";
   }
   h += '<label class="feld"><span>Lieferant</span><input data-feld="lieferant" value="' + esc(o.lieferant) + '" placeholder="Firma"></label>' +
     '<div class="feld-paar">' +
@@ -115,7 +119,7 @@ function analyseBlock() {
     return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Datei: ' + esc(o.datei_name || "") + "</b>" +
       '<div class="btn-reihe" style="margin-top:9px">' +
       '<button class="btn zweit klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(o.datei_pfad) + '">Datei öffnen</button>' +
-      '<button class="btn zweit klein" type="button" data-aktion="o-analysieren">Offerte analysieren (Demo)</button>' +
+      '<button class="btn zweit klein" type="button" data-aktion="o-analysieren">Offerte auslesen</button>' +
       '<button class="btn still klein" type="button" data-aktion="o-datei-entfernen">Datei entfernen</button>' +
       "</div></div></div>";
   }
@@ -123,15 +127,16 @@ function analyseBlock() {
     return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Gewählte Datei: ' + esc(dateiWartend.name) + "</b>" +
       "Wird beim Speichern hochgeladen." +
       '<div class="btn-reihe" style="margin-top:9px">' +
-      '<button class="btn zweit klein" type="button" data-aktion="o-analysieren">Erneut analysieren (Demo)</button>' +
+      '<button class="btn zweit klein" type="button" data-aktion="o-analysieren">Offerte auslesen</button>' +
       '<button class="btn still klein" type="button" data-aktion="o-datei-entfernen">Datei entfernen</button>' +
       "</div></div></div>";
   }
   return '<div class="datei-feld" style="margin-bottom:14px"><p>Offerte als PDF, JPG oder PNG hochladen</p>' +
     '<input type="file" id="o-datei" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png">' +
     '<div class="btn-reihe" style="margin-top:11px;justify-content:center">' +
-    '<button class="btn klein" type="button" data-aktion="o-analysieren">Offerte analysieren</button></div>' +
-    '<p style="margin:9px 0 0;font-size:.76rem">Die Analyse ist simuliert und liefert immer dieselben Demo-Werte.</p></div>';
+    '<button class="btn klein" type="button" data-aktion="o-analysieren">Offerte auslesen</button></div>' +
+    '<p style="margin:9px 0 0;font-size:.76rem">Beim Auslesen wird die Datei gespeichert und einmalig an den KI-Dienst ' +
+    "(Google Gemini) übermittelt. Ohne Klick auf diesen Knopf passiert das nicht.</p></div>";
 }
 
 function positionHtml(p, i) {
@@ -182,29 +187,43 @@ async function analysieren(Z) {
   const block = document.getElementById("o-analyse");
   const schritte = ANALYSE_SCHRITTE.offerte;
   block.innerHTML = '<div class="karte karte-pad lade" style="margin-bottom:14px"><div class="lade-ring"></div>' +
-    "<b>Offerte wird analysiert …</b>" + ladeSchritte(schritte, 0) +
-    '<p style="margin:12px 0 0;font-size:.76rem;color:var(--grau)">Simulierter Ablauf – es wird keine Datei ausgelesen und keine Schnittstelle aufgerufen.</p></div>';
+    "<b>Offerte wird ausgelesen …</b>" + ladeSchritte(schritte, 0) +
+    '<p style="margin:12px 0 0;font-size:.76rem;color:var(--grau)">Das dauert je nach Umfang bis zu einer Minute.</p></div>';
 
   let ergebnis;
   try {
-    ergebnis = await analysiereDokument(dateiWartend || { name: entwurf.datei_name }, "offerte", (i) => {
-      const liste = block.querySelector(".lade-schritte");
-      if (liste) liste.innerHTML = ladeSchritte(schritte, i + 1);
-    });
+    ergebnis = await analysiereDokument(
+      { datei: dateiWartend, pfad: entwurf.datei_pfad, name: entwurf.datei_name, projektId: Z.projektId, bereich: "offerten" },
+      "offerte",
+      (i) => {
+        const liste = block.querySelector(".lade-schritte");
+        if (liste) liste.innerHTML = ladeSchritte(schritte, i + 1);
+      }
+    );
   } catch (e) {
-    meldung("Analyse abgebrochen: " + (e.message || e), true);
+    if (document.getElementById("o-analyse")) document.getElementById("o-analyse").innerHTML = analyseBlock();
+    meldung(analyseFehlerText(e), true);
     return;
   }
-  if (!document.querySelector(".modal")) return;   // Modal wurde zwischenzeitlich geschlossen
+  if (!document.querySelector(".modal") || !entwurf) return;   // Modal wurde zwischenzeitlich geschlossen
+  // Die Datei liegt jetzt im Speicher – beim Speichern nicht noch einmal hochladen.
+  entwurf.datei_pfad = ergebnis.datei_pfad;
+  entwurf.datei_name = ergebnis.datei_name;
+  dateiWartend = null;
+  letzterHinweis = ergebnis.hinweis || "";
   entwurf.ki_erkannt = true;
-  entwurf.lieferant = ergebnis.lieferant;
-  entwurf.nummer = ergebnis.nummer;
-  entwurf.datum = ergebnis.datum;
+  if (ergebnis.lieferant) entwurf.lieferant = ergebnis.lieferant;
+  if (ergebnis.nummer) entwurf.nummer = ergebnis.nummer;
+  if (ergebnis.datum) entwurf.datum = ergebnis.datum;
   entwurf.mwst_satz = ergebnis.mwstSatz;
   entwurf.status = entwurf.status === "Entwurf" ? "Erfasst" : entwurf.status;
-  entwurf.offert_positionen = ergebnis.positionen;
+  if (ergebnis.positionen.length) entwurf.offert_positionen = ergebnis.positionen;
   neuZeichnenKoerper(Z);
-  meldung("Demo-Erkennung eingefügt – bitte prüfen und korrigieren.");
+  meldung(
+    ergebnis.positionen.length
+      ? "Offerte ausgelesen (" + ergebnis.positionen.length + " Positionen) – bitte prüfen."
+      : "Es konnten keine Positionen erkannt werden. Bitte von Hand erfassen."
+  );
 }
 
 async function speichern(Z) {
