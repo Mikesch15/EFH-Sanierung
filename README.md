@@ -16,6 +16,7 @@ dieses auch nicht.
 | Auf dem Handy installierbar (PWA) | fertig, siehe «Auf dem Handy installieren» |
 | Handwerker-Zugang für einzelne Offerten | fertig, siehe `app/handwerker.html` |
 | Register für Fördergelder | fertig, siehe «Fördergelder» |
+| Anschaffungen ausserhalb des Budgets (Kredit) | fertig, siehe «Anschaffungen» |
 | Echte Dokumentenanalyse (Gemini) | fertig in der App, siehe «KI-Auswertung»; im Prototyp weiterhin simuliert |
 
 ## Supabase-Projekt
@@ -35,8 +36,9 @@ Datenbank-Passwort, Gemini-API-Key.
 ## Datenmodell
 
 ```
-projekte                 Objekt, Adresse, Kaufpreis, Gesamtbudget
+projekte                 Objekt, Adresse, Kaufpreis, Gesamtbudget, Kreditrahmen
 └─ kaufnebenkosten       Notariat, Steuern, Grundbuch … je als eigene Position
+└─ anschaffungen         Umzug, Möbel, Maschinen – ausserhalb des Sanierungsbudgets
 └─ projekt_mitglieder    wer darf was (eigentuemer / bearbeiter / leser / handwerker)
 └─ budgetpositionen      Kategorie, Budgetbetrag, «zählt schon» oder «erst später»
    ├─ offerten           Lieferant, Nummer, Status, MWST-Satz, Datei
@@ -136,7 +138,8 @@ app/
   js/ki.js              KI-Auswertung: hochladen und Edge Function rufen (eine Funktion zum Austauschen)
   js/import.js          Übernahme der Prototyp-Sicherung
   js/app.js             Start, Navigation, Modal, Realtime
-  js/ansichten/*.js     Anmeldung, Übersicht, Budget, Fördergelder, Offerten, Belege, Dokumente
+  js/ansichten/*.js     Anmeldung, Übersicht, Budget, Fördergelder, Anschaffungen,
+                        Offerten, Belege, Dokumente
   js/paket/*.js         daraus gebaute Auslieferung (nicht von Hand ändern)
 ```
 
@@ -378,6 +381,27 @@ Betrag nennt die gesicherte Förderung ausdrücklich.
 Steht eine Eingabefrist in der Vergangenheit und ist das Gesuch noch auf *Geplant*, warnt
 das Register – viele Programme verlangen das Gesuch vor Baubeginn.
 
+## Anschaffungen ausserhalb des Sanierungsbudgets
+
+Umzug, Möbel, Haushaltgeräte, Maschinen und Werkzeug gehören nicht zur Sanierung. Sie
+stehen im Tab *Budget* im eigenen Abschnitt *Anschaffungen* – mit eigener Summe und
+klarer Abgrenzung:
+
+- Sie verändern **weder den Sanierungsrahmen noch den verfügbaren Betrag noch den
+  Kostenvergleich**. Das steht auch in der App unter der Tabelle und im Formular.
+- Je Position: Bezeichnung, Art (Umzug, Möbel, Haushaltgeräte, Maschinen/Werkzeug,
+  Garten …), Betrag, Datum, bezahlt ja/nein, Finanzierung (*Kredit* oder *Eigenmittel*)
+  und Bemerkung.
+- Wurde dafür ein **Kredit** aufgenommen, lässt sich sein Rahmen erfassen (Knopf
+  *Kreditrahmen*). Darunter zeigt ein Balken, wie viel davon gebunden und wie viel noch
+  frei ist; eine Überschreitung wird gewarnt. Der Kredit gehört nicht zum Gesamtbudget
+  der Liegenschaft – 0 blendet den Abschnitt wieder aus.
+- Auf der Übersicht erscheint die Kennzahl *Anschaffungen* nur, wenn etwas erfasst ist,
+  und nennt ausdrücklich «ausserhalb des Sanierungsbudgets».
+
+Damit der Tab *Budget* mit seinen vier Abschnitten übersichtlich bleibt, steht oben eine
+Sprungleiste: Budget · Kostenvergleich · Fördergelder · Anschaffungen.
+
 ## Migrationen anwenden
 
 Die Migrationen sind im Supabase-Projekt bereits eingespielt. Für eine zweite Umgebung
@@ -414,15 +438,18 @@ Am besten auf zwei Geräten (oder einem normalen Fenster und einem privaten Fens
 7. **Fördergeld erfassen**: Tab *Budget* → Abschnitt *Fördergelder* → *+ Fördergeld*.
    Mit Stand *Beantragt* erscheint der Betrag nur als «erwartet»; nach dem Umstellen auf
    *Zugesichert* steigt der verfügbare Betrag auf der Übersicht um genau diesen Betrag.
-8. **Drei Dokumente auf einmal** hochladen (Tab *Dokumente* → *+ Dateien*, Mehrfachauswahl).
-9. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
+8. **Anschaffung erfassen**: Tab *Budget* → *Anschaffungen* → *+ Anschaffung* (z.B. Umzug).
+   Der verfügbare Betrag auf der Übersicht darf sich dadurch **nicht** ändern. Mit
+   *Kreditrahmen* lässt sich zeigen, wie viel vom Kredit schon gebunden ist.
+9. **Drei Dokumente auf einmal** hochladen (Tab *Dokumente* → *+ Dateien*, Mehrfachauswahl).
+10. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
    Werten passen. Der Kostenvergleich kommt aus der View `v_kostenvergleich`.
-10. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür
+11. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür
     nötigen Tabellen stehen seit Migration 0012 in der Veröffentlichung
     `supabase_realtime` – vorher war sie leer, und es wurde erst beim Tabwechsel
     aktualisiert); beim Zurückkehren
    in den Tab wird zusätzlich neu geladen.
-11. **Prototyp-Sicherung importieren**: im Prototyp *Daten exportieren*, dann in der App
+12. **Prototyp-Sicherung importieren**: im Prototyp *Daten exportieren*, dann in der App
     Übersicht → *Sicherung importieren*. Der erste Klick auf *Importieren* zeigt nur, was
     eingefügt würde; erst der zweite führt den Import aus. Derselbe Export wird pro Projekt
     nur einmal importiert.

@@ -41,7 +41,7 @@ export function render(Z) {
   const gesichert = liste.filter(foerderIstSicher).reduce((s, f) => s + zahl(f.betrag), 0);
   const erwartet = liste.filter(foerderIstOffen).reduce((s, f) => s + zahl(f.betrag), 0);
 
-  let h = '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Fördergelder</h2>' +
+  let h = '<section class="abschnitt" id="abschnitt-foerderung"><div class="abschnitt-kopf"><div><h2>Fördergelder</h2>' +
     "<p>" + (liste.length
       ? "gesichert " + chfKurz(gesichert) + (erwartet ? " · erwartet " + chfKurz(erwartet) : "")
       : "Beiträge von Bund, Kanton, Gemeinde und Werken") + "</p></div>" +

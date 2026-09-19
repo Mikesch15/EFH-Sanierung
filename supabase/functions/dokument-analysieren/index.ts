@@ -73,6 +73,24 @@ async function modelleErmitteln(schluessel: string): Promise<{ modelle: string[]
   return { modelle: liste };
 }
 
+/** Aus einer 429-Antwort das Wesentliche ziehen: welches Kontingent, wie lange warten. */
+function kontingentDetail(text: string): string {
+  try {
+    const daten = JSON.parse(text);
+    const details = daten?.error?.details ?? [];
+    // deno-lint-ignore no-explicit-any
+    const quota = details.find((d: any) => String(d["@type"]).includes("QuotaFailure"))?.violations?.[0];
+    // deno-lint-ignore no-explicit-any
+    const warten = details.find((d: any) => String(d["@type"]).includes("RetryInfo"))?.retryDelay;
+    const teile: string[] = [];
+    if (quota?.quotaId || quota?.quotaMetric) teile.push(String(quota.quotaId ?? quota.quotaMetric));
+    if (warten) teile.push("Wartezeit " + warten);
+    return teile.join(", ") || String(daten?.error?.message ?? "").slice(0, 140);
+  } catch {
+    return text.slice(0, 140);
+  }
+}
+
 function antwort(daten: unknown, status = 200) {
   return new Response(JSON.stringify(daten), {
     status,
@@ -217,9 +235,10 @@ Deno.serve(async (anfrage) => {
   }
 
   let letzterFehler = "";
-  // Höchstens drei Versuche: Was der Dienst als verfügbar meldet, kann im Einzelfall
+  let kontingentDetails = "";
+  // Höchstens vier Versuche: Was der Dienst als verfügbar meldet, kann im Einzelfall
   // trotzdem abgelehnt werden – aber die ganze Liste durchzugehen dauert zu lange.
-  for (const modell of modelle.slice(0, 3)) {
+  for (const modell of modelle.slice(0, 4)) {
     let gemini: Response;
     try {
       gemini = await fetch(
@@ -248,7 +267,10 @@ Deno.serve(async (anfrage) => {
         return antwort({ code: "schluessel_ungueltig", fehler: "Der hinterlegte API-Schlüssel wird abgelehnt." }, 502);
       }
       if (gemini.status === 429) {
-        return antwort({ code: "kontingent", fehler: "Das Kontingent des KI-Dienstes ist erschöpft. Bitte später erneut versuchen." }, 502);
+        // Kontingente gelten je Modell: Das nächste kann durchaus noch frei sein.
+        if (!kontingentDetails) kontingentDetails = kontingentDetail(text);
+        letzterFehler = "Modell " + modell + ": Kontingent erschöpft";
+        continue;
       }
       return antwort({ fehler: "Der KI-Dienst meldet einen Fehler (" + gemini.status + "): " + text.slice(0, 300) }, 502);
     }
@@ -269,8 +291,17 @@ Deno.serve(async (anfrage) => {
     return antwort({ art, modell, werte });
   }
 
+  if (kontingentDetails) {
+    return antwort({
+      code: "kontingent",
+      fehler: "Das Kontingent des KI-Dienstes ist für alle verfügbaren Modelle erschöpft (" +
+        kontingentDetails + "). Bei einem kostenlosen Zugang gilt meist ein Minuten- UND ein " +
+        "Tageslimit: In einer Minute nochmals versuchen; hilft das nicht, ist das Tageslimit " +
+        "erreicht. Geprüft: " + modelle.slice(0, 4).join(", "),
+    }, 502);
+  }
   return antwort({
     fehler: (letzterFehler || "Kein passendes Modell verfügbar.") +
-      " Geprüft: " + modelle.slice(0, 3).join(", "),
+      " Geprüft: " + modelle.slice(0, 4).join(", "),
   }, 502);
 });

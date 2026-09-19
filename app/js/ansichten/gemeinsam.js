@@ -46,8 +46,20 @@ export function summen(Z) {
   const foerderErwartet = foerder.filter(foerderIstOffen).reduce((s, f) => s + zahl(f.betrag), 0);
   const foerderAusbezahlt = foerder.filter((f) => f.status === "Ausbezahlt").reduce((s, f) => s + zahl(f.betrag), 0);
 
+  // Anschaffungen (Umzug, Möbel, Maschinen) gehören ausdrücklich NICHT in den
+  // Sanierungsrahmen: andere Töpfe, meist ein eigener Kredit. Sie werden nur
+  // ausgewiesen, nie verrechnet.
+  const anschaffungen = Z.anschaffungen || [];
+  const anschaffungenSumme = anschaffungen.reduce((s, a) => s + zahl(a.betrag), 0);
+  const anschaffungenBezahlt = anschaffungen.filter((a) => a.bezahlt).reduce((s, a) => s + zahl(a.betrag), 0);
+  const kreditVerwendet = anschaffungen.filter((a) => a.finanzierung !== "Eigenmittel")
+    .reduce((s, a) => s + zahl(a.betrag), 0);
+  const kreditRahmen = zahl(Z.projekt?.kredit_rahmen);
+
   return {
     gesamtbudget, kaufpreis, kaufnebenkosten, rahmen, budgetiert, spaeter, spaeterAnzahl,
+    anschaffungenSumme, anschaffungenBezahlt, kreditVerwendet, kreditRahmen,
+    kreditFrei: kreditRahmen - kreditVerwendet,
     offerten, rechnungen, bezahlt, verpflichtet,
     foerderGesichert, foerderErwartet, foerderAusbezahlt,
     offen: rechnungen - bezahlt,

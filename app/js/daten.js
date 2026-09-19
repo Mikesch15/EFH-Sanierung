@@ -237,6 +237,54 @@ export function nebenkostenLoeschen(id) {
   return schreiben(async () => pruefen(await supabase.from("kaufnebenkosten").delete().eq("id", id)));
 }
 
+/* ---------------------------------------------------------- Anschaffungen */
+// Umzug, Möbel, Maschinen: ausserhalb des Sanierungsbudgets, meist über einen
+// eigenen Kredit. Fliesst bewusst in keine Budgetzahl ein.
+export function anschaffungenLaden(projektId) {
+  return lesen(async () =>
+    pruefen(
+      await supabase
+        .from("anschaffungen")
+        .select("*")
+        .eq("projekt_id", projektId)
+        .order("sortierung")
+        .order("erstellt_am")
+    )
+  );
+}
+
+export function anschaffungAnlegen(projektId, daten) {
+  return schreiben(async () =>
+    pruefen(
+      await supabase
+        .from("anschaffungen")
+        .insert({
+          projekt_id: projektId,
+          bezeichnung: daten.bezeichnung || "",
+          kategorie: daten.kategorie || "",
+          betrag: daten.betrag || 0,
+          datum: daten.datum || null,
+          bezahlt: !!daten.bezahlt,
+          finanzierung: daten.finanzierung === "Eigenmittel" ? "Eigenmittel" : "Kredit",
+          bemerkung: daten.bemerkung || "",
+        })
+        .select()
+        .single()
+    )
+  );
+}
+
+export function anschaffungAktualisieren(id, daten, geladenAm) {
+  return schreiben(async () => {
+    await konfliktPruefen("anschaffungen", id, geladenAm);
+    return pruefen(await supabase.from("anschaffungen").update(daten).eq("id", id).select().single());
+  });
+}
+
+export function anschaffungLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("anschaffungen").delete().eq("id", id)));
+}
+
 /* ----------------------------------------------------------- Fördergelder */
 // Register der Beiträge von Bund, Kanton, Gemeinde und Werken. Der Betrag ist
 // bis zur Zusicherung der erwartete, danach der verfügte – der Status sagt,
@@ -530,6 +578,7 @@ export function projektAbonnieren(projektId, aufAenderung) {
     .on("postgres_changes", { event: "*", schema: "public", table: "dokumente", filter: "projekt_id=eq." + projektId }, () => aufAenderung("dokumente"))
     .on("postgres_changes", { event: "*", schema: "public", table: "kaufnebenkosten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("nebenkosten"))
     .on("postgres_changes", { event: "*", schema: "public", table: "foerdergelder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("foerdergelder"))
+    .on("postgres_changes", { event: "*", schema: "public", table: "anschaffungen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("anschaffungen"))
     .on("postgres_changes", { event: "*", schema: "public", table: "projekt_mitglieder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("mitglieder"))
     .subscribe();
   return () => supabase.removeChannel(kanal);

@@ -1,69 +1,104 @@
 var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __esm = (fn, res, err) => function __init() {
+  if (err) throw err[0];
+  try {
+    return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+  } catch (e) {
+    throw err = [e], e;
+  }
+};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
+// app/js/konfig.js
+var SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, STORAGE_BUCKET, DATEI_MAX_BYTES, DATEI_ERLAUBTE_TYPEN, DATEI_ERLAUBTE_ENDUNGEN, MWST_SATZ_VORGABE, STATUS_LISTE, DOKUMENT_TYPEN, STANDARD_KATEGORIEN, NEBENKOSTEN_ARTEN, FOERDER_STATUS, FOERDER_STATUS_SICHER, FOERDER_STELLEN, ANSCHAFFUNG_ARTEN, FINANZIERUNGEN, ROLLEN, SIGNIERTER_LINK_SEKUNDEN;
+var init_konfig = __esm({
+  "app/js/konfig.js"() {
+    SUPABASE_URL = "https://evozevkzwcvpbnvcmmfp.supabase.co";
+    SUPABASE_PUBLISHABLE_KEY = "sb_publishable_us-LmqO0xw7nYgraQ7KCNw_dukOK3K-";
+    STORAGE_BUCKET = "projektdateien";
+    DATEI_MAX_BYTES = 25 * 1024 * 1024;
+    DATEI_ERLAUBTE_TYPEN = ["application/pdf", "image/jpeg", "image/png", "image/heic", "image/webp"];
+    DATEI_ERLAUBTE_ENDUNGEN = [".pdf", ".jpg", ".jpeg", ".png", ".heic", ".webp"];
+    MWST_SATZ_VORGABE = 8.1;
+    STATUS_LISTE = ["Entwurf", "Erfasst", "Verglichen", "Beauftragt", "Abgelehnt"];
+    DOKUMENT_TYPEN = [
+      "Kaufvertrag",
+      "Reservationsvereinbarung",
+      "Grundriss",
+      "Plan",
+      "Baubewilligung",
+      "Handwerkerunterlagen",
+      "Garantie",
+      "Foto",
+      "Versicherungsunterlagen",
+      "Sonstiges"
+    ];
+    STANDARD_KATEGORIEN = [
+      "Rückbau / Entsorgung",
+      "Elektro",
+      "Wasser / Sanitär",
+      "Maurerarbeiten / Wanddurchbrüche",
+      "Wände / Decken",
+      "Böden",
+      "Küche",
+      "Badezimmer EG",
+      "Badezimmer OG",
+      "Fassade",
+      "Heizung",
+      "Fenster",
+      "Sonstiges",
+      "Reserve"
+    ];
+    NEBENKOSTEN_ARTEN = [
+      "Notariat",
+      "Handänderungssteuer",
+      "Grundbuchgebühren",
+      "Schätzung / Gutachten",
+      "Bankspesen",
+      "Gebäudeversicherung",
+      "Umzug",
+      "Sonstiges"
+    ];
+    FOERDER_STATUS = ["Geplant", "Beantragt", "Zugesichert", "Ausbezahlt", "Abgelehnt"];
+    FOERDER_STATUS_SICHER = ["Zugesichert", "Ausbezahlt"];
+    FOERDER_STELLEN = [
+      "Das Gebäudeprogramm",
+      "Kanton",
+      "Gemeinde",
+      "Bund",
+      "Elektrizitätswerk",
+      "Gasversorgung",
+      "Pronovo (Einmalvergütung)",
+      "Stiftung Klimaschutz",
+      "Sonstige"
+    ];
+    ANSCHAFFUNG_ARTEN = [
+      "Umzug",
+      "Möbel",
+      "Haushaltgeräte",
+      "Maschinen / Werkzeug",
+      "Garten",
+      "Reinigung",
+      "Vorhänge / Storen",
+      "Sonstiges"
+    ];
+    FINANZIERUNGEN = ["Kredit", "Eigenmittel"];
+    ROLLEN = {
+      eigentuemer: "Eigentümer",
+      bearbeiter: "Bearbeiter",
+      leser: "Leser",
+      handwerker: "Handwerker"
+    };
+    SIGNIERTER_LINK_SEKUNDEN = 120;
+  }
+});
+
 // app/js/supabase.js
 import { createClient } from "../vendor/supabase-js.js";
-
-// app/js/konfig.js
-var SUPABASE_URL = "https://evozevkzwcvpbnvcmmfp.supabase.co";
-var SUPABASE_PUBLISHABLE_KEY = "sb_publishable_us-LmqO0xw7nYgraQ7KCNw_dukOK3K-";
-var STORAGE_BUCKET = "projektdateien";
-var DATEI_MAX_BYTES = 25 * 1024 * 1024;
-var DATEI_ERLAUBTE_TYPEN = ["application/pdf", "image/jpeg", "image/png", "image/heic", "image/webp"];
-var DATEI_ERLAUBTE_ENDUNGEN = [".pdf", ".jpg", ".jpeg", ".png", ".heic", ".webp"];
-var MWST_SATZ_VORGABE = 8.1;
-var STATUS_LISTE = ["Entwurf", "Erfasst", "Verglichen", "Beauftragt", "Abgelehnt"];
-var DOKUMENT_TYPEN = [
-  "Kaufvertrag",
-  "Reservationsvereinbarung",
-  "Grundriss",
-  "Plan",
-  "Baubewilligung",
-  "Handwerkerunterlagen",
-  "Garantie",
-  "Foto",
-  "Versicherungsunterlagen",
-  "Sonstiges"
-];
-var STANDARD_KATEGORIEN = [
-  "Rückbau / Entsorgung",
-  "Elektro",
-  "Wasser / Sanitär",
-  "Maurerarbeiten / Wanddurchbrüche",
-  "Wände / Decken",
-  "Böden",
-  "Küche",
-  "Badezimmer EG",
-  "Badezimmer OG",
-  "Fassade",
-  "Heizung",
-  "Fenster",
-  "Sonstiges",
-  "Reserve"
-];
-var NEBENKOSTEN_ARTEN = [
-  "Notariat",
-  "Handänderungssteuer",
-  "Grundbuchgebühren",
-  "Schätzung / Gutachten",
-  "Bankspesen",
-  "Gebäudeversicherung",
-  "Umzug",
-  "Sonstiges"
-];
-var ROLLEN = {
-  eigentuemer: "Eigentümer",
-  bearbeiter: "Bearbeiter",
-  leser: "Leser",
-  handwerker: "Handwerker"
-};
-var SIGNIERTER_LINK_SEKUNDEN = 120;
-
-// app/js/supabase.js
-var merker = /* @__PURE__ */ new Map();
 function sichererSpeicher() {
   let echt = null;
   try {
@@ -105,26 +140,13 @@ function sichererSpeicher() {
     removeItem: (k) => merker.delete(k)
   };
 }
-var speicherIstFluechtig = (() => {
-  try {
-    window.localStorage.setItem("tw-probe", "1");
-    window.localStorage.removeItem("tw-probe");
-    return false;
-  } catch (e) {
-    return true;
-  }
-})();
-var ZEITLIMIT_MS = 12e3;
-var ZEITLIMIT_UPLOAD_MS = 12e4;
-function fetchMitZeitlimit(eingabe3, optionen) {
-  const adresse = typeof eingabe3 === "string" ? eingabe3 : eingabe3 && eingabe3.url || "";
-  const grenze = adresse.includes("/storage/v1/object") ? ZEITLIMIT_UPLOAD_MS : ZEITLIMIT_MS;
+function fetchMitZeitlimit(eingabe6, optionen) {
+  const adresse = typeof eingabe6 === "string" ? eingabe6 : eingabe6 && eingabe6.url || "";
+  const grenze = adresse.includes("/storage/v1/object") ? ZEITLIMIT_UPLOAD_MS : adresse.includes("/functions/v1/") ? ZEITLIMIT_FUNKTION_MS : ZEITLIMIT_MS;
   const abbruch = new AbortController();
   const uhr = setTimeout(() => abbruch.abort(), grenze);
-  return fetch(eingabe3, Object.assign({}, optionen, { signal: abbruch.signal })).finally(() => clearTimeout(uhr));
+  return fetch(eingabe6, Object.assign({}, optionen, { signal: abbruch.signal })).finally(() => clearTimeout(uhr));
 }
-var authSpeicher = sichererSpeicher();
-var sperrKette = Promise.resolve();
 function eigeneSperre(name, dauer, fn) {
   const vorher = sperrKette;
   const ergebnis = (async () => {
@@ -143,32 +165,12 @@ function gespeicherteSitzungVorhanden() {
     return false;
   }
 }
-var supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  global: { fetch: fetchMitZeitlimit },
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: authSpeicher,
-    // supabase-js serialisiert Auth-Vorgänge normalerweise über die Web-Locks-
-    // Schnittstelle. Die gilt fensterübergreifend: Hängt ein anderes Fenster
-    // derselben Adresse, warten hier alle Aufrufe endlos.
-    //
-    // Ganz ohne Serialisierung ist es aber auch nicht richtig – zwei gleichzeitige
-    // Token-Erneuerungen entwerten sich gegenseitig, und die Anmeldung geht
-    // verloren. Deshalb eine eigene Warteschlange, die nur in diesem Fenster gilt
-    // und zusätzlich nach 10 Sekunden weitermacht, statt zu blockieren.
-    lock: eigeneSperre
-  }
-});
 function istZeitueberschreitung(fehler) {
   if (!fehler) return false;
   const name = fehler.name || "";
-  const text = String(fehler.message || fehler);
-  return name === "AbortError" || /abort|timeout|Zeitüberschreitung/i.test(text);
+  const text2 = String(fehler.message || fehler);
+  return name === "AbortError" || /abort|timeout|Zeitüberschreitung/i.test(text2);
 }
-var MELDUNG_ZEITUEBERSCHREITUNG = "Der Server hat nicht geantwortet (Zeitüberschreitung). Bitte Verbindung prüfen und erneut versuchen.";
-var AUTH_ZEITLIMIT_MS = 15e3;
 function authMitZeitlimit(versprechen) {
   let uhr;
   const wecker = new Promise((_, ablehnen) => {
@@ -202,20 +204,103 @@ function aufAuthAchten(callback) {
 }
 function istVerbindungsfehler(fehler) {
   if (!fehler) return false;
-  const text = String(fehler.message || fehler);
-  return /fetch|network|failed to fetch|NetworkError|Load failed/i.test(text);
+  const text2 = String(fehler.message || fehler);
+  return /fetch|network|failed to fetch|NetworkError|Load failed/i.test(text2);
 }
-var MELDUNG_KEINE_VERBINDUNG = "Keine Verbindung zum Server. Bitte Internetverbindung prüfen und erneut versuchen.";
+var merker, speicherIstFluechtig, ZEITLIMIT_MS, ZEITLIMIT_UPLOAD_MS, ZEITLIMIT_FUNKTION_MS, authSpeicher, sperrKette, supabase, MELDUNG_ZEITUEBERSCHREITUNG, AUTH_ZEITLIMIT_MS, MELDUNG_KEINE_VERBINDUNG;
+var init_supabase = __esm({
+  "app/js/supabase.js"() {
+    init_konfig();
+    merker = /* @__PURE__ */ new Map();
+    speicherIstFluechtig = (() => {
+      try {
+        window.localStorage.setItem("tw-probe", "1");
+        window.localStorage.removeItem("tw-probe");
+        return false;
+      } catch (e) {
+        return true;
+      }
+    })();
+    ZEITLIMIT_MS = 12e3;
+    ZEITLIMIT_UPLOAD_MS = 12e4;
+    ZEITLIMIT_FUNKTION_MS = 15e4;
+    authSpeicher = sichererSpeicher();
+    sperrKette = Promise.resolve();
+    supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      global: { fetch: fetchMitZeitlimit },
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: authSpeicher,
+        // supabase-js serialisiert Auth-Vorgänge normalerweise über die Web-Locks-
+        // Schnittstelle. Die gilt fensterübergreifend: Hängt ein anderes Fenster
+        // derselben Adresse, warten hier alle Aufrufe endlos.
+        //
+        // Ganz ohne Serialisierung ist es aber auch nicht richtig – zwei gleichzeitige
+        // Token-Erneuerungen entwerten sich gegenseitig, und die Anmeldung geht
+        // verloren. Deshalb eine eigene Warteschlange, die nur in diesem Fenster gilt
+        // und zusätzlich nach 10 Sekunden weitermacht, statt zu blockieren.
+        lock: eigeneSperre
+      }
+    });
+    MELDUNG_ZEITUEBERSCHREITUNG = "Der Server hat nicht geantwortet (Zeitüberschreitung). Bitte Verbindung prüfen und erneut versuchen.";
+    AUTH_ZEITLIMIT_MS = 15e3;
+    MELDUNG_KEINE_VERBINDUNG = "Keine Verbindung zum Server. Bitte Internetverbindung prüfen und erneut versuchen.";
+  }
+});
 
 // app/js/daten.js
-var DatenFehler = class extends Error {
-  constructor(text, keineVerbindung) {
-    super(text);
-    this.keineVerbindung = !!keineVerbindung;
-  }
-};
-var VORGANG_ZEITLIMIT_MS = 15e3;
-var UPLOAD_ZEITLIMIT_MS = 13e4;
+var daten_exports = {};
+__export(daten_exports, {
+  ANALYSE_ZEITLIMIT_MS: () => ANALYSE_ZEITLIMIT_MS,
+  DatenFehler: () => DatenFehler,
+  UPLOAD_ZEITLIMIT_MS: () => UPLOAD_ZEITLIMIT_MS,
+  anschaffungAktualisieren: () => anschaffungAktualisieren,
+  anschaffungAnlegen: () => anschaffungAnlegen,
+  anschaffungLoeschen: () => anschaffungLoeschen,
+  anschaffungenLaden: () => anschaffungenLaden,
+  belegLoeschen: () => belegLoeschen,
+  belegSpeichern: () => belegSpeichern,
+  belegeLaden: () => belegeLaden,
+  budgetAktualisieren: () => budgetAktualisieren,
+  budgetAnlegen: () => budgetAnlegen,
+  budgetLaden: () => budgetLaden,
+  budgetLoeschen: () => budgetLoeschen,
+  dokumentAktualisieren: () => dokumentAktualisieren,
+  dokumentAnalysieren: () => dokumentAnalysieren,
+  dokumentLoeschen: () => dokumentLoeschen,
+  dokumenteAnlegen: () => dokumenteAnlegen,
+  dokumenteLaden: () => dokumenteLaden,
+  eigeneHandwerkerOfferte: () => eigeneHandwerkerOfferte,
+  einladungAnlegen: () => einladungAnlegen,
+  einladungEinloesen: () => einladungEinloesen,
+  einladungInfo: () => einladungInfo,
+  einladungZuruecknehmen: () => einladungZuruecknehmen,
+  einladungenLaden: () => einladungenLaden,
+  foerdergeldAktualisieren: () => foerdergeldAktualisieren,
+  foerdergeldAnlegen: () => foerdergeldAnlegen,
+  foerdergeldLoeschen: () => foerdergeldLoeschen,
+  foerdergelderLaden: () => foerdergelderLaden,
+  konfliktPruefen: () => konfliktPruefen,
+  kostenvergleichLaden: () => kostenvergleichLaden,
+  mitZeitlimit: () => mitZeitlimit,
+  mitgliedEntfernen: () => mitgliedEntfernen,
+  mitgliedHinzufuegen: () => mitgliedHinzufuegen,
+  mitgliedRolleAendern: () => mitgliedRolleAendern,
+  mitgliederLaden: () => mitgliederLaden,
+  nebenkostenAktualisieren: () => nebenkostenAktualisieren,
+  nebenkostenAnlegen: () => nebenkostenAnlegen,
+  nebenkostenLaden: () => nebenkostenLaden,
+  nebenkostenLoeschen: () => nebenkostenLoeschen,
+  offerteLoeschen: () => offerteLoeschen,
+  offerteSpeichern: () => offerteSpeichern,
+  offertenLaden: () => offertenLaden,
+  projektAbonnieren: () => projektAbonnieren,
+  projektAktualisieren: () => projektAktualisieren,
+  projektAnlegen: () => projektAnlegen,
+  projekteLaden: () => projekteLaden
+});
 function mitZeitlimit(versprechen, grenze = VORGANG_ZEITLIMIT_MS) {
   let uhr;
   const wecker = new Promise((_, ablehnen) => {
@@ -237,7 +322,38 @@ async function schreiben(fn, grenze) {
     throw new DatenFehler(e.message || String(e));
   }
 }
-var lesen = schreiben;
+async function dokumentAnalysieren(pfad, art) {
+  let antwort;
+  try {
+    antwort = await mitZeitlimit(
+      supabase.functions.invoke("dokument-analysieren", { body: { pfad, art } }),
+      ANALYSE_ZEITLIMIT_MS
+    );
+  } catch (e) {
+    if (e instanceof DatenFehler) throw e;
+    if (istZeitueberschreitung(e)) throw new DatenFehler(MELDUNG_ZEITUEBERSCHREITUNG, true);
+    if (istVerbindungsfehler(e)) throw new DatenFehler(MELDUNG_KEINE_VERBINDUNG, true);
+    throw new DatenFehler(e.message || String(e));
+  }
+  if (antwort.error) {
+    let text2 = antwort.error.message || "Die Analyse ist fehlgeschlagen.";
+    let code = null;
+    const rohantwort = antwort.error.context;
+    if (rohantwort && typeof rohantwort.json === "function") {
+      try {
+        const inhalt = await rohantwort.json();
+        if (inhalt && inhalt.fehler) text2 = inhalt.fehler;
+        if (inhalt && inhalt.code) code = inhalt.code;
+      } catch (e) {
+      }
+    }
+    const fehler = new DatenFehler(text2);
+    fehler.code = code;
+    throw fehler;
+  }
+  if (!antwort.data || !antwort.data.werte) throw new DatenFehler("Die Analyse hat keine Werte zurückgegeben.");
+  return antwort.data;
+}
 function pruefen({ data, error }) {
   if (error) throw error;
   return data;
@@ -280,6 +396,21 @@ function mitgliederLaden(projektId) {
       await supabase.from("projekt_mitglieder").select("*").eq("projekt_id", projektId).order("rolle")
     )
   );
+}
+function mitgliedHinzufuegen(projektId, email, rolle) {
+  return schreiben(async () => {
+    const benutzerId = pruefen(await supabase.rpc("benutzer_id_zu_email", { p_email: email }));
+    if (!benutzerId) {
+      const fehler = new DatenFehler(
+        "Diese Person hat noch kein Konto. Sie muss sich zuerst selbst registrieren, danach kann sie hinzugefügt werden."
+      );
+      fehler.unbekannt = true;
+      throw fehler;
+    }
+    return pruefen(
+      await supabase.from("projekt_mitglieder").insert({ projekt_id: projektId, benutzer_id: benutzerId, rolle, email: email.trim() }).select().single()
+    );
+  });
 }
 function mitgliedRolleAendern(projektId, benutzerId, rolle) {
   return schreiben(
@@ -325,6 +456,78 @@ function nebenkostenAktualisieren(id, daten, geladenAm) {
 function nebenkostenLoeschen(id) {
   return schreiben(async () => pruefen(await supabase.from("kaufnebenkosten").delete().eq("id", id)));
 }
+function anschaffungenLaden(projektId) {
+  return lesen(
+    async () => pruefen(
+      await supabase.from("anschaffungen").select("*").eq("projekt_id", projektId).order("sortierung").order("erstellt_am")
+    )
+  );
+}
+function anschaffungAnlegen(projektId, daten) {
+  return schreiben(
+    async () => pruefen(
+      await supabase.from("anschaffungen").insert({
+        projekt_id: projektId,
+        bezeichnung: daten.bezeichnung || "",
+        kategorie: daten.kategorie || "",
+        betrag: daten.betrag || 0,
+        datum: daten.datum || null,
+        bezahlt: !!daten.bezahlt,
+        finanzierung: daten.finanzierung === "Eigenmittel" ? "Eigenmittel" : "Kredit",
+        bemerkung: daten.bemerkung || ""
+      }).select().single()
+    )
+  );
+}
+function anschaffungAktualisieren(id, daten, geladenAm) {
+  return schreiben(async () => {
+    await konfliktPruefen("anschaffungen", id, geladenAm);
+    return pruefen(await supabase.from("anschaffungen").update(daten).eq("id", id).select().single());
+  });
+}
+function anschaffungLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("anschaffungen").delete().eq("id", id)));
+}
+function foerdergelderLaden(projektId) {
+  return lesen(
+    async () => pruefen(
+      await supabase.from("foerdergelder").select("*").eq("projekt_id", projektId).order("sortierung").order("erstellt_am")
+    )
+  );
+}
+function foerderFelder(daten) {
+  return {
+    bezeichnung: daten.bezeichnung || "",
+    stelle: daten.stelle || "",
+    gesuchsnummer: daten.gesuchsnummer || "",
+    betrag: daten.betrag || 0,
+    status: daten.status || "Geplant",
+    budgetposition_id: daten.budgetposition_id || null,
+    frist: daten.frist || null,
+    eingereicht_am: daten.eingereicht_am || null,
+    entscheid_am: daten.entscheid_am || null,
+    auszahlung_am: daten.auszahlung_am || null,
+    bemerkung: daten.bemerkung || "",
+    datei_pfad: daten.datei_pfad || null,
+    datei_name: daten.datei_name || null
+  };
+}
+function foerdergeldAnlegen(projektId, daten) {
+  return schreiben(
+    async () => pruefen(
+      await supabase.from("foerdergelder").insert({ projekt_id: projektId, ...foerderFelder(daten) }).select().single()
+    )
+  );
+}
+function foerdergeldAktualisieren(id, daten, geladenAm) {
+  return schreiben(async () => {
+    await konfliktPruefen("foerdergelder", id, geladenAm);
+    return pruefen(await supabase.from("foerdergelder").update(daten).eq("id", id).select().single());
+  });
+}
+function foerdergeldLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("foerdergelder").delete().eq("id", id)));
+}
 function einladungenLaden(projektId) {
   return lesen(
     async () => pruefen(
@@ -358,10 +561,16 @@ function budgetLaden(projektId) {
     )
   );
 }
-function budgetAnlegen(projektId, { kategorie, betrag, bemerkung }) {
+function budgetAnlegen(projektId, { kategorie, betrag, bemerkung, beruecksichtigt }) {
   return schreiben(
     async () => pruefen(
-      await supabase.from("budgetpositionen").insert({ projekt_id: projektId, kategorie, betrag: betrag || 0, bemerkung: bemerkung || "" }).select().single()
+      await supabase.from("budgetpositionen").insert({
+        projekt_id: projektId,
+        kategorie,
+        betrag: betrag || 0,
+        bemerkung: bemerkung || "",
+        beruecksichtigt: beruecksichtigt !== false
+      }).select().single()
     )
   );
 }
@@ -415,6 +624,13 @@ function offerteSpeichern(projektId, offerte, geladenAm) {
 }
 function offerteLoeschen(id) {
   return schreiben(async () => pruefen(await supabase.from("offerten").delete().eq("id", id)));
+}
+function eigeneHandwerkerOfferte(offerteId) {
+  return lesen(
+    async () => pruefen(
+      await supabase.from("offerten").select("*, offert_positionen(*)").eq("id", offerteId).single()
+    )
+  );
 }
 function belegeLaden(projektId) {
   return lesen(
@@ -482,9 +698,25 @@ function kostenvergleichLaden(projektId) {
   );
 }
 function projektAbonnieren(projektId, aufAenderung) {
-  const kanal = supabase.channel("projekt-" + projektId).on("postgres_changes", { event: "*", schema: "public", table: "budgetpositionen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("budget")).on("postgres_changes", { event: "*", schema: "public", table: "offerten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "offert_positionen" }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "belege", filter: "projekt_id=eq." + projektId }, () => aufAenderung("belege")).on("postgres_changes", { event: "*", schema: "public", table: "dokumente", filter: "projekt_id=eq." + projektId }, () => aufAenderung("dokumente")).on("postgres_changes", { event: "*", schema: "public", table: "projekt_mitglieder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("mitglieder")).subscribe();
+  const kanal = supabase.channel("projekt-" + projektId).on("postgres_changes", { event: "*", schema: "public", table: "budgetpositionen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("budget")).on("postgres_changes", { event: "*", schema: "public", table: "offerten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "offert_positionen" }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "belege", filter: "projekt_id=eq." + projektId }, () => aufAenderung("belege")).on("postgres_changes", { event: "*", schema: "public", table: "dokumente", filter: "projekt_id=eq." + projektId }, () => aufAenderung("dokumente")).on("postgres_changes", { event: "*", schema: "public", table: "kaufnebenkosten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("nebenkosten")).on("postgres_changes", { event: "*", schema: "public", table: "foerdergelder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("foerdergelder")).on("postgres_changes", { event: "*", schema: "public", table: "anschaffungen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("anschaffungen")).on("postgres_changes", { event: "*", schema: "public", table: "projekt_mitglieder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("mitglieder")).subscribe();
   return () => supabase.removeChannel(kanal);
 }
+var DatenFehler, VORGANG_ZEITLIMIT_MS, UPLOAD_ZEITLIMIT_MS, lesen, ANALYSE_ZEITLIMIT_MS;
+var init_daten = __esm({
+  "app/js/daten.js"() {
+    init_supabase();
+    DatenFehler = class extends Error {
+      constructor(text2, keineVerbindung) {
+        super(text2);
+        this.keineVerbindung = !!keineVerbindung;
+      }
+    };
+    VORGANG_ZEITLIMIT_MS = 15e3;
+    UPLOAD_ZEITLIMIT_MS = 13e4;
+    lesen = schreiben;
+    ANALYSE_ZEITLIMIT_MS = 16e4;
+  }
+});
 
 // app/js/format.js
 function esc(s) {
@@ -527,23 +759,24 @@ function dateigroesse(bytes) {
   if (kb < 1024) return Math.round(kb) + " KB";
   return (kb / 1024).toFixed(1) + " MB";
 }
-function meldung(text, fehler) {
+function meldung(text2, fehler) {
   const box = document.getElementById("meldung");
   if (!box) return;
   const d = document.createElement("div");
   d.className = "toast" + (fehler ? " fehler" : "");
-  d.textContent = text;
+  d.textContent = text2;
   box.appendChild(d);
   setTimeout(() => d.remove(), fehler ? 6e3 : 3200);
 }
-function bestaetigen(text) {
-  return window.confirm(text);
+function bestaetigen(text2) {
+  return window.confirm(text2);
 }
+var init_format = __esm({
+  "app/js/format.js"() {
+  }
+});
 
 // app/js/ansichten/anmeldung.js
-var modus = "anmelden";
-var hinweis = "";
-var schonUmgeschaltet = false;
 function render() {
   if (Z.einladung && modus === "anmelden" && !schonUmgeschaltet) {
     schonUmgeschaltet = true;
@@ -602,21 +835,24 @@ async function formularAbschicken(form) {
     knopf.disabled = false;
   }
 }
-function uebersetzeFehler(text) {
-  if (/abort|timeout/i.test(text)) return "Der Server hat nicht geantwortet (Zeitüberschreitung). Bitte Verbindung prüfen.";
-  if (/Invalid login credentials/i.test(text)) return "E-Mail oder Passwort ist falsch.";
-  if (/already registered|already exists/i.test(text)) return "Für diese E-Mail-Adresse besteht bereits ein Konto.";
-  if (/fetch|network/i.test(text)) return "Keine Verbindung zum Server. Bitte Internetverbindung prüfen.";
-  return text;
+function uebersetzeFehler(text2) {
+  if (/abort|timeout/i.test(text2)) return "Der Server hat nicht geantwortet (Zeitüberschreitung). Bitte Verbindung prüfen.";
+  if (/Invalid login credentials/i.test(text2)) return "E-Mail oder Passwort ist falsch.";
+  if (/already registered|already exists/i.test(text2)) return "Für diese E-Mail-Adresse besteht bereits ein Konto.";
+  if (/fetch|network/i.test(text2)) return "Keine Verbindung zum Server. Bitte Internetverbindung prüfen.";
+  return text2;
 }
-
-// app/js/ansichten/uebersicht.js
-var uebersicht_exports = {};
-__export(uebersicht_exports, {
-  aenderung: () => aenderung,
-  aktion: () => aktion2,
-  render: () => render2,
-  renderProjektAnlegen: () => renderProjektAnlegen
+var modus, hinweis, schonUmgeschaltet;
+var init_anmeldung = __esm({
+  "app/js/ansichten/anmeldung.js"() {
+    init_format();
+    init_supabase();
+    init_app();
+    init_konfig();
+    modus = "anmelden";
+    hinweis = "";
+    schonUmgeschaltet = false;
+  }
 });
 
 // app/js/ansichten/gemeinsam.js
@@ -638,12 +874,23 @@ function offerteZaehlt(o) {
 function belegBrutto(b) {
   return zahl(b.brutto);
 }
+function budgetZaehlt(p) {
+  return p.beruecksichtigt !== false;
+}
+function foerderIstSicher(f) {
+  return FOERDER_STATUS_SICHER.includes(f.status);
+}
+function foerderIstOffen(f) {
+  return f.status === "Geplant" || f.status === "Beantragt";
+}
 function summen(Z2) {
   const gesamtbudget = zahl(Z2.projekt?.gesamtbudget);
   const kaufpreis = zahl(Z2.projekt?.kaufpreis);
   const kaufnebenkosten = (Z2.nebenkosten || []).reduce((s, n) => s + zahl(n.betrag), 0);
   const rahmen = gesamtbudget - kaufpreis - kaufnebenkosten;
-  const budgetiert = Z2.budget.reduce((s, p) => s + zahl(p.betrag), 0);
+  const budgetiert = Z2.budget.filter(budgetZaehlt).reduce((s, p) => s + zahl(p.betrag), 0);
+  const spaeter = Z2.budget.filter((p) => !budgetZaehlt(p)).reduce((s, p) => s + zahl(p.betrag), 0);
+  const spaeterAnzahl = Z2.budget.filter((p) => !budgetZaehlt(p)).length;
   const offerten = Z2.offerten.filter(offerteZaehlt).reduce((s, o) => s + offerteTotal(o), 0);
   const rechnungen = Z2.belege.reduce((s, b) => s + belegBrutto(b), 0);
   const bezahlt = Z2.belege.filter((b) => b.bezahlt).reduce((s, b) => s + belegBrutto(b), 0);
@@ -652,18 +899,37 @@ function summen(Z2) {
     const verrechnet = Z2.belege.filter((b) => b.offerte_id === o.id).reduce((s, b) => s + belegBrutto(b), 0);
     verpflichtet += Math.max(0, offerteTotal(o) - verrechnet);
   });
+  const foerder = Z2.foerdergelder || [];
+  const foerderGesichert = foerder.filter(foerderIstSicher).reduce((s, f) => s + zahl(f.betrag), 0);
+  const foerderErwartet = foerder.filter(foerderIstOffen).reduce((s, f) => s + zahl(f.betrag), 0);
+  const foerderAusbezahlt = foerder.filter((f) => f.status === "Ausbezahlt").reduce((s, f) => s + zahl(f.betrag), 0);
+  const anschaffungen = Z2.anschaffungen || [];
+  const anschaffungenSumme = anschaffungen.reduce((s, a) => s + zahl(a.betrag), 0);
+  const anschaffungenBezahlt = anschaffungen.filter((a) => a.bezahlt).reduce((s, a) => s + zahl(a.betrag), 0);
+  const kreditVerwendet = anschaffungen.filter((a) => a.finanzierung !== "Eigenmittel").reduce((s, a) => s + zahl(a.betrag), 0);
+  const kreditRahmen = zahl(Z2.projekt?.kredit_rahmen);
   return {
     gesamtbudget,
     kaufpreis,
     kaufnebenkosten,
     rahmen,
     budgetiert,
+    spaeter,
+    spaeterAnzahl,
+    anschaffungenSumme,
+    anschaffungenBezahlt,
+    kreditVerwendet,
+    kreditRahmen,
+    kreditFrei: kreditRahmen - kreditVerwendet,
     offerten,
     rechnungen,
     bezahlt,
     verpflichtet,
+    foerderGesichert,
+    foerderErwartet,
+    foerderAusbezahlt,
     offen: rechnungen - bezahlt,
-    verfuegbar: rahmen - rechnungen - verpflichtet
+    verfuegbar: rahmen - rechnungen - verpflichtet + foerderGesichert
   };
 }
 function kpi(label, wert, zusatz, klasse) {
@@ -673,8 +939,8 @@ function statusBadge(status) {
   const farbe = { Entwurf: "", Erfasst: "blau", Verglichen: "blau", Beauftragt: "gruen", Abgelehnt: "rot" };
   return '<span class="badge ' + (farbe[status] || "") + '">' + esc(status || "Entwurf") + "</span>";
 }
-function leerZustand(titel, text, knopf) {
-  return '<div class="karte leer"><b>' + esc(titel) + "</b>" + esc(text) + (knopf ? '<div style="margin-top:14px">' + knopf + "</div>" : "") + "</div>";
+function leerZustand(titel, text2, knopf) {
+  return '<div class="karte leer"><b>' + esc(titel) + "</b>" + esc(text2) + (knopf ? '<div style="margin-top:14px">' + knopf + "</div>" : "") + "</div>";
 }
 function listenKarte(titel, ansicht, eintraege) {
   let h = '<section class="abschnitt"><div class="abschnitt-kopf"><h2>' + esc(titel) + '</h2><button class="btn still klein" type="button" data-ansicht="' + ansicht + '">Alle</button></div><div class="karte karte-pad">';
@@ -699,12 +965,18 @@ function ladeSchritte(schritte, aktiv) {
     (t, i) => "<li" + (i < aktiv ? ' class="fertig"' : "") + ">" + esc(t) + "</li>"
   ).join("") + "</ul>";
 }
+var init_gemeinsam = __esm({
+  "app/js/ansichten/gemeinsam.js"() {
+    init_format();
+    init_konfig();
+  }
+});
 
 // app/js/import.js
-function paketAusDatei(text) {
+function paketAusDatei(text2) {
   let paket;
   try {
-    paket = JSON.parse(text);
+    paket = JSON.parse(text2);
   } catch (e) {
     throw new Error("Die Datei ist keine gültige Sicherung: " + e.message);
   }
@@ -823,9 +1095,21 @@ async function importDurchfuehren(projektId, erstellt, daten) {
     dokumente: daten.dokumente.length
   };
 }
+var init_import = __esm({
+  "app/js/import.js"() {
+    init_format();
+    init_daten();
+  }
+});
 
 // app/js/ansichten/uebersicht.js
-var importDaten = null;
+var uebersicht_exports = {};
+__export(uebersicht_exports, {
+  aenderung: () => aenderung,
+  aktion: () => aktion2,
+  render: () => render2,
+  renderProjektAnlegen: () => renderProjektAnlegen
+});
 function renderProjektAnlegen() {
   return '<main><div style="max-width:480px;margin:40px auto;padding:0 14px"><div class="karte karte-pad"><h2>Projekt einrichten</h2><p style="margin:6px 0 16px;font-size:.87rem;color:var(--text-2)">Objekt, Adresse, Kaufpreis und Gesamtbudget sind noch nicht erfasst.</p><label class="feld"><span>Objekt / Projektname</span><input id="p-name" placeholder="z.B. Einfamilienhaus Tulpenweg 37"></label><label class="feld"><span>Adresse</span><input id="p-adresse" placeholder="Strasse Nr., PLZ Ort"></label><label class="feld"><span>Kaufpreis (CHF)</span><input id="p-kauf" inputmode="decimal" placeholder="0"></label><p style="margin:-4px 0 12px;font-size:.78rem;color:var(--grau)">Kaufnebenkosten (Notariat, Handänderungssteuer, Grundbuch …) erfassen Sie danach einzeln in der Übersicht.</p><label class="feld"><span>Gesamtbudget (CHF)</span><input id="p-gesamt" inputmode="decimal" placeholder="0"></label><div id="p-fehler"></div><button class="btn breit" type="button" data-aktion="projekt-anlegen">Projekt anlegen</button></div></div></main>';
 }
@@ -833,7 +1117,7 @@ function render2(Z2) {
   const s = summen(Z2);
   let h = "";
   const anteilRahmen = s.rahmen > 0 ? Math.min(100, s.rechnungen / s.rahmen * 100) : 0;
-  h += '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Übersicht</h2><p>' + esc([Z2.projekt.name, Z2.projekt.adresse].filter(Boolean).join(" · ") || "Projekt ohne Namen") + " · Stand " + datumCH(heuteISO()) + '</p></div><button class="btn still klein" type="button" data-aktion="eckdaten">Eckdaten</button></div><div class="kpi-raster"><div class="kpi gross"><div class="label">Verfügbar für die Sanierung</div><div class="wert zahl">' + chfKurz(s.verfuegbar) + '</div><div class="zusatz">Sanierungsrahmen ' + chfKurz(s.rahmen) + " abzüglich Rechnungen und beauftragter Offerten</div></div>" + kpi("Gesamtbudget", chfKurz(s.gesamtbudget), "inkl. Kaufpreis und Nebenkosten", "") + kpi(
+  h += '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Übersicht</h2><p>' + esc([Z2.projekt.name, Z2.projekt.adresse].filter(Boolean).join(" · ") || "Projekt ohne Namen") + " · Stand " + datumCH(heuteISO()) + '</p></div><button class="btn still klein" type="button" data-aktion="eckdaten">Eckdaten</button></div><div class="kpi-raster"><div class="kpi gross"><div class="label">Verfügbar für die Sanierung</div><div class="wert zahl">' + chfKurz(s.verfuegbar) + '</div><div class="zusatz">Sanierungsrahmen ' + chfKurz(s.rahmen) + " abzüglich Rechnungen und beauftragter Offerten" + (s.foerderGesichert ? ", zuzüglich gesicherter Fördergelder " + chfKurz(s.foerderGesichert) : "") + "</div></div>" + kpi("Gesamtbudget", chfKurz(s.gesamtbudget), "inkl. Kaufpreis und Nebenkosten", "") + kpi(
     "Kaufpreis",
     chfKurz(s.kaufpreis),
     s.kaufnebenkosten ? "zzgl. Nebenkosten " + chfKurz(s.kaufnebenkosten) : "ohne Nebenkosten",
@@ -843,7 +1127,22 @@ function render2(Z2) {
     chfKurz(s.kaufnebenkosten),
     (Z2.nebenkosten || []).length + " Positionen, siehe unten",
     ""
-  ) + kpi("Sanierungsrahmen", chfKurz(s.rahmen), "Gesamtbudget − Kaufpreis − Nebenkosten", "rand-blau") + kpi("Offertsumme", chfKurz(s.offerten), Z2.offerten.length + " Offerten, ohne abgelehnte", "rand-blau") + kpi("Rechnungssumme", chfKurz(s.rechnungen), Z2.belege.length + " Belege, inkl. MWST", "rand-amber") + kpi("Bezahlt", chfKurz(s.bezahlt), "offen: " + chfKurz(s.offen), "rand-gruen") + "</div></section>";
+  ) + kpi("Sanierungsrahmen", chfKurz(s.rahmen), "Gesamtbudget − Kaufpreis − Nebenkosten", "rand-blau") + kpi("Offertsumme", chfKurz(s.offerten), Z2.offerten.length + " Offerten, ohne abgelehnte", "rand-blau") + kpi("Rechnungssumme", chfKurz(s.rechnungen), Z2.belege.length + " Belege, inkl. MWST", "rand-amber") + kpi("Bezahlt", chfKurz(s.bezahlt), "offen: " + chfKurz(s.offen), "rand-gruen") + (s.foerderGesichert || s.foerderErwartet ? kpi(
+    "Fördergelder gesichert",
+    chfKurz(s.foerderGesichert),
+    s.foerderErwartet ? "erwartet: " + chfKurz(s.foerderErwartet) : "zugesichert oder ausbezahlt",
+    "rand-gruen"
+  ) : "") + (s.anschaffungenSumme ? kpi(
+    "Anschaffungen",
+    chfKurz(s.anschaffungenSumme),
+    s.kreditVerwendet ? "ausserhalb des Budgets · Kredit " + chfKurz(s.kreditVerwendet) : "ausserhalb des Sanierungsbudgets",
+    ""
+  ) : "") + (s.spaeter ? kpi(
+    "Später vorgesehen",
+    chfKurz(s.spaeter),
+    s.spaeterAnzahl + (s.spaeterAnzahl === 1 ? " Position zählt" : " Positionen zählen") + " noch nicht mit",
+    ""
+  ) : "") + "</div></section>";
   const b1 = s.rahmen > 0 ? Math.max(0, Math.min(100, s.bezahlt / s.rahmen * 100)) : 0;
   const b2 = s.rahmen > 0 ? Math.max(0, Math.min(100 - b1, (s.rechnungen - s.bezahlt) / s.rahmen * 100)) : 0;
   const b3 = s.rahmen > 0 ? Math.max(0, Math.min(100 - b1 - b2, s.verpflichtet / s.rahmen * 100)) : 0;
@@ -857,7 +1156,7 @@ function render2(Z2) {
       const basis = Math.max(k.budget, k.ist, 1);
       const breite = Math.min(100, k.ist / basis * 100);
       const ueber = k.budget > 0 && k.ist > k.budget;
-      h += '<div class="kat-zeile"><div class="kat-kopf"><b>' + esc(k.kategorie) + '</b><span class="zahl">' + chfKurz(k.ist) + " / " + chfKurz(k.budget) + '</span></div><div class="mini"><i class="' + (ueber ? "ueber" : "") + '" style="width:' + breite.toFixed(1) + '%"></i></div></div>';
+      h += '<div class="kat-zeile"><div class="kat-kopf"><b>' + esc(k.kategorie) + "</b>" + (budgetZaehlt(k) ? "" : ' <span class="badge">später</span>') + '<span class="zahl">' + chfKurz(k.ist) + " / " + chfKurz(k.budget) + '</span></div><div class="mini"><i class="' + (ueber ? "ueber" : "") + '" style="width:' + breite.toFixed(1) + '%"></i></div></div>';
     });
   }
   h += "</div></section>";
@@ -977,11 +1276,11 @@ async function aktion2(a, knopf, Z2) {
   const el2 = (id) => document.getElementById(id);
   if (a === "projekt-anlegen") {
     const fehlerFeld = el2("p-fehler");
-    const zeigeFehler = (text) => {
+    const zeigeFehler = (text2) => {
       if (fehlerFeld) {
-        fehlerFeld.innerHTML = '<div class="hinweis fehler" style="margin-bottom:12px"><div><b>Anlegen fehlgeschlagen</b>' + esc(text) + ' <a href="hilfe.html">Diagnose öffnen</a></div></div>';
+        fehlerFeld.innerHTML = '<div class="hinweis fehler" style="margin-bottom:12px"><div><b>Anlegen fehlgeschlagen</b>' + esc(text2) + ' <a href="hilfe.html">Diagnose öffnen</a></div></div>';
       }
-      meldung(text, true);
+      meldung(text2, true);
     };
     const name = el2("p-name").value.trim();
     if (!name) {
@@ -1111,15 +1410,15 @@ async function aktion2(a, knopf, Z2) {
   }
   if (a === "einladung-versenden") {
     const adresse = document.getElementById("einladung-link").value;
-    const text = "Einladung zur Sanierungsverwaltung " + (Z2.projekt ? Z2.projekt.name : "") + ": " + adresse;
+    const text2 = "Einladung zur Sanierungsverwaltung " + (Z2.projekt ? Z2.projekt.name : "") + ": " + adresse;
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Einladung", text });
+        await navigator.share({ title: "Einladung", text: text2 });
         return;
       } catch (e) {
       }
     }
-    window.location.href = "mailto:?subject=" + encodeURIComponent("Einladung zur Sanierungsverwaltung") + "&body=" + encodeURIComponent(text);
+    window.location.href = "mailto:?subject=" + encodeURIComponent("Einladung zur Sanierungsverwaltung") + "&body=" + encodeURIComponent(text2);
     return;
   }
   if (a === "mitglied-entfernen") {
@@ -1160,8 +1459,8 @@ function importOeffnen(Z2, modalOeffnen2, neuLaden2) {
           return false;
         }
         try {
-          const text = await datei.text();
-          importDaten = paketAusDatei(text);
+          const text2 = await datei.text();
+          importDaten = paketAusDatei(text2);
         } catch (err) {
           meldung(err.message, true);
           return false;
@@ -1190,102 +1489,17 @@ function importOeffnen(Z2, modalOeffnen2, neuLaden2) {
     }
   });
 }
-
-// app/js/ansichten/budget.js
-var budget_exports = {};
-__export(budget_exports, {
-  aktion: () => aktion3,
-  render: () => render3
-});
-function render3(Z2) {
-  const s = summen(Z2);
-  const budgetiert = Z2.budget.reduce((a, p) => a + zahl(p.betrag), 0);
-  const bearbeitbar = kannBearbeiten();
-  let h = '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Budget</h2><p>Sanierungsrahmen ' + chfKurz(s.rahmen) + " · verplant " + chfKurz(budgetiert) + "</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="budget-neu">+ Position</button>' : "") + "</div>";
-  if (!Z2.budget.length) {
-    h += leerZustand(
-      "Noch keine Budgetpositionen",
-      "Legen Sie Positionen wie Elektro, Küche oder Fassade an, um Offerten und Rechnungen zuzuordnen.",
-      bearbeitbar ? '<button class="btn" type="button" data-aktion="budget-neu">Erste Position anlegen</button>' : ""
-    );
-  } else {
-    const kv = (id) => (Z2.kostenvergleich || []).find((k) => k.budgetposition_id === id) || { offerte: 0, rechnung: 0, bezahlt: 0 };
-    h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Kategorie</th><th class="num">Budget</th><th class="num">Offerten</th><th class="num">Rechnungen</th><th class="num">Bezahlt</th><th class="num">Differenz</th><th></th></tr></thead><tbody>';
-    Z2.budget.forEach((p) => {
-      const k = kv(p.id);
-      const ist = k.rechnung > 0 ? k.rechnung : k.offerte;
-      const diff = zahl(p.betrag) - ist;
-      h += "<tr><td><b>" + esc(p.kategorie) + "</b>" + (p.bemerkung ? '<div style="font-size:.76rem;color:var(--grau);white-space:normal;max-width:260px">' + esc(p.bemerkung) + "</div>" : "") + '</td><td class="num">' + chf(p.betrag) + '</td><td class="num">' + chf(k.offerte) + '</td><td class="num">' + chf(k.rechnung) + '</td><td class="num">' + chf(k.bezahlt) + '</td><td class="num ' + (diff < 0 ? "neg" : "pos") + '">' + (diff >= 0 ? "+" : "") + chf(diff) + "</td><td>" + (bearbeitbar ? '<div class="zeile-aktion"><button class="btn still klein" type="button" data-aktion="budget-bearbeiten" data-id="' + p.id + '">Bearbeiten</button><button class="btn still klein" type="button" data-aktion="budget-loeschen" data-id="' + p.id + '">Löschen</button></div>' : "") + "</td></tr>";
-    });
-    h += '</tbody><tfoot><tr><td>Total Budgetpositionen</td><td class="num">' + chf(budgetiert) + '</td><td class="num">' + chf(Z2.budget.reduce((a, p) => a + kv(p.id).offerte, 0)) + '</td><td class="num">' + chf(Z2.budget.reduce((a, p) => a + kv(p.id).rechnung, 0)) + '</td><td class="num">' + chf(Z2.budget.reduce((a, p) => a + kv(p.id).bezahlt, 0)) + '</td><td class="num"></td><td></td></tr></tfoot></table></div></div>';
+var importDaten;
+var init_uebersicht = __esm({
+  "app/js/ansichten/uebersicht.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_konfig();
+    init_import();
+    init_app();
+    importDaten = null;
   }
-  h += "</section>";
-  const liste = (Z2.kostenvergleich || []).filter((k) => k.budget > 0 || k.offerte > 0 || k.rechnung > 0);
-  h += '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Kostenvergleich</h2><p>Budget gegen Offerten und Rechnungen, über alle Kategorien</p></div></div>';
-  if (!liste.length) {
-    h += leerZustand("Noch nichts zu vergleichen", "Sobald Budget, Offerten oder Rechnungen erfasst sind, erscheint hier die Gegenüberstellung.", "");
-  } else {
-    let tB = 0, tO = 0, tR = 0, tZ = 0, tD = 0;
-    h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Kategorie</th><th class="num">Budget</th><th class="num">Offerte</th><th class="num">Rechnung</th><th class="num">Bezahlt</th><th class="num">Differenz zum Budget</th></tr></thead><tbody>';
-    liste.forEach((k) => {
-      tB += k.budget;
-      tO += k.offerte;
-      tR += k.rechnung;
-      tZ += k.bezahlt;
-      tD += k.differenz;
-      h += "<tr><td><b>" + esc(k.kategorie) + '</b></td><td class="num">' + chf(k.budget) + '</td><td class="num">' + chf(k.offerte) + '</td><td class="num">' + chf(k.rechnung) + '</td><td class="num">' + chf(k.bezahlt) + '</td><td class="num ' + (k.differenz < 0 ? "neg" : "pos") + '">' + (k.differenz >= 0 ? "+" : "") + chf(k.differenz) + "</td></tr>";
-    });
-    h += '</tbody><tfoot><tr><td>Total</td><td class="num">' + chf(tB) + '</td><td class="num">' + chf(tO) + '</td><td class="num">' + chf(tR) + '</td><td class="num">' + chf(tZ) + '</td><td class="num ' + (tD < 0 ? "neg" : "pos") + '">' + (tD >= 0 ? "+" : "") + chf(tD) + '</td></tr></tfoot></table></div><div class="karte-pad" style="border-top:1px solid var(--linie);font-size:.8rem;color:var(--grau)">Als Ist-Kosten gilt die Rechnungssumme. Solange keine Rechnung erfasst ist, wird die Offertsumme verwendet. Alle Beträge inklusive MWST.</div></div>';
-  }
-  return h + "</section>";
-}
-function formular(Z2, p) {
-  const optionen = STANDARD_KATEGORIEN.concat(Z2.budget.map((x) => x.kategorie).filter((k) => !STANDARD_KATEGORIEN.includes(k)));
-  const koerper3 = '<label class="feld"><span>Kategorie</span><input id="f-kategorie" list="kat-liste" value="' + esc(p ? p.kategorie : "") + '" placeholder="z.B. Elektro" required><datalist id="kat-liste">' + optionen.map((k) => '<option value="' + esc(k) + '">').join("") + '</datalist></label><label class="feld"><span>Budgetbetrag (CHF, inkl. MWST)</span><input id="f-betrag" inputmode="decimal" value="' + (p ? zahl(p.betrag) : "") + '" placeholder="18000"></label><label class="feld"><span>Bemerkung</span><textarea id="f-bemerkung" placeholder="optional">' + esc(p ? p.bemerkung : "") + "</textarea></label>";
-  modalOeffnen({
-    titel: p ? "Budgetposition bearbeiten" : "Neue Budgetposition",
-    koerper: koerper3,
-    speichern: async () => {
-      const kategorie = document.getElementById("f-kategorie").value.trim();
-      if (!kategorie) {
-        meldung("Bitte eine Kategorie angeben.", true);
-        return false;
-      }
-      const daten = { kategorie, betrag: zahl(document.getElementById("f-betrag").value), bemerkung: document.getElementById("f-bemerkung").value.trim() };
-      try {
-        if (p) await budgetAktualisieren(p.id, daten, p.geaendert_am);
-        else await budgetAnlegen(Z2.projektId, daten);
-        meldung(p ? "Budgetposition aktualisiert." : "Budgetposition angelegt.");
-        await neuLaden(["budget"]);
-        return true;
-      } catch (err) {
-        meldung(err.message, true);
-        return false;
-      }
-    }
-  });
-}
-function aktion3(a, knopf, Z2) {
-  if (a === "budget-neu") return formular(Z2, null);
-  if (a === "budget-bearbeiten") return formular(Z2, Z2.budget.find((p) => p.id === knopf.dataset.id));
-  if (a === "budget-loeschen") {
-    const p = Z2.budget.find((x) => x.id === knopf.dataset.id);
-    if (p && bestaetigen('Budgetposition "' + p.kategorie + '" löschen?')) {
-      budgetLoeschen(p.id).then(() => {
-        meldung("Budgetposition gelöscht.");
-        neuLaden(["budget"]);
-      }).catch((e) => meldung(e.message, true));
-    }
-  }
-}
-
-// app/js/ansichten/offerten.js
-var offerten_exports = {};
-__export(offerten_exports, {
-  aenderung: () => aenderung2,
-  aktion: () => aktion4,
-  eingabe: () => eingabe,
-  render: () => render4
 });
 
 // app/js/dateien.js
@@ -1358,56 +1572,577 @@ async function loeschen(pfad) {
     console.warn("Datei konnte nicht gelöscht werden:", pfad, error.message);
   }
 }
+var init_dateien = __esm({
+  "app/js/dateien.js"() {
+    init_supabase();
+    init_konfig();
+    init_daten();
+  }
+});
+
+// app/js/ansichten/foerdergelder.js
+function statusBadge2(status) {
+  const farbe = { Geplant: "", Beantragt: "blau", Zugesichert: "gruen", Ausbezahlt: "gruen", Abgelehnt: "rot" };
+  return '<span class="badge ' + (farbe[status] || "") + '">' + esc(status || "Geplant") + "</span>";
+}
+function fristVersaeumt(f) {
+  return !!f.frist && f.status === "Geplant" && f.frist < heuteISO();
+}
+function datumSpalte(f) {
+  if (f.status === "Ausbezahlt" && f.auszahlung_am) return "ausbezahlt " + datumCH(f.auszahlung_am);
+  if (f.status === "Zugesichert" && f.entscheid_am) return "zugesichert " + datumCH(f.entscheid_am);
+  if (f.status === "Abgelehnt" && f.entscheid_am) return "abgelehnt " + datumCH(f.entscheid_am);
+  if (f.status === "Beantragt" && f.eingereicht_am) return "eingereicht " + datumCH(f.eingereicht_am);
+  if (f.frist) return "Frist " + datumCH(f.frist);
+  return "–";
+}
+function render3(Z2) {
+  const liste = Z2.foerdergelder || [];
+  const bearbeitbar = kannBearbeiten();
+  const gesichert = liste.filter(foerderIstSicher).reduce((s, f) => s + zahl(f.betrag), 0);
+  const erwartet = liste.filter(foerderIstOffen).reduce((s, f) => s + zahl(f.betrag), 0);
+  let h = '<section class="abschnitt" id="abschnitt-foerderung"><div class="abschnitt-kopf"><div><h2>Fördergelder</h2><p>' + (liste.length ? "gesichert " + chfKurz(gesichert) + (erwartet ? " · erwartet " + chfKurz(erwartet) : "") : "Beiträge von Bund, Kanton, Gemeinde und Werken") + "</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="foerder-neu">+ Fördergeld</button>' : "") + "</div>";
+  if (!liste.length) {
+    h += leerZustand(
+      "Noch keine Fördergelder erfasst",
+      "Gesuche für Wärmepumpe, Dämmung, Fenster oder Solaranlage hier festhalten – mit Frist, Stand und Betrag. Achtung: Viele Programme verlangen das Gesuch vor Baubeginn.",
+      bearbeitbar ? '<button class="btn" type="button" data-aktion="foerder-neu">Erstes Fördergeld erfassen</button>' : ""
+    );
+    return h + "</section>";
+  }
+  const offeneFristen = liste.filter(fristVersaeumt);
+  if (offeneFristen.length) {
+    h += '<div class="hinweis warn" style="margin-bottom:12px"><div><b>Frist verstrichen</b>' + offeneFristen.map((f) => esc(f.bezeichnung || f.stelle || "Fördergeld") + " (" + datumCH(f.frist) + ")").join(" · ") + " – noch nicht eingereicht.</div></div>";
+  }
+  h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Förderung</th><th>Stelle</th><th>Kategorie</th><th>Stand</th><th>Datum</th><th class="num">Betrag</th><th></th></tr></thead><tbody>';
+  liste.forEach((f) => {
+    const sicher = foerderIstSicher(f);
+    h += "<tr><td><b>" + esc(f.bezeichnung || "Ohne Bezeichnung") + "</b>" + (f.datei_pfad ? ' <span class="badge">Datei</span>' : "") + (f.gesuchsnummer ? '<div style="font-size:.76rem;color:var(--grau)">Gesuch ' + esc(f.gesuchsnummer) + "</div>" : "") + "</td><td>" + esc(f.stelle || "–") + "</td><td>" + esc(kategorieName(Z2.budget, f.budgetposition_id)) + "</td><td>" + statusBadge2(f.status) + (fristVersaeumt(f) ? ' <span class="badge rot">Frist</span>' : "") + "</td><td>" + esc(datumSpalte(f)) + '</td><td class="num"' + (sicher ? "" : ' style="color:var(--grau)"') + "><b>" + chf(f.betrag) + '</b></td><td><div class="zeile-aktion">' + (f.datei_pfad ? '<button class="btn still klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(f.datei_pfad) + '">Datei</button>' : "") + '<button class="btn still klein" type="button" data-aktion="foerder-bearbeiten" data-id="' + f.id + '">' + (bearbeitbar ? "Bearbeiten" : "Ansehen") + "</button>" + (bearbeitbar ? '<button class="btn still klein" type="button" data-aktion="foerder-loeschen" data-id="' + f.id + '">Löschen</button>' : "") + "</div></td></tr>";
+  });
+  h += '</tbody><tfoot><tr><td colspan="5">Gesichert (zugesichert oder ausbezahlt)</td><td class="num">' + chf(gesichert) + "</td><td></td></tr>" + (erwartet ? '<tr><td colspan="5" style="color:var(--grau)">Erwartet (geplant oder eingereicht)</td><td class="num" style="color:var(--grau)">' + chf(erwartet) + "</td><td></td></tr>" : "") + '</tfoot></table></div><div class="karte-pad" style="border-top:1px solid var(--linie);font-size:.8rem;color:var(--grau)">Nur gesicherte Beiträge erhöhen den verfügbaren Betrag. Erwartete Beiträge sind hier ausgewiesen, zählen aber erst mit der Zusicherung.</div></div>';
+  return h + "</section>";
+}
+function formular(Z2, f) {
+  dateiWartend = null;
+  entwurf = f ? JSON.parse(JSON.stringify(f)) : {
+    id: null,
+    bezeichnung: "",
+    stelle: "",
+    gesuchsnummer: "",
+    betrag: 0,
+    status: "Geplant",
+    budgetposition_id: null,
+    frist: "",
+    eingereicht_am: "",
+    entscheid_am: "",
+    auszahlung_am: "",
+    bemerkung: "",
+    datei_pfad: null,
+    datei_name: null
+  };
+  modalOeffnen({
+    titel: entwurf.id ? "Fördergeld bearbeiten" : "Neues Fördergeld",
+    koerper: koerper(Z2),
+    speichern: () => speichern(Z2)
+  });
+}
+function koerper(Z2) {
+  const f = entwurf;
+  return '<label class="feld"><span>Förderung / Massnahme</span><input data-feld="bezeichnung" value="' + esc(f.bezeichnung) + '" placeholder="z.B. Ersatz Ölheizung durch Wärmepumpe"></label><div class="feld-paar"><label class="feld"><span>Fördergeber</span><input list="foerder-stellen" data-feld="stelle" value="' + esc(f.stelle) + '" placeholder="z.B. Das Gebäudeprogramm"><datalist id="foerder-stellen">' + FOERDER_STELLEN.map((s) => '<option value="' + esc(s) + '">').join("") + '</datalist></label><label class="feld"><span>Gesuchsnummer</span><input data-feld="gesuchsnummer" value="' + esc(f.gesuchsnummer) + '" placeholder="optional"></label></div><div class="feld-paar"><label class="feld"><span>Betrag (CHF)</span><input inputmode="decimal" data-feld="betrag" value="' + zahl(f.betrag) + '" placeholder="8000"></label><label class="feld"><span>Stand</span><select data-feld="status">' + FOERDER_STATUS.map((s) => "<option" + (s === f.status ? " selected" : "") + ">" + s + "</option>").join("") + '</select></label></div><p style="margin:-6px 0 12px;font-size:.78rem;color:var(--grau)">Bis zur Zusicherung ist das der erwartete Beitrag, danach der verfügte. Erst ab «Zugesichert» zählt er zum verfügbaren Geld.</p><label class="feld"><span>Budgetkategorie</span><select data-feld="budgetposition_id">' + kategorieOptionen(Z2.budget, f.budgetposition_id) + '</select></label><div class="feld-paar"><label class="feld"><span>Eingabefrist</span><input type="date" data-feld="frist" value="' + esc(f.frist || "") + '"></label><label class="feld"><span>Eingereicht am</span><input type="date" data-feld="eingereicht_am" value="' + esc(f.eingereicht_am || "") + '"></label></div><div class="feld-paar"><label class="feld"><span>Entscheid am</span><input type="date" data-feld="entscheid_am" value="' + esc(f.entscheid_am || "") + '"></label><label class="feld"><span>Ausbezahlt am</span><input type="date" data-feld="auszahlung_am" value="' + esc(f.auszahlung_am || "") + '"></label></div>' + dateiBlock() + '<label class="feld"><span>Bemerkung</span><textarea data-feld="bemerkung" placeholder="optional">' + esc(f.bemerkung || "") + "</textarea></label>";
+}
+function dateiBlock() {
+  const f = entwurf;
+  if (f.datei_pfad) {
+    return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Datei: ' + esc(f.datei_name || "") + '</b><div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(f.datei_pfad) + '">Datei öffnen</button><button class="btn still klein" type="button" data-aktion="foerder-datei-entfernen">Datei entfernen</button></div></div></div>';
+  }
+  return '<div class="datei-feld" style="margin-bottom:14px"><p>Zusicherung, Verfügung oder Gesuch anhängen (optional)</p><input type="file" id="foerder-datei" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"></div>';
+}
+function datumNachziehen() {
+  const f = entwurf;
+  if (f.status === "Beantragt" && !f.eingereicht_am) f.eingereicht_am = heuteISO();
+  if ((f.status === "Zugesichert" || f.status === "Abgelehnt") && !f.entscheid_am) f.entscheid_am = heuteISO();
+  if (f.status === "Ausbezahlt" && !f.auszahlung_am) f.auszahlung_am = heuteISO();
+}
+async function speichern(Z2) {
+  const f = entwurf;
+  if (!f.bezeichnung.trim() && !f.stelle.trim()) {
+    meldung("Bitte mindestens eine Bezeichnung oder den Fördergeber angeben.", true);
+    return false;
+  }
+  const daten = {
+    bezeichnung: f.bezeichnung.trim(),
+    stelle: f.stelle.trim(),
+    gesuchsnummer: f.gesuchsnummer.trim(),
+    betrag: zahl(f.betrag),
+    status: f.status,
+    budgetposition_id: f.budgetposition_id || null,
+    frist: f.frist || null,
+    eingereicht_am: f.eingereicht_am || null,
+    entscheid_am: f.entscheid_am || null,
+    auszahlung_am: f.auszahlung_am || null,
+    bemerkung: f.bemerkung.trim(),
+    datei_pfad: f.datei_pfad,
+    datei_name: f.datei_name
+  };
+  const feld = document.getElementById("foerder-datei");
+  if (!dateiWartend && feld && feld.files && feld.files[0]) dateiWartend = feld.files[0];
+  try {
+    if (dateiWartend) {
+      const info = await hochladen(dateiWartend, Z2.projektId, "foerdergelder");
+      daten.datei_pfad = info.datei_pfad;
+      daten.datei_name = info.datei_name;
+    }
+    if (f.id) await foerdergeldAktualisieren(f.id, daten, f.geaendert_am);
+    else await foerdergeldAnlegen(Z2.projektId, daten);
+    meldung(f.id ? "Fördergeld aktualisiert." : "Fördergeld erfasst.");
+    dateiWartend = null;
+    await neuLaden(["foerdergelder"]);
+    return true;
+  } catch (err) {
+    meldung(err.message, true);
+    return false;
+  }
+}
+function eingabe(e, Z2) {
+  if (!document.querySelector(".modal") || !entwurf) return;
+  const feld = e.target.closest("[data-feld]");
+  if (!feld) return;
+  const name = feld.dataset.feld;
+  if (name === "budgetposition_id") {
+    entwurf.budgetposition_id = feld.value || null;
+    return;
+  }
+  entwurf[name] = feld.value;
+  if (name === "status") {
+    datumNachziehen();
+    const koerperEl = document.querySelector(".modal-koerper");
+    if (koerperEl) koerperEl.innerHTML = koerper(Z2);
+  }
+}
+function aktion3(a, knopf, Z2) {
+  if (a === "foerder-neu") return formular(Z2, null);
+  if (a === "foerder-bearbeiten") return formular(Z2, (Z2.foerdergelder || []).find((f) => f.id === knopf.dataset.id));
+  if (a === "foerder-loeschen") {
+    const f = (Z2.foerdergelder || []).find((x) => x.id === knopf.dataset.id);
+    if (f && bestaetigen("Fördergeld " + (f.bezeichnung || f.stelle || "") + " löschen?")) {
+      (async () => {
+        try {
+          if (f.datei_pfad) await loeschen(f.datei_pfad);
+          await foerdergeldLoeschen(f.id);
+          meldung("Fördergeld gelöscht.");
+          await neuLaden(["foerdergelder"]);
+        } catch (err) {
+          meldung(err.message, true);
+        }
+      })();
+    }
+    return;
+  }
+  if (a === "foerder-datei-entfernen") {
+    if (entwurf.datei_pfad) loeschen(entwurf.datei_pfad).catch(() => {
+    });
+    entwurf.datei_pfad = null;
+    entwurf.datei_name = null;
+    dateiWartend = null;
+    const koerperEl = document.querySelector(".modal-koerper");
+    if (koerperEl) koerperEl.innerHTML = koerper(Z2);
+    return;
+  }
+  if (a === "datei-oeffnen" && knopf.dataset.pfad) {
+    signierterLink(knopf.dataset.pfad).then((url) => {
+      if (url) window.open(url, "_blank");
+    }).catch((e) => meldung(e.message, true));
+  }
+}
+var entwurf, dateiWartend;
+var init_foerdergelder = __esm({
+  "app/js/ansichten/foerdergelder.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_dateien();
+    init_app();
+    init_konfig();
+    entwurf = null;
+    dateiWartend = null;
+  }
+});
+
+// app/js/ansichten/anschaffungen.js
+function render4(Z2) {
+  const liste = Z2.anschaffungen || [];
+  const s = summen(Z2);
+  const bearbeitbar = kannBearbeiten();
+  let h = '<section class="abschnitt" id="abschnitt-anschaffungen"><div class="abschnitt-kopf"><div><h2>Anschaffungen</h2><p>Umzug, Einrichtung, Maschinen – ausserhalb des Sanierungsbudgets</p></div>' + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="ansch-neu">+ Anschaffung</button>' : "") + "</div>";
+  if (!liste.length) {
+    h += leerZustand(
+      "Noch keine Anschaffungen erfasst",
+      "Hier gehören Kosten hin, die nicht zur Sanierung zählen: Umzug, Möbel, Haushaltgeräte, Maschinen und Werkzeug. Sie verändern den Sanierungsrahmen nicht.",
+      bearbeitbar ? '<button class="btn" type="button" data-aktion="ansch-neu">Erste Anschaffung erfassen</button>' : ""
+    );
+    return h + "</section>";
+  }
+  h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Anschaffung</th><th>Art</th><th>Datum</th><th>Finanzierung</th><th>Zahlung</th><th class="num">Betrag</th><th></th></tr></thead><tbody>';
+  liste.forEach((a) => {
+    h += "<tr><td><b>" + esc(a.bezeichnung || "Ohne Bezeichnung") + "</b>" + (a.bemerkung ? '<div style="font-size:.76rem;color:var(--grau);white-space:normal;max-width:260px">' + esc(a.bemerkung) + "</div>" : "") + "</td><td>" + esc(a.kategorie || "–") + "</td><td>" + (a.datum ? datumCH(a.datum) : "–") + "</td><td>" + (a.finanzierung === "Eigenmittel" ? '<span class="badge">Eigenmittel</span>' : '<span class="badge blau">Kredit</span>') + "</td><td>" + (a.bezahlt ? '<span class="badge gruen">bezahlt</span>' : '<span class="badge amber">offen</span>') + '</td><td class="num"><b>' + chf(a.betrag) + '</b></td><td><div class="zeile-aktion"><button class="btn still klein" type="button" data-aktion="ansch-bearbeiten" data-id="' + a.id + '">' + (bearbeitbar ? "Bearbeiten" : "Ansehen") + "</button>" + (bearbeitbar ? '<button class="btn still klein" type="button" data-aktion="ansch-loeschen" data-id="' + a.id + '">Löschen</button>' : "") + "</div></td></tr>";
+  });
+  h += '</tbody><tfoot><tr><td colspan="5">Total Anschaffungen · davon bezahlt ' + chf(s.anschaffungenBezahlt) + '</td><td class="num">' + chf(s.anschaffungenSumme) + "</td><td></td></tr></tfoot></table></div>";
+  if (s.kreditRahmen || s.kreditVerwendet) {
+    const anteil = s.kreditRahmen > 0 ? Math.max(0, Math.min(100, s.kreditVerwendet / s.kreditRahmen * 100)) : 0;
+    h += '<div class="karte-pad" style="border-top:1px solid var(--linie)"><div class="abschnitt-kopf" style="margin:0 0 9px"><div><h3>Kredit</h3><p>' + (s.kreditRahmen ? "über Kredit finanziert " + chfKurz(s.kreditVerwendet) + " von " + chfKurz(s.kreditRahmen) : "über Kredit finanziert " + chfKurz(s.kreditVerwendet) + " · kein Kreditrahmen erfasst") + "</p></div>" + (kannBearbeiten() ? '<button class="btn still klein" type="button" data-aktion="kredit-rahmen">Kreditrahmen</button>' : "") + "</div>" + (s.kreditRahmen ? '<div class="balken"><i class="b-bezahlt" style="width:' + anteil.toFixed(2) + '%"></i></div><div class="legende"><span><i class="punkt" style="background:var(--blau-700)"></i>verwendet ' + chfKurz(s.kreditVerwendet) + '</span><span><i class="punkt" style="background:#D3DFEA"></i>frei ' + chfKurz(s.kreditFrei) + "</span></div>" + (s.kreditFrei < 0 ? '<div class="hinweis warn" style="margin-top:12px"><div>Die Anschaffungen übersteigen den Kreditrahmen um ' + chf(-s.kreditFrei) + ".</div></div>" : "") : "") + "</div>";
+  } else if (kannBearbeiten()) {
+    h += '<div class="karte-pad" style="border-top:1px solid var(--linie);font-size:.8rem;color:var(--grau)">Wurde dafür ein Kredit aufgenommen? <button class="btn still klein" type="button" data-aktion="kredit-rahmen">Kreditrahmen erfassen</button></div>';
+  }
+  h += '<div class="karte-pad" style="border-top:1px solid var(--linie);font-size:.8rem;color:var(--grau)">Diese Beträge zählen nicht zum Sanierungsbudget: Sie verändern weder den Sanierungsrahmen noch den verfügbaren Betrag noch den Kostenvergleich.</div></div>';
+  return h + "</section>";
+}
+function formular2(Z2, a) {
+  entwurf2 = a ? JSON.parse(JSON.stringify(a)) : {
+    id: null,
+    bezeichnung: "",
+    kategorie: "",
+    betrag: 0,
+    datum: heuteISO(),
+    bezahlt: false,
+    finanzierung: "Kredit",
+    bemerkung: ""
+  };
+  modalOeffnen({
+    titel: entwurf2.id ? "Anschaffung bearbeiten" : "Neue Anschaffung",
+    koerper: koerper2(),
+    speichern: () => speichern2(Z2)
+  });
+}
+function koerper2() {
+  const a = entwurf2;
+  return '<label class="feld"><span>Anschaffung</span><input data-feld="bezeichnung" value="' + esc(a.bezeichnung) + '" placeholder="z.B. Waschmaschine"></label><div class="feld-paar"><label class="feld"><span>Art</span><input list="ansch-arten" data-feld="kategorie" value="' + esc(a.kategorie) + '" placeholder="z.B. Haushaltgeräte"><datalist id="ansch-arten">' + ANSCHAFFUNG_ARTEN.map((x) => '<option value="' + esc(x) + '">').join("") + '</datalist></label><label class="feld"><span>Betrag (CHF)</span><input inputmode="decimal" data-feld="betrag" value="' + zahl(a.betrag) + '" placeholder="1200"></label></div><div class="feld-paar"><label class="feld"><span>Datum</span><input type="date" data-feld="datum" value="' + esc(a.datum || "") + '"></label><label class="feld"><span>Finanzierung</span><select data-feld="finanzierung">' + FINANZIERUNGEN.map((x) => "<option" + (x === a.finanzierung ? " selected" : "") + ">" + x + "</option>").join("") + '</select></label></div><label class="check"><input type="checkbox" data-feld="bezahlt"' + (a.bezahlt ? " checked" : "") + '> Bereits bezahlt</label><label class="feld"><span>Bemerkung</span><textarea data-feld="bemerkung" placeholder="optional">' + esc(a.bemerkung || "") + '</textarea></label><div class="hinweis info"><div>Diese Kosten bleiben ausserhalb des Sanierungsbudgets und verändern den verfügbaren Betrag nicht.</div></div>';
+}
+async function speichern2(Z2) {
+  const a = entwurf2;
+  if (!a.bezeichnung.trim()) {
+    meldung("Bitte eine Bezeichnung angeben.", true);
+    return false;
+  }
+  const daten = {
+    bezeichnung: a.bezeichnung.trim(),
+    kategorie: a.kategorie.trim(),
+    betrag: zahl(a.betrag),
+    datum: a.datum || null,
+    bezahlt: !!a.bezahlt,
+    finanzierung: a.finanzierung === "Eigenmittel" ? "Eigenmittel" : "Kredit",
+    bemerkung: a.bemerkung.trim()
+  };
+  try {
+    if (a.id) await anschaffungAktualisieren(a.id, daten, a.geaendert_am);
+    else await anschaffungAnlegen(Z2.projektId, daten);
+    meldung(a.id ? "Anschaffung aktualisiert." : "Anschaffung erfasst.");
+    await neuLaden(["anschaffungen"]);
+    return true;
+  } catch (err) {
+    meldung(err.message, true);
+    return false;
+  }
+}
+function eingabe2(e) {
+  if (!document.querySelector(".modal") || !entwurf2) return;
+  const feld = e.target.closest("[data-feld]");
+  if (!feld) return;
+  entwurf2[feld.dataset.feld] = feld.type === "checkbox" ? feld.checked : feld.value;
+}
+function aktion4(a, knopf, Z2) {
+  if (a === "ansch-neu") return formular2(Z2, null);
+  if (a === "ansch-bearbeiten") return formular2(Z2, (Z2.anschaffungen || []).find((x) => x.id === knopf.dataset.id));
+  if (a === "ansch-loeschen") {
+    const x = (Z2.anschaffungen || []).find((y) => y.id === knopf.dataset.id);
+    if (x && bestaetigen('Anschaffung "' + (x.bezeichnung || "") + '" löschen?')) {
+      anschaffungLoeschen(x.id).then(() => {
+        meldung("Anschaffung gelöscht.");
+        return neuLaden(["anschaffungen"]);
+      }).catch((err) => meldung(err.message, true));
+    }
+    return;
+  }
+  if (a === "kredit-rahmen") return kreditFormular(Z2);
+}
+function kreditFormular(Z2) {
+  const p = Z2.projekt;
+  modalOeffnen({
+    titel: "Kredit für Anschaffungen",
+    koerper: '<label class="feld"><span>Aufgenommener Kredit (CHF)</span><input id="k-rahmen" inputmode="decimal" value="' + (zahl(p.kredit_rahmen) || "") + '" placeholder="30000"></label><div class="hinweis info"><div>Der Kredit gehört nicht zum Gesamtbudget der Liegenschaft. Er dient nur dazu, den Anschaffungen einen Rahmen zu geben – 0 blendet ihn wieder aus.</div></div>',
+    speichern: async () => {
+      try {
+        const { projektAktualisieren: projektAktualisieren2 } = await Promise.resolve().then(() => (init_daten(), daten_exports));
+        const { Z: ZUstand, neuZeichnen: neuZeichnen2 } = await Promise.resolve().then(() => (init_app(), app_exports));
+        const neu = await projektAktualisieren2(p.id, { kredit_rahmen: zahl(document.getElementById("k-rahmen").value) }, p.geaendert_am);
+        Object.assign(ZUstand.projekt, neu);
+        const ix = ZUstand.projekte.findIndex((x) => x.id === neu.id);
+        if (ix !== -1) ZUstand.projekte[ix] = neu;
+        meldung("Kreditrahmen gespeichert.");
+        neuZeichnen2();
+        return true;
+      } catch (err) {
+        meldung(err.message, true);
+        return false;
+      }
+    }
+  });
+}
+var entwurf2;
+var init_anschaffungen = __esm({
+  "app/js/ansichten/anschaffungen.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_app();
+    init_konfig();
+    entwurf2 = null;
+  }
+});
+
+// app/js/ansichten/budget.js
+var budget_exports = {};
+__export(budget_exports, {
+  aktion: () => aktion5,
+  eingabe: () => eingabe3,
+  render: () => render5
+});
+function render5(Z2) {
+  const s = summen(Z2);
+  const budgetiert = s.budgetiert;
+  const bearbeitbar = kannBearbeiten();
+  let h = '<nav class="sprungleiste"><a href="#abschnitt-budget">Budget</a><a href="#abschnitt-vergleich">Kostenvergleich</a><a href="#abschnitt-foerderung">Fördergelder</a><a href="#abschnitt-anschaffungen">Anschaffungen</a></nav>';
+  h += '<section class="abschnitt" id="abschnitt-budget"><div class="abschnitt-kopf"><div><h2>Budget</h2><p>Sanierungsrahmen ' + chfKurz(s.rahmen) + " · verplant " + chfKurz(budgetiert) + (s.spaeter ? " · später " + chfKurz(s.spaeter) : "") + "</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="budget-neu">+ Position</button>' : "") + "</div>";
+  if (!Z2.budget.length) {
+    h += leerZustand(
+      "Noch keine Budgetpositionen",
+      "Legen Sie Positionen wie Elektro, Küche oder Fassade an, um Offerten und Rechnungen zuzuordnen.",
+      bearbeitbar ? '<button class="btn" type="button" data-aktion="budget-neu">Erste Position anlegen</button>' : ""
+    );
+  } else {
+    const kv = (id) => (Z2.kostenvergleich || []).find((k) => k.budgetposition_id === id) || { offerte: 0, rechnung: 0, bezahlt: 0 };
+    h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Kategorie</th><th class="num">Budget</th><th class="num">Offerten</th><th class="num">Rechnungen</th><th class="num">Bezahlt</th><th class="num">Differenz</th><th></th></tr></thead><tbody>';
+    Z2.budget.forEach((p) => {
+      const k = kv(p.id);
+      const zaehlt = budgetZaehlt(p);
+      const ist = k.rechnung > 0 ? k.rechnung : k.offerte;
+      const diff = zahl(p.betrag) - ist;
+      h += "<tr" + (zaehlt ? "" : ' class="spaeter"') + "><td><b>" + esc(p.kategorie) + "</b>" + (zaehlt ? "" : ' <span class="badge">später</span>') + (p.bemerkung ? '<div style="font-size:.76rem;color:var(--grau);white-space:normal;max-width:260px">' + esc(p.bemerkung) + "</div>" : "") + '</td><td class="num">' + chf(p.betrag) + '</td><td class="num">' + chf(k.offerte) + '</td><td class="num">' + chf(k.rechnung) + '</td><td class="num">' + chf(k.bezahlt) + '</td><td class="num ' + (diff < 0 ? "neg" : "pos") + '">' + (diff >= 0 ? "+" : "") + chf(diff) + "</td><td>" + (bearbeitbar ? '<div class="zeile-aktion"><button class="btn still klein" type="button" data-aktion="budget-umschalten" data-id="' + p.id + '">' + (zaehlt ? "Später" : "Einrechnen") + '</button><button class="btn still klein" type="button" data-aktion="budget-bearbeiten" data-id="' + p.id + '">Bearbeiten</button><button class="btn still klein" type="button" data-aktion="budget-loeschen" data-id="' + p.id + '">Löschen</button></div>' : "") + "</td></tr>";
+    });
+    h += '</tbody><tfoot><tr><td>Total berücksichtigte Positionen</td><td class="num">' + chf(budgetiert) + '</td><td class="num">' + chf(Z2.budget.reduce((a, p) => a + kv(p.id).offerte, 0)) + '</td><td class="num">' + chf(Z2.budget.reduce((a, p) => a + kv(p.id).rechnung, 0)) + '</td><td class="num">' + chf(Z2.budget.reduce((a, p) => a + kv(p.id).bezahlt, 0)) + '</td><td class="num"></td><td></td></tr>' + (s.spaeter ? '<tr class="spaeter"><td>Erst später (' + s.spaeterAnzahl + ')</td><td class="num">' + chf(s.spaeter) + '</td><td colspan="5"></td></tr>' : "") + "</tfoot></table></div>" + (s.spaeter ? '<div class="karte-pad" style="border-top:1px solid var(--linie);font-size:.8rem;color:var(--grau)">Auf «später» gestellte Positionen zählen nicht in die Summen und nicht in den Sanierungsrahmen. Offerten und Rechnungen, die einer solchen Kategorie zugeordnet sind, zählen weiterhin – dieses Geld ist bereits gebunden.</div>' : "") + "</div>";
+  }
+  h += "</section>";
+  const liste = (Z2.kostenvergleich || []).filter((k) => k.budget > 0 || k.offerte > 0 || k.rechnung > 0);
+  h += '<section class="abschnitt" id="abschnitt-vergleich"><div class="abschnitt-kopf"><div><h2>Kostenvergleich</h2><p>Budget gegen Offerten und Rechnungen, über alle Kategorien</p></div></div>';
+  if (!liste.length) {
+    h += leerZustand("Noch nichts zu vergleichen", "Sobald Budget, Offerten oder Rechnungen erfasst sind, erscheint hier die Gegenüberstellung.", "");
+  } else {
+    let tB = 0, tO = 0, tR = 0, tZ = 0, tD = 0;
+    h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Kategorie</th><th class="num">Budget</th><th class="num">Offerte</th><th class="num">Rechnung</th><th class="num">Bezahlt</th><th class="num">Differenz zum Budget</th></tr></thead><tbody>';
+    liste.forEach((k) => {
+      const zaehlt = budgetZaehlt(k);
+      if (zaehlt) {
+        tB += k.budget;
+        tD += k.differenz;
+      }
+      tO += k.offerte;
+      tR += k.rechnung;
+      tZ += k.bezahlt;
+      h += "<tr" + (zaehlt ? "" : ' class="spaeter"') + "><td><b>" + esc(k.kategorie) + "</b>" + (zaehlt ? "" : ' <span class="badge">später</span>') + '</td><td class="num">' + chf(k.budget) + '</td><td class="num">' + chf(k.offerte) + '</td><td class="num">' + chf(k.rechnung) + '</td><td class="num">' + chf(k.bezahlt) + '</td><td class="num ' + (k.differenz < 0 ? "neg" : "pos") + '">' + (k.differenz >= 0 ? "+" : "") + chf(k.differenz) + "</td></tr>";
+    });
+    h += '</tbody><tfoot><tr><td>Total</td><td class="num">' + chf(tB) + '</td><td class="num">' + chf(tO) + '</td><td class="num">' + chf(tR) + '</td><td class="num">' + chf(tZ) + '</td><td class="num ' + (tD < 0 ? "neg" : "pos") + '">' + (tD >= 0 ? "+" : "") + chf(tD) + '</td></tr></tfoot></table></div><div class="karte-pad" style="border-top:1px solid var(--linie);font-size:.8rem;color:var(--grau)">Als Ist-Kosten gilt die Rechnungssumme. Solange keine Rechnung erfasst ist, wird die Offertsumme verwendet. Alle Beträge inklusive MWST.' + (tB !== liste.reduce((a, k) => a + k.budget, 0) ? " Positionen mit «später» sind im Total der Budgetspalte nicht enthalten." : "") + "</div></div>";
+  }
+  h += "</section>";
+  return h + render3(Z2) + render4(Z2);
+}
+function formular3(Z2, p) {
+  const optionen = STANDARD_KATEGORIEN.concat(Z2.budget.map((x) => x.kategorie).filter((k) => !STANDARD_KATEGORIEN.includes(k)));
+  const koerper5 = '<label class="feld"><span>Kategorie</span><input id="f-kategorie" list="kat-liste" value="' + esc(p ? p.kategorie : "") + '" placeholder="z.B. Elektro" required><datalist id="kat-liste">' + optionen.map((k) => '<option value="' + esc(k) + '">').join("") + '</datalist></label><label class="feld"><span>Budgetbetrag (CHF, inkl. MWST)</span><input id="f-betrag" inputmode="decimal" value="' + (p ? zahl(p.betrag) : "") + '" placeholder="18000"></label><label class="feld"><span>Bemerkung</span><textarea id="f-bemerkung" placeholder="optional">' + esc(p ? p.bemerkung : "") + '</textarea></label><div class="check"><input type="checkbox" id="f-spaeter"' + (p && p.beruecksichtigt === false ? " checked" : "") + '><label for="f-spaeter" style="margin:0">Erst später berücksichtigen</label></div><p style="margin:-6px 0 4px;font-size:.78rem;color:var(--grau)">Angehakt zählt der Budgetbetrag nirgends mit – die Position bleibt aber erfasst und lässt sich jederzeit wieder einrechnen. Bereits erfasste Offerten und Rechnungen dieser Kategorie zählen weiterhin, denn dieses Geld ist ausgegeben.</p>';
+  modalOeffnen({
+    titel: p ? "Budgetposition bearbeiten" : "Neue Budgetposition",
+    koerper: koerper5,
+    speichern: async () => {
+      const kategorie = document.getElementById("f-kategorie").value.trim();
+      if (!kategorie) {
+        meldung("Bitte eine Kategorie angeben.", true);
+        return false;
+      }
+      const daten = {
+        kategorie,
+        betrag: zahl(document.getElementById("f-betrag").value),
+        bemerkung: document.getElementById("f-bemerkung").value.trim(),
+        beruecksichtigt: !document.getElementById("f-spaeter").checked
+      };
+      try {
+        if (p) await budgetAktualisieren(p.id, daten, p.geaendert_am);
+        else await budgetAnlegen(Z2.projektId, daten);
+        meldung(p ? "Budgetposition aktualisiert." : "Budgetposition angelegt.");
+        await neuLaden(["budget"]);
+        return true;
+      } catch (err) {
+        meldung(err.message, true);
+        return false;
+      }
+    }
+  });
+}
+function eingabe3(e, Z2) {
+  eingabe(e, Z2);
+  eingabe2(e, Z2);
+}
+function aktion5(a, knopf, Z2) {
+  if (a.startsWith("foerder-") || a === "datei-oeffnen") return aktion3(a, knopf, Z2);
+  if (a.startsWith("ansch-") || a === "kredit-rahmen") return aktion4(a, knopf, Z2);
+  if (a === "budget-neu") return formular3(Z2, null);
+  if (a === "budget-bearbeiten") return formular3(Z2, Z2.budget.find((p) => p.id === knopf.dataset.id));
+  if (a === "budget-umschalten") {
+    const p = Z2.budget.find((x) => x.id === knopf.dataset.id);
+    if (!p) return;
+    const neu = !budgetZaehlt(p);
+    knopf.disabled = true;
+    budgetAktualisieren(p.id, { beruecksichtigt: neu }, p.geaendert_am).then(() => {
+      meldung(neu ? '"' + p.kategorie + '" zählt jetzt mit.' : '"' + p.kategorie + '" ist auf später gestellt.');
+      return neuLaden(["budget"]);
+    }).catch((e) => {
+      knopf.disabled = false;
+      meldung(e.message, true);
+    });
+    return;
+  }
+  if (a === "budget-loeschen") {
+    const p = Z2.budget.find((x) => x.id === knopf.dataset.id);
+    if (p && bestaetigen('Budgetposition "' + p.kategorie + '" löschen?')) {
+      budgetLoeschen(p.id).then(() => {
+        meldung("Budgetposition gelöscht.");
+        neuLaden(["budget"]);
+      }).catch((e) => meldung(e.message, true));
+    }
+  }
+}
+var init_budget = __esm({
+  "app/js/ansichten/budget.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_app();
+    init_konfig();
+    init_foerdergelder();
+    init_anschaffungen();
+  }
+});
 
 // app/js/ki.js
-function warten(ms) {
-  return new Promise((ok) => setTimeout(ok, ms));
+function analyseFehlerText(e) {
+  const code = e && e.code;
+  if (code === "kein_schluessel") {
+    return "Die KI-Auswertung ist auf dem Server noch nicht freigeschaltet (es fehlt der Zugang zum KI-Dienst). Das Dokument kann weiterhin von Hand erfasst werden.";
+  }
+  if (code === "schluessel_ungueltig") return "Der KI-Dienst lehnt den hinterlegten Zugang ab. Bitte den Schlüssel prüfen.";
+  if (code === "kontingent" || code === "kein_modell") return e && e.message || "Die Analyse ist fehlgeschlagen.";
+  return "Auslesen fehlgeschlagen: " + (e && e.message || e);
 }
-async function analysiereDokument(datei, art, aufSchritt) {
-  const schritte = art === "beleg" ? ["Datei wird gelesen", "Lieferant und Betrag werden gesucht", "Werte werden übernommen"] : ["Datei wird gelesen", "Dokument wird ausgewertet", "Positionen werden übernommen"];
-  for (let i = 0; i < schritte.length; i++) {
-    await warten(550);
-    if (aufSchritt) aufSchritt(i);
-  }
-  await warten(450);
-  if (art === "beleg") {
-    const brutto = 8750;
-    const netto = Math.round(brutto / 1.081 * 100) / 100;
-    return {
-      demo: true,
-      lieferant: "Muster AG",
-      nummer: "RE-2026-235",
-      datum: "2026-11-12",
-      netto,
-      mwst: Math.round((brutto - netto) * 100) / 100,
-      brutto,
-      kategorie: "Elektro"
-    };
-  }
+function zahl2(wert) {
+  if (wert === null || wert === void 0 || wert === "") return 0;
+  const n = typeof wert === "number" ? wert : parseFloat(String(wert).replace(/['\s]/g, "").replace(",", "."));
+  return Number.isFinite(n) ? n : 0;
+}
+function runden(n) {
+  return Math.round(n * 100) / 100;
+}
+function text(wert) {
+  return wert === null || wert === void 0 ? "" : String(wert).trim();
+}
+function datumOderLeer(wert) {
+  const t = text(wert);
+  return /^\d{4}-\d{2}-\d{2}$/.test(t) ? t : "";
+}
+function offerteAufbereiten(w) {
+  const positionen = Array.isArray(w.positionen) ? w.positionen : [];
   return {
-    demo: true,
-    lieferant: "Muster AG",
-    nummer: "2026-1045",
-    datum: "2026-09-19",
-    mwstSatz: 8.1,
-    kategorie: "Elektro",
-    positionen: [
-      { nr: "1", beschreibung: "Baustelleninstallation", menge: 1, einheit: "pauschal", einzelpreis: 1500 },
-      { nr: "2", beschreibung: "Elektroinstallation EG", menge: 1, einheit: "pauschal", einzelpreis: 8500 },
-      { nr: "3", beschreibung: "Elektroinstallation OG", menge: 1, einheit: "pauschal", einzelpreis: 6800 },
-      { nr: "4", beschreibung: "Beleuchtung", menge: 1, einheit: "pauschal", einzelpreis: 2400 }
-    ]
+    lieferant: text(w.lieferant),
+    nummer: text(w.nummer),
+    datum: datumOderLeer(w.datum),
+    // null bedeutet ausdrücklich "ohne MWST geführt"; fehlt die Angabe ganz,
+    // bleibt es beim üblichen Satz, den die Person überschreiben kann.
+    mwstSatz: w.mwst_satz === null ? null : zahl2(w.mwst_satz) || 8.1,
+    hinweis: text(w.hinweis),
+    positionen: positionen.map((p, i) => ({
+      nr: text(p.nr) || String(i + 1),
+      beschreibung: text(p.beschreibung),
+      menge: zahl2(p.menge) || 1,
+      einheit: text(p.einheit) || "pauschal",
+      einzelpreis: runden(zahl2(p.einzelpreis))
+    })).filter((p) => p.beschreibung || p.einzelpreis)
   };
 }
-var ANALYSE_SCHRITTE = {
-  offerte: ["Datei wird gelesen", "Dokument wird ausgewertet", "Positionen werden übernommen"],
-  beleg: ["Datei wird gelesen", "Lieferant und Betrag werden gesucht", "Werte werden übernommen"]
-};
+function belegAufbereiten(w) {
+  const brutto = runden(zahl2(w.brutto));
+  const ohneMwst = w.mwst === null || w.mwst === void 0;
+  let mwst = ohneMwst ? null : runden(zahl2(w.mwst));
+  let netto = runden(zahl2(w.netto));
+  if (mwst === null) {
+    netto = brutto;
+  } else {
+    if (!netto && brutto) netto = runden(brutto - mwst);
+    if (!mwst && brutto && netto) mwst = runden(brutto - netto);
+  }
+  return {
+    lieferant: text(w.lieferant),
+    nummer: text(w.nummer),
+    datum: datumOderLeer(w.datum),
+    netto,
+    mwst,
+    brutto,
+    bezahlt: w.bezahlt === true,
+    zahlungsdatum: datumOderLeer(w.zahlungsdatum),
+    hinweis: text(w.hinweis)
+  };
+}
+async function analysiereDokument(quelle, art, aufSchritt) {
+  const melden = (i) => {
+    if (aufSchritt) aufSchritt(i);
+  };
+  let pfad = quelle.pfad || null;
+  let name = quelle.name || quelle.datei && quelle.datei.name || "";
+  if (!pfad) {
+    if (!quelle.datei) throw new DatenFehler("Es wurde keine Datei ausgewählt.");
+    if (quelle.datei.size > ANALYSE_MAX_BYTES) {
+      throw new DatenFehler(
+        "Die Datei ist mit " + (quelle.datei.size / 1024 / 1024).toFixed(1) + " MB zu gross für die Analyse (höchstens 15 MB). Sie kann trotzdem gespeichert werden."
+      );
+    }
+    const info = await hochladen(quelle.datei, quelle.projektId, quelle.bereich);
+    pfad = info.datei_pfad;
+    name = info.datei_name;
+  }
+  melden(0);
+  const antwort = await dokumentAnalysieren(pfad, art);
+  melden(1);
+  const werte = art === "beleg" ? belegAufbereiten(antwort.werte) : offerteAufbereiten(antwort.werte);
+  melden(2);
+  return { ...werte, datei_pfad: pfad, datei_name: name, modell: antwort.modell || "" };
+}
+var ANALYSE_MAX_BYTES, ANALYSE_SCHRITTE;
+var init_ki = __esm({
+  "app/js/ki.js"() {
+    init_daten();
+    init_dateien();
+    ANALYSE_MAX_BYTES = 15 * 1024 * 1024;
+    ANALYSE_SCHRITTE = {
+      offerte: ["Datei wird hochgeladen", "Dokument wird gelesen", "Positionen werden übernommen"],
+      beleg: ["Datei wird hochgeladen", "Dokument wird gelesen", "Werte werden übernommen"]
+    };
+  }
+});
 
 // app/js/ansichten/offerten.js
-var entwurf = null;
-var dateiWartend = null;
-function render4(Z2) {
+var offerten_exports = {};
+__export(offerten_exports, {
+  aenderung: () => aenderung2,
+  aktion: () => aktion6,
+  eingabe: () => eingabe4,
+  render: () => render6
+});
+function render6(Z2) {
   const bearbeitbar = kannBearbeiten();
   const summe = Z2.offerten.filter((o) => o.status !== "Abgelehnt").reduce((s, o) => s + offerteNetto(o) + offerteMwst(o), 0);
   let h = '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Offerten</h2><p>' + Z2.offerten.length + " erfasst · Summe " + chf(summe) + " (ohne abgelehnte)</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="offerte-neu">+ Offerte</button>' : "") + "</div>";
@@ -1421,7 +2156,7 @@ function render4(Z2) {
   }
   h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Lieferant</th><th>Nummer</th><th>Datum</th><th>Kategorie</th><th>Status</th><th class="num">Netto</th><th class="num">Total inkl. MWST</th><th></th></tr></thead><tbody>';
   Z2.offerten.slice().reverse().forEach((o) => {
-    h += "<tr><td><b>" + esc(o.lieferant || "–") + "</b> " + (o.ki_erkannt ? '<span class="badge demo">Demo</span>' : "") + (o.datei_pfad ? ' <span class="badge">Datei</span>' : "") + (o.handwerker_id ? ' <span class="badge blau">Handwerker</span>' : "") + "</td><td>" + esc(o.nummer || "–") + "</td><td>" + datumCH(o.datum) + "</td><td>" + esc(kategorieName(Z2.budget, o.budgetposition_id)) + "</td><td>" + statusBadge(o.status) + '</td><td class="num">' + chf(offerteNetto(o)) + '</td><td class="num"><b>' + chf(offerteNetto(o) + offerteMwst(o)) + '</b></td><td><div class="zeile-aktion">' + (o.datei_pfad ? '<button class="btn still klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(o.datei_pfad) + '">Datei</button>' : "") + '<button class="btn still klein" type="button" data-aktion="offerte-bearbeiten" data-id="' + o.id + '">' + (bearbeitbar ? "Bearbeiten" : "Ansehen") + "</button>" + (bearbeitbar ? '<button class="btn still klein" type="button" data-aktion="offerte-loeschen" data-id="' + o.id + '">Löschen</button>' : "") + "</div></td></tr>";
+    h += "<tr><td><b>" + esc(o.lieferant || "–") + "</b> " + (o.ki_erkannt ? '<span class="badge demo">KI</span>' : "") + (o.datei_pfad ? ' <span class="badge">Datei</span>' : "") + (o.handwerker_id ? ' <span class="badge blau">Handwerker</span>' : "") + "</td><td>" + esc(o.nummer || "–") + "</td><td>" + datumCH(o.datum) + "</td><td>" + esc(kategorieName(Z2.budget, o.budgetposition_id)) + "</td><td>" + statusBadge(o.status) + '</td><td class="num">' + chf(offerteNetto(o)) + '</td><td class="num"><b>' + chf(offerteNetto(o) + offerteMwst(o)) + '</b></td><td><div class="zeile-aktion">' + (o.datei_pfad ? '<button class="btn still klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(o.datei_pfad) + '">Datei</button>' : "") + '<button class="btn still klein" type="button" data-aktion="offerte-bearbeiten" data-id="' + o.id + '">' + (bearbeitbar ? "Bearbeiten" : "Ansehen") + "</button>" + (bearbeitbar ? '<button class="btn still klein" type="button" data-aktion="offerte-loeschen" data-id="' + o.id + '">Löschen</button>' : "") + "</div></td></tr>";
   });
   return h + "</tbody></table></div></div></section>";
 }
@@ -1429,14 +2164,15 @@ function neuePosition() {
   return { nr: "", beschreibung: "", menge: 1, einheit: "pauschal", einzelpreis: 0 };
 }
 function entwurfNetto() {
-  return (entwurf.offert_positionen || []).reduce((s, p) => s + zahl(p.menge) * zahl(p.einzelpreis), 0);
+  return (entwurf3.offert_positionen || []).reduce((s, p) => s + zahl(p.menge) * zahl(p.einzelpreis), 0);
 }
 function entwurfMwst() {
-  return entwurf.mwst_satz == null ? 0 : entwurfNetto() * (zahl(entwurf.mwst_satz) / 100);
+  return entwurf3.mwst_satz == null ? 0 : entwurfNetto() * (zahl(entwurf3.mwst_satz) / 100);
 }
-function formular2(Z2, o) {
-  dateiWartend = null;
-  entwurf = o ? JSON.parse(JSON.stringify(o)) : {
+function formular4(Z2, o) {
+  dateiWartend2 = null;
+  letzterHinweis = "";
+  entwurf3 = o ? JSON.parse(JSON.stringify(o)) : {
     id: null,
     budgetposition_id: null,
     lieferant: "",
@@ -1451,18 +2187,18 @@ function formular2(Z2, o) {
     handwerker_id: null,
     offert_positionen: [neuePosition()]
   };
-  if (!entwurf.offert_positionen || !entwurf.offert_positionen.length) entwurf.offert_positionen = [neuePosition()];
+  if (!entwurf3.offert_positionen || !entwurf3.offert_positionen.length) entwurf3.offert_positionen = [neuePosition()];
   modalOeffnen({
-    titel: entwurf.id ? "Offerte bearbeiten" : "Neue Offerte",
-    koerper: koerper(Z2),
-    speichern: () => speichern(Z2)
+    titel: entwurf3.id ? "Offerte bearbeiten" : "Neue Offerte",
+    koerper: koerper3(Z2),
+    speichern: () => speichern3(Z2)
   });
 }
-function koerper(Z2) {
-  const o = entwurf;
+function koerper3(Z2) {
+  const o = entwurf3;
   let h = '<div id="o-analyse">' + analyseBlock() + "</div>";
   if (o.ki_erkannt) {
-    h += '<div class="hinweis demo" style="margin-bottom:14px"><div><b>Demo – simulierte KI-Erkennung</b>Diese Werte sind fest hinterlegte Beispieldaten und wurden nicht aus Ihrer Datei ausgelesen. Bitte prüfen.</div></div>';
+    h += '<div class="hinweis demo" style="margin-bottom:14px"><div><b>Von der KI ausgelesen – bitte prüfen</b>Automatisch erkannte Werte können falsch sein. Beträge, Mengen und das Datum bitte mit der Offerte vergleichen.' + (letzterHinweis ? "<br>Hinweis der Auswertung: " + esc(letzterHinweis) : "") + "</div></div>";
   }
   h += '<label class="feld"><span>Lieferant</span><input data-feld="lieferant" value="' + esc(o.lieferant) + '" placeholder="Firma"></label><div class="feld-paar"><label class="feld"><span>Offertnummer</span><input data-feld="nummer" value="' + esc(o.nummer) + '" placeholder="2026-1045"></label><label class="feld"><span>Datum</span><input type="date" data-feld="datum" value="' + esc(o.datum || "") + '"></label></div><div class="feld-paar"><label class="feld"><span>Budgetkategorie</span><select data-feld="budgetposition_id">' + kategorieOptionen(Z2.budget, o.budgetposition_id) + '</select></label><label class="feld"><span>Status</span><select data-feld="status">' + STATUS_LISTE.map((s) => "<option" + (s === o.status ? " selected" : "") + ">" + s + "</option>").join("") + "</select></label></div>";
   if (istEigentuemer()) {
@@ -1475,30 +2211,30 @@ function koerper(Z2) {
   return h;
 }
 function analyseBlock() {
-  const o = entwurf;
+  const o = entwurf3;
   if (o.datei_pfad) {
-    return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Datei: ' + esc(o.datei_name || "") + '</b><div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(o.datei_pfad) + '">Datei öffnen</button><button class="btn zweit klein" type="button" data-aktion="o-analysieren">Offerte analysieren (Demo)</button><button class="btn still klein" type="button" data-aktion="o-datei-entfernen">Datei entfernen</button></div></div></div>';
+    return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Datei: ' + esc(o.datei_name || "") + '</b><div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(o.datei_pfad) + '">Datei öffnen</button><button class="btn zweit klein" type="button" data-aktion="o-analysieren">Offerte auslesen</button><button class="btn still klein" type="button" data-aktion="o-datei-entfernen">Datei entfernen</button></div></div></div>';
   }
-  if (dateiWartend) {
-    return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Gewählte Datei: ' + esc(dateiWartend.name) + '</b>Wird beim Speichern hochgeladen.<div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="o-analysieren">Erneut analysieren (Demo)</button><button class="btn still klein" type="button" data-aktion="o-datei-entfernen">Datei entfernen</button></div></div></div>';
+  if (dateiWartend2) {
+    return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Gewählte Datei: ' + esc(dateiWartend2.name) + '</b>Wird beim Speichern hochgeladen.<div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="o-analysieren">Offerte auslesen</button><button class="btn still klein" type="button" data-aktion="o-datei-entfernen">Datei entfernen</button></div></div></div>';
   }
-  return '<div class="datei-feld" style="margin-bottom:14px"><p>Offerte als PDF, JPG oder PNG hochladen</p><input type="file" id="o-datei" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><div class="btn-reihe" style="margin-top:11px;justify-content:center"><button class="btn klein" type="button" data-aktion="o-analysieren">Offerte analysieren</button></div><p style="margin:9px 0 0;font-size:.76rem">Die Analyse ist simuliert und liefert immer dieselben Demo-Werte.</p></div>';
+  return '<div class="datei-feld" style="margin-bottom:14px"><p>Offerte als PDF, JPG oder PNG hochladen</p><input type="file" id="o-datei" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><div class="btn-reihe" style="margin-top:11px;justify-content:center"><button class="btn klein" type="button" data-aktion="o-analysieren">Offerte auslesen</button></div><p style="margin:9px 0 0;font-size:.76rem">Beim Auslesen wird die Datei gespeichert und einmalig an den KI-Dienst (Google Gemini) übermittelt. Ohne Klick auf diesen Knopf passiert das nicht.</p></div>';
 }
 function positionHtml(p, i) {
   return '<div class="pos-zeile" data-zeile="' + i + '"><div class="pos-grid"><div class="pos-mini"><label class="feld"><span>Nr.</span><input class="p-nr" data-pos="' + i + '" data-feld="nr" value="' + esc(p.nr) + '"></label><label class="feld" style="grid-column:span 2"><span>Beschreibung</span><input data-pos="' + i + '" data-feld="beschreibung" value="' + esc(p.beschreibung) + '" placeholder="Leistung"></label></div><label class="feld"><span>Menge</span><input inputmode="decimal" data-pos="' + i + '" data-feld="menge" value="' + esc(p.menge) + '"></label><label class="feld"><span>Einheit</span><input list="einheit-liste" data-pos="' + i + '" data-feld="einheit" value="' + esc(p.einheit) + '"></label><label class="feld"><span>Einzelpreis CHF</span><input inputmode="decimal" data-pos="' + i + '" data-feld="einzelpreis" value="' + esc(p.einzelpreis) + '"></label><label class="feld"><span>Entfernen</span><button class="btn gefahr klein" type="button" data-aktion="o-pos-weg" data-pos="' + i + '">✕</button></label></div><div class="pos-fuss"><span style="color:var(--grau)">Zeilentotal</span><b class="zahl" data-zeilen-total="' + i + '">' + chf(zahl(p.menge) * zahl(p.einzelpreis)) + "</b></div></div>";
 }
 function summeHtml() {
-  const o = entwurf;
+  const o = entwurf3;
   const netto = entwurfNetto(), mwst = entwurfMwst();
   const ohneMwst = o.mwst_satz == null;
   return '<div class="check"><input type="checkbox" id="o-ohne-mwst"' + (ohneMwst ? " checked" : "") + '> <label for="o-ohne-mwst" style="margin:0">Ohne MWST führen</label></div><div class="summe-zeile"><span>Zwischentotal (netto)</span><b class="zahl" id="o-netto">' + chf(netto) + '</b></div><div class="summe-zeile"><span>MWST <input inputmode="decimal" data-feld="mwst_satz" value="' + (ohneMwst ? "" : esc(o.mwst_satz)) + '" ' + (ohneMwst ? "disabled" : "") + ' style="width:74px;display:inline-block;min-height:34px;padding:4px 7px;text-align:right"> %</span><b class="zahl" id="o-mwst">' + chf(mwst) + '</b></div><div class="summe-zeile total"><span>Total inkl. MWST</span><b class="zahl" id="o-total">' + chf(netto + mwst) + "</b></div>";
 }
 function neuZeichnenKoerper(Z2) {
   const koerperEl = document.querySelector(".modal-koerper");
-  if (koerperEl) koerperEl.innerHTML = koerper(Z2);
+  if (koerperEl) koerperEl.innerHTML = koerper3(Z2);
 }
 function summeAktualisieren() {
-  if (!entwurf) return;
+  if (!entwurf3) return;
   const netto = entwurfNetto(), mwst = entwurfMwst();
   const setze = (id, wert) => {
     const x = document.getElementById(id);
@@ -1507,44 +2243,55 @@ function summeAktualisieren() {
   setze("o-netto", chf(netto));
   setze("o-mwst", chf(mwst));
   setze("o-total", chf(netto + mwst));
-  entwurf.offert_positionen.forEach((p, i) => {
+  entwurf3.offert_positionen.forEach((p, i) => {
     const ziel = document.querySelector('[data-zeilen-total="' + i + '"]');
     if (ziel) ziel.textContent = chf(zahl(p.menge) * zahl(p.einzelpreis));
   });
 }
 async function analysieren(Z2) {
   const dateiFeld = document.getElementById("o-datei");
-  if (dateiFeld && dateiFeld.files && dateiFeld.files[0]) dateiWartend = dateiFeld.files[0];
-  if (!dateiWartend && !entwurf.datei_pfad) {
+  if (dateiFeld && dateiFeld.files && dateiFeld.files[0]) dateiWartend2 = dateiFeld.files[0];
+  if (!dateiWartend2 && !entwurf3.datei_pfad) {
     meldung("Bitte zuerst eine Datei auswählen.", true);
     return;
   }
   const block = document.getElementById("o-analyse");
   const schritte = ANALYSE_SCHRITTE.offerte;
-  block.innerHTML = '<div class="karte karte-pad lade" style="margin-bottom:14px"><div class="lade-ring"></div><b>Offerte wird analysiert …</b>' + ladeSchritte(schritte, 0) + '<p style="margin:12px 0 0;font-size:.76rem;color:var(--grau)">Simulierter Ablauf – es wird keine Datei ausgelesen und keine Schnittstelle aufgerufen.</p></div>';
+  block.innerHTML = '<div class="karte karte-pad lade" style="margin-bottom:14px"><div class="lade-ring"></div><b>Offerte wird ausgelesen …</b>' + ladeSchritte(schritte, 0) + '<p style="margin:12px 0 0;font-size:.76rem;color:var(--grau)">Das dauert je nach Umfang bis zu einer Minute.</p></div>';
   let ergebnis;
   try {
-    ergebnis = await analysiereDokument(dateiWartend || { name: entwurf.datei_name }, "offerte", (i) => {
-      const liste = block.querySelector(".lade-schritte");
-      if (liste) liste.innerHTML = ladeSchritte(schritte, i + 1);
-    });
+    ergebnis = await analysiereDokument(
+      { datei: dateiWartend2, pfad: entwurf3.datei_pfad, name: entwurf3.datei_name, projektId: Z2.projektId, bereich: "offerten" },
+      "offerte",
+      (i) => {
+        const liste = block.querySelector(".lade-schritte");
+        if (liste) liste.innerHTML = ladeSchritte(schritte, i + 1);
+      }
+    );
   } catch (e) {
-    meldung("Analyse abgebrochen: " + (e.message || e), true);
+    if (document.getElementById("o-analyse")) document.getElementById("o-analyse").innerHTML = analyseBlock();
+    meldung(analyseFehlerText(e), true);
     return;
   }
-  if (!document.querySelector(".modal")) return;
-  entwurf.ki_erkannt = true;
-  entwurf.lieferant = ergebnis.lieferant;
-  entwurf.nummer = ergebnis.nummer;
-  entwurf.datum = ergebnis.datum;
-  entwurf.mwst_satz = ergebnis.mwstSatz;
-  entwurf.status = entwurf.status === "Entwurf" ? "Erfasst" : entwurf.status;
-  entwurf.offert_positionen = ergebnis.positionen;
+  if (!document.querySelector(".modal") || !entwurf3) return;
+  entwurf3.datei_pfad = ergebnis.datei_pfad;
+  entwurf3.datei_name = ergebnis.datei_name;
+  dateiWartend2 = null;
+  letzterHinweis = ergebnis.hinweis || "";
+  entwurf3.ki_erkannt = true;
+  if (ergebnis.lieferant) entwurf3.lieferant = ergebnis.lieferant;
+  if (ergebnis.nummer) entwurf3.nummer = ergebnis.nummer;
+  if (ergebnis.datum) entwurf3.datum = ergebnis.datum;
+  entwurf3.mwst_satz = ergebnis.mwstSatz;
+  entwurf3.status = entwurf3.status === "Entwurf" ? "Erfasst" : entwurf3.status;
+  if (ergebnis.positionen.length) entwurf3.offert_positionen = ergebnis.positionen;
   neuZeichnenKoerper(Z2);
-  meldung("Demo-Erkennung eingefügt – bitte prüfen und korrigieren.");
+  meldung(
+    ergebnis.positionen.length ? "Offerte ausgelesen (" + ergebnis.positionen.length + " Positionen) – bitte prüfen." : "Es konnten keine Positionen erkannt werden. Bitte von Hand erfassen."
+  );
 }
-async function speichern(Z2) {
-  const o = entwurf;
+async function speichern3(Z2) {
+  const o = entwurf3;
   if (!o.lieferant.trim() && !o.nummer.trim()) {
     meldung("Bitte mindestens Lieferant oder Offertnummer angeben.", true);
     return false;
@@ -1552,16 +2299,16 @@ async function speichern(Z2) {
   o.offert_positionen = o.offert_positionen.filter((p) => p.beschreibung.trim() || zahl(p.einzelpreis) !== 0);
   if (!o.offert_positionen.length) o.offert_positionen = [neuePosition()];
   const dateiFeld = document.getElementById("o-datei");
-  if (!dateiWartend && dateiFeld && dateiFeld.files && dateiFeld.files[0]) dateiWartend = dateiFeld.files[0];
+  if (!dateiWartend2 && dateiFeld && dateiFeld.files && dateiFeld.files[0]) dateiWartend2 = dateiFeld.files[0];
   try {
-    if (dateiWartend) {
-      const info = await hochladen(dateiWartend, Z2.projektId, "offerten");
+    if (dateiWartend2) {
+      const info = await hochladen(dateiWartend2, Z2.projektId, "offerten");
       o.datei_pfad = info.datei_pfad;
       o.datei_name = info.datei_name;
     }
     await offerteSpeichern(Z2.projektId, { ...o, positionen: o.offert_positionen }, o.geaendert_am);
     meldung(o.id ? "Offerte aktualisiert." : "Offerte gespeichert.");
-    dateiWartend = null;
+    dateiWartend2 = null;
     await neuLaden(["offerten"]);
     return true;
   } catch (err) {
@@ -1569,38 +2316,38 @@ async function speichern(Z2) {
     return false;
   }
 }
-function eingabe(e, Z2) {
-  if (!document.querySelector(".modal") || !entwurf) return;
+function eingabe4(e, Z2) {
+  if (!document.querySelector(".modal") || !entwurf3) return;
   const feld = e.target.closest("[data-feld]");
   if (!feld) return;
   const name = feld.dataset.feld;
   if (feld.dataset.pos !== void 0) {
-    const p = entwurf.offert_positionen[+feld.dataset.pos];
+    const p = entwurf3.offert_positionen[+feld.dataset.pos];
     if (!p) return;
     p[name] = feld.value;
     summeAktualisieren();
     return;
   }
   if (name === "handwerker_id") {
-    entwurf.handwerker_id = feld.value || null;
+    entwurf3.handwerker_id = feld.value || null;
     return;
   }
   if (name === "budgetposition_id") {
-    entwurf.budgetposition_id = feld.value || null;
+    entwurf3.budgetposition_id = feld.value || null;
     return;
   }
-  entwurf[name] = feld.value;
+  entwurf3[name] = feld.value;
   if (name === "mwst_satz") summeAktualisieren();
 }
 function aenderung2(e, Z2) {
-  if (e.target.id === "o-ohne-mwst" && entwurf) {
-    entwurf.mwst_satz = e.target.checked ? null : 8.1;
+  if (e.target.id === "o-ohne-mwst" && entwurf3) {
+    entwurf3.mwst_satz = e.target.checked ? null : 8.1;
     neuZeichnenKoerper(Z2);
   }
 }
-function aktion4(a, knopf, Z2) {
-  if (a === "offerte-neu") return formular2(Z2, null);
-  if (a === "offerte-bearbeiten") return formular2(Z2, Z2.offerten.find((o) => o.id === knopf.dataset.id));
+function aktion6(a, knopf, Z2) {
+  if (a === "offerte-neu") return formular4(Z2, null);
+  if (a === "offerte-bearbeiten") return formular4(Z2, Z2.offerten.find((o) => o.id === knopf.dataset.id));
   if (a === "offerte-loeschen") {
     const o = Z2.offerten.find((x) => x.id === knopf.dataset.id);
     if (o && bestaetigen("Offerte " + (o.nummer || o.lieferant || "") + " löschen?")) {
@@ -1619,25 +2366,25 @@ function aktion4(a, knopf, Z2) {
   }
   if (a === "o-analysieren") return analysieren(Z2);
   if (a === "o-pos-neu") {
-    entwurf.offert_positionen.push(neuePosition());
-    entwurf.offert_positionen[entwurf.offert_positionen.length - 1].nr = String(entwurf.offert_positionen.length);
-    document.getElementById("o-positionen").innerHTML = entwurf.offert_positionen.map(positionHtml).join("");
+    entwurf3.offert_positionen.push(neuePosition());
+    entwurf3.offert_positionen[entwurf3.offert_positionen.length - 1].nr = String(entwurf3.offert_positionen.length);
+    document.getElementById("o-positionen").innerHTML = entwurf3.offert_positionen.map(positionHtml).join("");
     summeAktualisieren();
     return;
   }
   if (a === "o-pos-weg") {
-    entwurf.offert_positionen.splice(+knopf.dataset.pos, 1);
-    if (!entwurf.offert_positionen.length) entwurf.offert_positionen.push(neuePosition());
-    document.getElementById("o-positionen").innerHTML = entwurf.offert_positionen.map(positionHtml).join("");
+    entwurf3.offert_positionen.splice(+knopf.dataset.pos, 1);
+    if (!entwurf3.offert_positionen.length) entwurf3.offert_positionen.push(neuePosition());
+    document.getElementById("o-positionen").innerHTML = entwurf3.offert_positionen.map(positionHtml).join("");
     summeAktualisieren();
     return;
   }
   if (a === "o-datei-entfernen") {
-    if (entwurf.datei_pfad) loeschen(entwurf.datei_pfad).catch(() => {
+    if (entwurf3.datei_pfad) loeschen(entwurf3.datei_pfad).catch(() => {
     });
-    entwurf.datei_pfad = null;
-    entwurf.datei_name = null;
-    dateiWartend = null;
+    entwurf3.datei_pfad = null;
+    entwurf3.datei_name = null;
+    dateiWartend2 = null;
     document.getElementById("o-analyse").innerHTML = analyseBlock();
     return;
   }
@@ -1647,19 +2394,31 @@ function aktion4(a, knopf, Z2) {
     }).catch((e) => meldung(e.message, true));
   }
 }
+var entwurf3, dateiWartend2, letzterHinweis;
+var init_offerten = __esm({
+  "app/js/ansichten/offerten.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_dateien();
+    init_ki();
+    init_app();
+    init_konfig();
+    entwurf3 = null;
+    dateiWartend2 = null;
+    letzterHinweis = "";
+  }
+});
 
 // app/js/ansichten/belege.js
 var belege_exports = {};
 __export(belege_exports, {
   aenderung: () => aenderung3,
-  aktion: () => aktion5,
-  eingabe: () => eingabe2,
-  render: () => render5
+  aktion: () => aktion7,
+  eingabe: () => eingabe5,
+  render: () => render7
 });
-var entwurf2 = null;
-var dateiWartend2 = null;
-var mwstManuell = false;
-function render5(Z2) {
+function render7(Z2) {
   const bearbeitbar = kannBearbeiten();
   const rechnungen = Z2.belege.reduce((s, b) => s + zahl(b.brutto), 0);
   const bezahlt = Z2.belege.filter((b) => b.bezahlt).reduce((s, b) => s + zahl(b.brutto), 0);
@@ -1675,15 +2434,16 @@ function render5(Z2) {
   h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Lieferant</th><th>Nummer</th><th>Datum</th><th>Kategorie</th><th>Offerte</th><th class="num">Netto</th><th class="num">MWST</th><th class="num">Total</th><th>Zahlung</th><th></th></tr></thead><tbody>';
   Z2.belege.slice().reverse().forEach((b) => {
     const offerte = Z2.offerten.find((o) => o.id === b.offerte_id);
-    h += "<tr><td><b>" + esc(b.lieferant || "–") + "</b> " + (b.ki_erkannt ? '<span class="badge demo">Demo</span>' : "") + (b.datei_pfad ? ' <span class="badge">Datei</span>' : "") + "</td><td>" + esc(b.nummer || "–") + "</td><td>" + datumCH(b.datum) + "</td><td>" + esc(kategorieName(Z2.budget, b.budgetposition_id)) + "</td><td>" + (offerte ? esc(offerte.nummer || offerte.lieferant || "Offerte") : "–") + '</td><td class="num">' + chf(b.netto) + '</td><td class="num">' + (b.mwst == null ? "ohne" : chf(b.mwst)) + '</td><td class="num"><b>' + chf(b.brutto) + "</b></td><td>" + (b.bezahlt ? '<span class="badge gruen">bezahlt ' + (b.zahlungsdatum ? datumCH(b.zahlungsdatum) : "") + "</span>" : '<span class="badge amber">offen</span>') + '</td><td><div class="zeile-aktion">' + (b.datei_pfad ? '<button class="btn still klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(b.datei_pfad) + '">Datei</button>' : "") + '<button class="btn still klein" type="button" data-aktion="beleg-bearbeiten" data-id="' + b.id + '">' + (bearbeitbar ? "Bearbeiten" : "Ansehen") + "</button>" + (bearbeitbar ? '<button class="btn still klein" type="button" data-aktion="beleg-loeschen" data-id="' + b.id + '">Löschen</button>' : "") + "</div></td></tr>";
+    h += "<tr><td><b>" + esc(b.lieferant || "–") + "</b> " + (b.ki_erkannt ? '<span class="badge demo">KI</span>' : "") + (b.datei_pfad ? ' <span class="badge">Datei</span>' : "") + "</td><td>" + esc(b.nummer || "–") + "</td><td>" + datumCH(b.datum) + "</td><td>" + esc(kategorieName(Z2.budget, b.budgetposition_id)) + "</td><td>" + (offerte ? esc(offerte.nummer || offerte.lieferant || "Offerte") : "–") + '</td><td class="num">' + chf(b.netto) + '</td><td class="num">' + (b.mwst == null ? "ohne" : chf(b.mwst)) + '</td><td class="num"><b>' + chf(b.brutto) + "</b></td><td>" + (b.bezahlt ? '<span class="badge gruen">bezahlt ' + (b.zahlungsdatum ? datumCH(b.zahlungsdatum) : "") + "</span>" : '<span class="badge amber">offen</span>') + '</td><td><div class="zeile-aktion">' + (b.datei_pfad ? '<button class="btn still klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(b.datei_pfad) + '">Datei</button>' : "") + '<button class="btn still klein" type="button" data-aktion="beleg-bearbeiten" data-id="' + b.id + '">' + (bearbeitbar ? "Bearbeiten" : "Ansehen") + "</button>" + (bearbeitbar ? '<button class="btn still klein" type="button" data-aktion="beleg-loeschen" data-id="' + b.id + '">Löschen</button>' : "") + "</div></td></tr>";
   });
   h += '</tbody><tfoot><tr><td colspan="7">Total</td><td class="num">' + chf(rechnungen) + '</td><td colspan="2"></td></tr></tfoot>';
   return h + "</table></div></div></section>";
 }
-function formular3(Z2, b) {
-  dateiWartend2 = null;
+function formular5(Z2, b) {
+  dateiWartend3 = null;
+  letzterHinweis2 = "";
   mwstManuell = false;
-  entwurf2 = b ? JSON.parse(JSON.stringify(b)) : {
+  entwurf4 = b ? JSON.parse(JSON.stringify(b)) : {
     id: null,
     budgetposition_id: null,
     offerte_id: null,
@@ -1700,30 +2460,30 @@ function formular3(Z2, b) {
     datei_name: null,
     ki_erkannt: false
   };
-  modalOeffnen({ titel: entwurf2.id ? "Beleg bearbeiten" : "Neuer Beleg", koerper: koerper2(Z2), speichern: () => speichern2(Z2) });
+  modalOeffnen({ titel: entwurf4.id ? "Beleg bearbeiten" : "Neuer Beleg", koerper: koerper4(Z2), speichern: () => speichern4(Z2) });
 }
-function koerper2(Z2) {
-  const b = entwurf2;
+function koerper4(Z2) {
+  const b = entwurf4;
   const ohneMwst = b.mwst == null;
   let h = '<div id="b-analyse">' + analyseBlock2() + "</div>";
   if (b.ki_erkannt) {
-    h += '<div class="hinweis demo" style="margin-bottom:14px"><div><b>Demo – simulierte KI-Erkennung</b>Feste Beispielwerte. Sie stammen nicht aus Ihrer Datei und müssen geprüft werden.</div></div>';
+    h += '<div class="hinweis demo" style="margin-bottom:14px"><div><b>Von der KI ausgelesen – bitte prüfen</b>Automatisch erkannte Werte können falsch sein. Beträge und Datum bitte mit dem Beleg vergleichen.' + (letzterHinweis2 ? "<br>Hinweis der Auswertung: " + esc(letzterHinweis2) : "") + "</div></div>";
   }
   h += '<label class="feld"><span>Lieferant</span><input data-feld="lieferant" value="' + esc(b.lieferant) + '" placeholder="Firma"></label><div class="feld-paar"><label class="feld"><span>Rechnungsnummer</span><input data-feld="nummer" value="' + esc(b.nummer) + '" placeholder="RE-2026-235"></label><label class="feld"><span>Rechnungsdatum</span><input type="date" data-feld="datum" value="' + esc(b.datum || "") + '"></label></div><div class="check"><input type="checkbox" id="b-ohne-mwst"' + (ohneMwst ? " checked" : "") + '> <label for="b-ohne-mwst" style="margin:0">Ohne MWST (kein MWST-Ausweis auf dem Beleg)</label></div><div class="feld-paar"><label class="feld"><span>Betrag exkl. MWST</span><input inputmode="decimal" data-feld="netto" data-betrag="1" value="' + esc(b.netto) + '"' + (ohneMwst ? " disabled" : "") + '></label><label class="feld"><span>MWST</span><input inputmode="decimal" data-feld="mwst" data-betrag="1" value="' + (ohneMwst ? "" : esc(b.mwst)) + '"' + (ohneMwst ? " disabled" : "") + '></label></div><label class="feld"><span>Betrag' + (ohneMwst ? "" : " inkl. MWST") + '</span><input inputmode="decimal" data-feld="brutto" data-betrag="1" value="' + esc(b.brutto) + '"></label>' + (ohneMwst ? "" : '<div class="hinweis info" style="margin-bottom:14px"><div>Beim Ausfüllen von zwei Feldern wird das dritte automatisch ergänzt (MWST-Satz ' + MWST_SATZ_VORGABE + " %).</div></div>") + '<div class="feld-paar"><label class="feld"><span>Kategorie</span><select data-feld="budgetposition_id">' + kategorieOptionen(Z2.budget, b.budgetposition_id) + '</select></label><label class="feld"><span>Bezug zu Offerte</span><select data-feld="offerte_id"><option value="">Keine Zuordnung</option>' + Z2.offerten.map((o) => '<option value="' + o.id + '"' + (o.id === b.offerte_id ? " selected" : "") + ">" + esc((o.nummer || "ohne Nr.") + " · " + (o.lieferant || "")) + "</option>").join("") + '</select></label></div><label class="check"><input type="checkbox" data-feld="bezahlt"' + (b.bezahlt ? " checked" : "") + '> Rechnung ist bezahlt</label><label class="feld"><span>Zahlungsdatum</span><input type="date" data-feld="zahlungsdatum" value="' + esc(b.zahlungsdatum || "") + '"></label><label class="feld"><span>Bemerkung</span><textarea data-feld="bemerkung" placeholder="optional">' + esc(b.bemerkung || "") + "</textarea></label>";
   return h;
 }
 function analyseBlock2() {
-  const b = entwurf2;
+  const b = entwurf4;
   if (b.datei_pfad) {
-    return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Datei: ' + esc(b.datei_name || "") + '</b><div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(b.datei_pfad) + '">Datei öffnen</button><button class="btn zweit klein" type="button" data-aktion="b-analysieren">Beleg analysieren (Demo)</button><button class="btn still klein" type="button" data-aktion="b-datei-entfernen">Datei entfernen</button></div></div></div>';
+    return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Datei: ' + esc(b.datei_name || "") + '</b><div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(b.datei_pfad) + '">Datei öffnen</button><button class="btn zweit klein" type="button" data-aktion="b-analysieren">Beleg auslesen</button><button class="btn still klein" type="button" data-aktion="b-datei-entfernen">Datei entfernen</button></div></div></div>';
   }
-  if (dateiWartend2) {
-    return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Gewählte Datei: ' + esc(dateiWartend2.name) + '</b>Wird beim Speichern hochgeladen.<div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="b-analysieren">Erneut analysieren (Demo)</button><button class="btn still klein" type="button" data-aktion="b-datei-entfernen">Datei entfernen</button></div></div></div>';
+  if (dateiWartend3) {
+    return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Gewählte Datei: ' + esc(dateiWartend3.name) + '</b>Wird beim Speichern hochgeladen.<div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="b-analysieren">Beleg auslesen</button><button class="btn still klein" type="button" data-aktion="b-datei-entfernen">Datei entfernen</button></div></div></div>';
   }
-  return '<div class="datei-feld" style="margin-bottom:14px"><p>Rechnung oder Quittung als PDF, JPG oder PNG hochladen</p><input type="file" id="b-datei" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><div class="btn-reihe" style="margin-top:11px;justify-content:center"><button class="btn klein" type="button" data-aktion="b-analysieren">Beleg analysieren</button></div><p style="margin:9px 0 0;font-size:.76rem">Simulierte Auswertung mit festen Demo-Werten.</p></div>';
+  return '<div class="datei-feld" style="margin-bottom:14px"><p>Rechnung oder Quittung als PDF, JPG oder PNG hochladen</p><input type="file" id="b-datei" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><div class="btn-reihe" style="margin-top:11px;justify-content:center"><button class="btn klein" type="button" data-aktion="b-analysieren">Beleg auslesen</button></div><p style="margin:9px 0 0;font-size:.76rem">Beim Auslesen wird die Datei gespeichert und einmalig an den KI-Dienst (Google Gemini) übermittelt. Ohne Klick auf diesen Knopf passiert das nicht.</p></div>';
 }
 function betraegeAbgleichen(zuletzt) {
-  const b = entwurf2;
+  const b = entwurf4;
   if (b.mwst == null) {
     b.netto = zahl(b.brutto);
     return;
@@ -1745,42 +2505,60 @@ function betraegeAbgleichen(zuletzt) {
 }
 async function analysieren2(Z2) {
   const feld = document.getElementById("b-datei");
-  if (feld && feld.files && feld.files[0]) dateiWartend2 = feld.files[0];
-  if (!dateiWartend2 && !entwurf2.datei_pfad) {
+  if (feld && feld.files && feld.files[0]) dateiWartend3 = feld.files[0];
+  if (!dateiWartend3 && !entwurf4.datei_pfad) {
     meldung("Bitte zuerst eine Datei auswählen.", true);
     return;
   }
   const block = document.getElementById("b-analyse");
   const schritte = ANALYSE_SCHRITTE.beleg;
-  block.innerHTML = '<div class="karte karte-pad lade" style="margin-bottom:14px"><div class="lade-ring"></div><b>Beleg wird analysiert …</b>' + ladeSchritte(schritte, 0) + '<p style="margin:12px 0 0;font-size:.76rem;color:var(--grau)">Simulierter Ablauf – es wird keine Datei ausgelesen.</p></div>';
+  block.innerHTML = '<div class="karte karte-pad lade" style="margin-bottom:14px"><div class="lade-ring"></div><b>Beleg wird ausgelesen …</b>' + ladeSchritte(schritte, 0) + '<p style="margin:12px 0 0;font-size:.76rem;color:var(--grau)">Das dauert in der Regel wenige Sekunden.</p></div>';
   let e;
   try {
-    e = await analysiereDokument(dateiWartend2 || { name: entwurf2.datei_name }, "beleg", (i) => {
-      const liste = block.querySelector(".lade-schritte");
-      if (liste) liste.innerHTML = ladeSchritte(schritte, i + 1);
-    });
+    e = await analysiereDokument(
+      { datei: dateiWartend3, pfad: entwurf4.datei_pfad, name: entwurf4.datei_name, projektId: Z2.projektId, bereich: "belege" },
+      "beleg",
+      (i) => {
+        const liste = block.querySelector(".lade-schritte");
+        if (liste) liste.innerHTML = ladeSchritte(schritte, i + 1);
+      }
+    );
   } catch (fehler) {
-    meldung("Analyse abgebrochen: " + (fehler.message || fehler), true);
+    const el2 = document.getElementById("b-analyse");
+    if (el2) el2.innerHTML = analyseBlock2();
+    meldung(analyseFehlerText(fehler), true);
     return;
   }
-  if (!document.querySelector(".modal") || !entwurf2) return;
-  Object.assign(entwurf2, {
+  if (!document.querySelector(".modal") || !entwurf4) return;
+  entwurf4.datei_pfad = e.datei_pfad;
+  entwurf4.datei_name = e.datei_name;
+  dateiWartend3 = null;
+  letzterHinweis2 = e.hinweis || "";
+  mwstManuell = false;
+  Object.assign(entwurf4, {
     ki_erkannt: true,
-    lieferant: e.lieferant,
-    nummer: e.nummer,
-    datum: e.datum,
+    lieferant: e.lieferant || entwurf4.lieferant,
+    nummer: e.nummer || entwurf4.nummer,
+    datum: e.datum || entwurf4.datum,
     netto: e.netto,
     mwst: e.mwst,
-    brutto: e.brutto
+    brutto: e.brutto,
+    bezahlt: e.bezahlt || entwurf4.bezahlt,
+    zahlungsdatum: e.zahlungsdatum || entwurf4.zahlungsdatum
   });
-  const passend = Z2.offerten.find((o) => (o.nummer || "").includes("2026-1045"));
-  if (passend && !entwurf2.offerte_id) entwurf2.offerte_id = passend.id;
+  if (!entwurf4.offerte_id && entwurf4.lieferant) {
+    const gesucht = entwurf4.lieferant.toLowerCase();
+    const passend = Z2.offerten.find((o) => (o.lieferant || "").toLowerCase() === gesucht);
+    if (passend) entwurf4.offerte_id = passend.id;
+  }
   const koerperEl = document.querySelector(".modal-koerper");
-  if (koerperEl) koerperEl.innerHTML = koerper2(Z2);
-  meldung("Demo-Erkennung eingefügt – bitte prüfen und korrigieren.");
+  if (koerperEl) koerperEl.innerHTML = koerper4(Z2);
+  meldung(
+    e.brutto ? "Beleg ausgelesen – bitte prüfen." : "Es konnte kein Betrag erkannt werden. Bitte von Hand erfassen."
+  );
 }
-async function speichern2(Z2) {
-  const b = entwurf2;
+async function speichern4(Z2) {
+  const b = entwurf4;
   if (!b.lieferant.trim() && !b.nummer.trim()) {
     meldung("Bitte mindestens Lieferant oder Rechnungsnummer angeben.", true);
     return false;
@@ -1795,16 +2573,16 @@ async function speichern2(Z2) {
   if (b.bezahlt && !b.zahlungsdatum) b.zahlungsdatum = heuteISO();
   if (!b.bezahlt) b.zahlungsdatum = "";
   const feld = document.getElementById("b-datei");
-  if (!dateiWartend2 && feld && feld.files && feld.files[0]) dateiWartend2 = feld.files[0];
+  if (!dateiWartend3 && feld && feld.files && feld.files[0]) dateiWartend3 = feld.files[0];
   try {
-    if (dateiWartend2) {
-      const info = await hochladen(dateiWartend2, Z2.projektId, "belege");
+    if (dateiWartend3) {
+      const info = await hochladen(dateiWartend3, Z2.projektId, "belege");
       b.datei_pfad = info.datei_pfad;
       b.datei_name = info.datei_name;
     }
     await belegSpeichern(Z2.projektId, b, b.geaendert_am);
     meldung(b.id ? "Beleg aktualisiert." : "Beleg gespeichert.");
-    dateiWartend2 = null;
+    dateiWartend3 = null;
     await neuLaden(["belege"]);
     return true;
   } catch (err) {
@@ -1812,41 +2590,41 @@ async function speichern2(Z2) {
     return false;
   }
 }
-function eingabe2(e) {
-  if (!document.querySelector(".modal") || !entwurf2) return;
+function eingabe5(e) {
+  if (!document.querySelector(".modal") || !entwurf4) return;
   const feld = e.target.closest("[data-feld]");
   if (!feld) return;
   const name = feld.dataset.feld;
   const wert = feld.type === "checkbox" ? feld.checked : feld.value;
   if (name === "budgetposition_id" || name === "offerte_id") {
-    entwurf2[name] = wert || null;
+    entwurf4[name] = wert || null;
     return;
   }
-  entwurf2[name] = wert;
+  entwurf4[name] = wert;
   if (name === "mwst") mwstManuell = true;
   if (feld.dataset.betrag) betraegeAbgleichen(name);
-  if (name === "bezahlt" && wert && !entwurf2.zahlungsdatum) {
-    entwurf2.zahlungsdatum = heuteISO();
+  if (name === "bezahlt" && wert && !entwurf4.zahlungsdatum) {
+    entwurf4.zahlungsdatum = heuteISO();
     const zd = document.querySelector('[data-feld="zahlungsdatum"]');
-    if (zd) zd.value = entwurf2.zahlungsdatum;
+    if (zd) zd.value = entwurf4.zahlungsdatum;
   }
 }
 function aenderung3(e, Z2) {
-  if (e.target.id === "b-ohne-mwst" && entwurf2) {
+  if (e.target.id === "b-ohne-mwst" && entwurf4) {
     if (e.target.checked) {
-      entwurf2.mwst = null;
-      entwurf2.netto = zahl(entwurf2.brutto);
+      entwurf4.mwst = null;
+      entwurf4.netto = zahl(entwurf4.brutto);
     } else {
-      entwurf2.mwst = 0;
+      entwurf4.mwst = 0;
       betraegeAbgleichen("brutto");
     }
     const koerperEl = document.querySelector(".modal-koerper");
-    if (koerperEl) koerperEl.innerHTML = koerper2(Z2);
+    if (koerperEl) koerperEl.innerHTML = koerper4(Z2);
   }
 }
-function aktion5(a, knopf, Z2) {
-  if (a === "beleg-neu") return formular3(Z2, null);
-  if (a === "beleg-bearbeiten") return formular3(Z2, Z2.belege.find((b) => b.id === knopf.dataset.id));
+function aktion7(a, knopf, Z2) {
+  if (a === "beleg-neu") return formular5(Z2, null);
+  if (a === "beleg-bearbeiten") return formular5(Z2, Z2.belege.find((b) => b.id === knopf.dataset.id));
   if (a === "beleg-loeschen") {
     const b = Z2.belege.find((x) => x.id === knopf.dataset.id);
     if (b && bestaetigen("Beleg " + (b.nummer || b.lieferant || "") + " löschen?")) {
@@ -1865,11 +2643,11 @@ function aktion5(a, knopf, Z2) {
   }
   if (a === "b-analysieren") return analysieren2(Z2);
   if (a === "b-datei-entfernen") {
-    if (entwurf2.datei_pfad) loeschen(entwurf2.datei_pfad).catch(() => {
+    if (entwurf4.datei_pfad) loeschen(entwurf4.datei_pfad).catch(() => {
     });
-    entwurf2.datei_pfad = null;
-    entwurf2.datei_name = null;
-    dateiWartend2 = null;
+    entwurf4.datei_pfad = null;
+    entwurf4.datei_name = null;
+    dateiWartend3 = null;
     document.getElementById("b-analyse").innerHTML = analyseBlock2();
     return;
   }
@@ -1879,14 +2657,30 @@ function aktion5(a, knopf, Z2) {
     }).catch((e) => meldung(e.message, true));
   }
 }
+var entwurf4, dateiWartend3, letzterHinweis2, mwstManuell;
+var init_belege = __esm({
+  "app/js/ansichten/belege.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_dateien();
+    init_ki();
+    init_app();
+    init_konfig();
+    entwurf4 = null;
+    dateiWartend3 = null;
+    letzterHinweis2 = "";
+    mwstManuell = false;
+  }
+});
 
 // app/js/ansichten/dokumente.js
 var dokumente_exports = {};
 __export(dokumente_exports, {
-  aktion: () => aktion6,
-  render: () => render6
+  aktion: () => aktion8,
+  render: () => render8
 });
-function render6(Z2) {
+function render8(Z2) {
   const bearbeitbar = kannBearbeiten();
   let h = '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Dokumente</h2><p>' + Z2.dokumente.length + " Ablagen · Kaufvertrag, Pläne, Bewilligungen, Garantien</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="dokument-neu">+ Dateien</button>' : "") + "</div>";
   if (!Z2.dokumente.length) {
@@ -1978,7 +2772,7 @@ function bearbeitenFormular(Z2, d) {
     }
   });
 }
-function aktion6(a, knopf, Z2) {
+function aktion8(a, knopf, Z2) {
   if (a === "dokument-neu") return hochladenFormular(Z2);
   if (a === "dokument-bearbeiten") return bearbeitenFormular(Z2, Z2.dokumente.find((d) => d.id === knopf.dataset.id));
   if (a === "dokument-loeschen") {
@@ -2003,50 +2797,30 @@ function aktion6(a, knopf, Z2) {
     }).catch((e) => meldung(e.message, true));
   }
 }
+var init_dokumente = __esm({
+  "app/js/ansichten/dokumente.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_dateien();
+    init_app();
+    init_konfig();
+  }
+});
 
 // app/js/app.js
-var el = (id) => document.getElementById(id);
-var Z = {
-  session: null,
-  benutzer: null,
-  projekte: [],
-  projektId: null,
-  projekt: null,
-  mitglieder: [],
-  meineRolle: null,
-  budget: [],
-  offerten: [],
-  belege: [],
-  dokumente: [],
-  kostenvergleich: [],
-  nebenkosten: [],
-  aktuelleAnsicht: "uebersicht",
-  online: navigator.onLine,
-  ladeVorgaenge: 0,
-  abmeldeAbo: null,
-  // Beim Start wird sofort gezeichnet. sitzungVermutet kommt aus dem lokalen
-  // Speicher, authGeklaert wird gesetzt, sobald Supabase geantwortet hat.
-  sitzungVermutet: false,
-  authGeklaert: false,
-  authHinweis: "",
-  laedt: false,
-  ladeFehler: "",
-  neueVersion: false,
-  ladeStand: {},
-  // je Abfrage: "läuft" | "fertig" | Fehlertext
-  ladeBegonnen: 0,
-  einladungen: [],
-  einladung: null
-  // einladung: offener Link, noch nicht eingelöst
-};
-var ANSICHTEN = [
-  { id: "uebersicht", text: "Übersicht", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/>' },
-  { id: "budget", text: "Budget", icon: '<path d="M3 20V9"/><path d="M9 20V4"/><path d="M15 20v-8"/><path d="M21 20V7"/>' },
-  { id: "offerten", text: "Offerten", icon: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/>' },
-  { id: "belege", text: "Belege", icon: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9.5 8h5M9.5 12h5"/>' },
-  { id: "dokumente", text: "Dokumente", icon: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>' }
-];
-var ANSICHTS_MODULE = { uebersicht: uebersicht_exports, budget: budget_exports, offerten: offerten_exports, belege: belege_exports, dokumente: dokumente_exports };
+var app_exports = {};
+__export(app_exports, {
+  Z: () => Z,
+  frischLaden: () => frischLaden,
+  istEigentuemer: () => istEigentuemer,
+  kannBearbeiten: () => kannBearbeiten,
+  modalOeffnen: () => modalOeffnen,
+  modalSchliessen: () => modalSchliessen,
+  neuLaden: () => neuLaden,
+  neuZeichnen: () => neuZeichnen,
+  projektWechseln: () => projektWechseln
+});
 function kannBearbeiten() {
   return Z.meineRolle === "eigentuemer" || Z.meineRolle === "bearbeiter";
 }
@@ -2088,6 +2862,8 @@ async function neuLaden(teile) {
     }, () => null));
   }
   holen("nebenkosten", nebenkostenLaden, "nebenkosten");
+  holen("foerdergelder", foerdergelderLaden, "foerdergelder");
+  holen("anschaffungen", anschaffungenLaden, "anschaffungen");
   holen("budget", budgetLaden, "budget");
   holen("offerten", offertenLaden, "offerten");
   holen("belege", belegeLaden, "belege");
@@ -2155,8 +2931,6 @@ async function projektWechseln(projektId) {
     Z.abmeldeAbo = projektAbonnieren(Z.projektId, (bereich) => neuLadenGesammelt(bereich));
   }
 }
-var sammelUhr = null;
-var sammelBereiche = /* @__PURE__ */ new Set();
 function neuLadenGesammelt(bereich) {
   sammelBereiche.add(bereich);
   clearTimeout(sammelUhr);
@@ -2260,7 +3034,6 @@ function navZeichnen() {
     (a) => '<button type="button" data-ansicht="' + a.id + '"' + (a.id === Z.aktuelleAnsicht ? ' aria-current="page"' : "") + '><svg viewBox="0 0 24 24" aria-hidden="true">' + a.icon + "</svg>" + a.text + "</button>"
   ).join("");
 }
-var modalSpeichern = null;
 function modalOeffnen(o) {
   modalSpeichern = o.speichern || null;
   el("modal-wrap").innerHTML = '<div class="modal-hg" id="modal-hg"><div class="modal" role="dialog" aria-modal="true" aria-label="' + esc(o.titel) + '"><div class="modal-kopf"><h2>' + esc(o.titel) + '</h2><button class="x-btn" type="button" data-aktion="modal-zu" aria-label="Schliessen">×</button></div><div class="modal-koerper">' + o.koerper + '</div><div class="modal-fuss"><button class="btn zweit" type="button" data-aktion="modal-zu">Abbrechen</button><button class="btn" type="button" data-aktion="modal-speichern">' + (o.knopfText || "Speichern") + "</button></div></div></div>";
@@ -2285,80 +3058,6 @@ async function modalSpeichernAusloesen(knopf) {
     if (knopf) knopf.disabled = false;
   }
 }
-document.addEventListener("click", async (e) => {
-  const knopf = e.target.closest("[data-ansicht]");
-  if (knopf) return ansichtWechseln(knopf.dataset.ansicht);
-  const aktionsKnopf = e.target.closest("[data-aktion]");
-  if (aktionsKnopf) {
-    const a = aktionsKnopf.dataset.aktion;
-    if (a === "modal-zu") return modalSchliessen();
-    if (a === "modal-speichern") return modalSpeichernAusloesen(aktionsKnopf);
-    if (a === "abmelden") {
-      if (Z.abmeldeAbo) {
-        Z.abmeldeAbo();
-        Z.abmeldeAbo = null;
-      }
-      Z.session = null;
-      Z.benutzer = null;
-      Z.sitzungVermutet = false;
-      Z.authGeklaert = true;
-      Z.projekte = [];
-      Z.projekt = null;
-      Z.projektId = null;
-      Z.laedt = false;
-      Z.ladeFehler = "";
-      Z.authHinweis = "";
-      zeichnen();
-      abmelden().catch(() => {
-      });
-      return;
-    }
-    if (a === "version-laden") return frischLaden();
-    if (a === "neu-laden") {
-      Z.ladeFehler = "";
-      if (Z.projektId) neuLaden();
-      else projekteUndDatenLaden();
-      return;
-    }
-    if (!Z.session) return aktion(a, aktionsKnopf, Z);
-    const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
-    if (modul && modul.aktion) return modul.aktion(a, aktionsKnopf, Z);
-    return aktion2(a, aktionsKnopf, Z);
-  }
-  if (e.target.id === "modal-hg") modalSchliessen();
-});
-document.addEventListener("submit", (e) => {
-  if (e.target.closest("#anmelde-formular")) {
-    e.preventDefault();
-    formularAbschicken(e.target);
-  }
-});
-document.addEventListener("input", (e) => {
-  const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
-  if (modul && modul.eingabe) modul.eingabe(e, Z);
-});
-document.addEventListener("change", (e) => {
-  if (e.target.id === "projekt-wahl") return projektWechseln(e.target.value);
-  const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
-  if (modul && modul.aenderung) return modul.aenderung(e, Z);
-});
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && el("modal-wrap").innerHTML) modalSchliessen();
-});
-window.addEventListener("online", () => {
-  Z.online = true;
-  if (Z.projektId) neuLaden();
-  else zeichnen();
-});
-window.addEventListener("offline", () => {
-  Z.online = false;
-  zeichnen();
-});
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState !== "visible") return;
-  neueVersionPruefen();
-  if (Z.projektId) neuLaden();
-});
 async function projekteUndDatenLaden() {
   Z.laedt = true;
   Z.ladeFehler = "";
@@ -2387,29 +3086,6 @@ async function projekteUndDatenLaden() {
   if (gewaehlt) await projektWechseln(gewaehlt.id);
   else zeichnen();
 }
-aufAuthAchten(async (ereignis, sitzung) => {
-  Z.authGeklaert = true;
-  Z.authHinweis = "";
-  Z.session = sitzung;
-  Z.benutzer = sitzung ? sitzung.user : null;
-  if (ereignis === "SIGNED_OUT" || !sitzung) {
-    if (Z.abmeldeAbo) {
-      Z.abmeldeAbo();
-      Z.abmeldeAbo = null;
-    }
-    Z.projektId = null;
-    Z.projekt = null;
-    Z.projekte = [];
-    zeichnen();
-    return;
-  }
-  zeichnen();
-  if (ereignis === "SIGNED_IN" || ereignis === "INITIAL_SESSION" || ereignis === "TOKEN_REFRESHED") {
-    if (await einladungVerarbeiten()) return;
-    if (!Z.projekte.length) await projekteUndDatenLaden();
-  }
-});
-var EINLADUNG_SCHLUESSEL = "tw-einladung";
 function einladungAusAdresse() {
   const ausAdresse = new URLSearchParams(location.search).get("einladung");
   if (ausAdresse) {
@@ -2449,28 +3125,196 @@ async function einladungVerarbeiten() {
     return true;
   }
 }
-(function start() {
-  Z.sitzungVermutet = gespeicherteSitzungVorhanden();
-  zeichnen();
-  const token = einladungAusAdresse();
-  if (token) {
-    einladungInfo(token).then((info) => {
-      if (info) {
-        Z.einladung = info;
-        zeichnen();
+var el, Z, ANSICHTEN, ANSICHTS_MODULE, sammelUhr, sammelBereiche, modalSpeichern, ladenLaeuft, EINLADUNG_SCHLUESSEL;
+var init_app = __esm({
+  "app/js/app.js"() {
+    init_supabase();
+    init_daten();
+    init_format();
+    init_anmeldung();
+    init_uebersicht();
+    init_budget();
+    init_offerten();
+    init_belege();
+    init_dokumente();
+    el = (id) => document.getElementById(id);
+    Z = {
+      session: null,
+      benutzer: null,
+      projekte: [],
+      projektId: null,
+      projekt: null,
+      mitglieder: [],
+      meineRolle: null,
+      budget: [],
+      offerten: [],
+      belege: [],
+      dokumente: [],
+      kostenvergleich: [],
+      nebenkosten: [],
+      foerdergelder: [],
+      anschaffungen: [],
+      aktuelleAnsicht: "uebersicht",
+      online: navigator.onLine,
+      ladeVorgaenge: 0,
+      abmeldeAbo: null,
+      // Beim Start wird sofort gezeichnet. sitzungVermutet kommt aus dem lokalen
+      // Speicher, authGeklaert wird gesetzt, sobald Supabase geantwortet hat.
+      sitzungVermutet: false,
+      authGeklaert: false,
+      authHinweis: "",
+      laedt: false,
+      ladeFehler: "",
+      neueVersion: false,
+      ladeStand: {},
+      // je Abfrage: "läuft" | "fertig" | Fehlertext
+      ladeBegonnen: 0,
+      einladungen: [],
+      einladung: null
+      // einladung: offener Link, noch nicht eingelöst
+    };
+    ANSICHTEN = [
+      { id: "uebersicht", text: "Übersicht", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/>' },
+      { id: "budget", text: "Budget", icon: '<path d="M3 20V9"/><path d="M9 20V4"/><path d="M15 20v-8"/><path d="M21 20V7"/>' },
+      { id: "offerten", text: "Offerten", icon: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/>' },
+      { id: "belege", text: "Belege", icon: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9.5 8h5M9.5 12h5"/>' },
+      { id: "dokumente", text: "Dokumente", icon: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>' }
+    ];
+    ANSICHTS_MODULE = { uebersicht: uebersicht_exports, budget: budget_exports, offerten: offerten_exports, belege: belege_exports, dokumente: dokumente_exports };
+    sammelUhr = null;
+    sammelBereiche = /* @__PURE__ */ new Set();
+    modalSpeichern = null;
+    document.addEventListener("click", async (e) => {
+      const knopf = e.target.closest("[data-ansicht]");
+      if (knopf) return ansichtWechseln(knopf.dataset.ansicht);
+      const aktionsKnopf = e.target.closest("[data-aktion]");
+      if (aktionsKnopf) {
+        const a = aktionsKnopf.dataset.aktion;
+        if (a === "modal-zu") return modalSchliessen();
+        if (a === "modal-speichern") return modalSpeichernAusloesen(aktionsKnopf);
+        if (a === "abmelden") {
+          if (Z.abmeldeAbo) {
+            Z.abmeldeAbo();
+            Z.abmeldeAbo = null;
+          }
+          Z.session = null;
+          Z.benutzer = null;
+          Z.sitzungVermutet = false;
+          Z.authGeklaert = true;
+          Z.projekte = [];
+          Z.projekt = null;
+          Z.projektId = null;
+          Z.laedt = false;
+          Z.ladeFehler = "";
+          Z.authHinweis = "";
+          zeichnen();
+          abmelden().catch(() => {
+          });
+          return;
+        }
+        if (a === "version-laden") return frischLaden();
+        if (a === "neu-laden") {
+          Z.ladeFehler = "";
+          if (Z.projektId) neuLaden();
+          else projekteUndDatenLaden();
+          return;
+        }
+        if (!Z.session) return aktion(a, aktionsKnopf, Z);
+        const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
+        if (modul && modul.aktion) return modul.aktion(a, aktionsKnopf, Z);
+        return aktion2(a, aktionsKnopf, Z);
       }
-    }).catch(() => {
+      if (e.target.id === "modal-hg") modalSchliessen();
     });
+    document.addEventListener("submit", (e) => {
+      if (e.target.closest("#anmelde-formular")) {
+        e.preventDefault();
+        formularAbschicken(e.target);
+      }
+    });
+    document.addEventListener("input", (e) => {
+      const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
+      if (modul && modul.eingabe) modul.eingabe(e, Z);
+    });
+    document.addEventListener("change", (e) => {
+      if (e.target.id === "projekt-wahl") return projektWechseln(e.target.value);
+      const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
+      if (modul && modul.aenderung) return modul.aenderung(e, Z);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && el("modal-wrap").innerHTML) modalSchliessen();
+    });
+    window.addEventListener("online", () => {
+      Z.online = true;
+      if (Z.projektId) neuLaden();
+      else zeichnen();
+    });
+    window.addEventListener("offline", () => {
+      Z.online = false;
+      zeichnen();
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState !== "visible") return;
+      neueVersionPruefen();
+      if (Z.projektId) neuLaden();
+    });
+    aufAuthAchten((ereignis, sitzung) => {
+      Z.authGeklaert = true;
+      Z.authHinweis = "";
+      Z.session = sitzung;
+      Z.benutzer = sitzung ? sitzung.user : null;
+      if (ereignis === "SIGNED_OUT" || !sitzung) {
+        if (Z.abmeldeAbo) {
+          Z.abmeldeAbo();
+          Z.abmeldeAbo = null;
+        }
+        Z.projektId = null;
+        Z.projekt = null;
+        Z.projekte = [];
+        zeichnen();
+        return;
+      }
+      zeichnen();
+      if (ereignis === "SIGNED_IN" || ereignis === "INITIAL_SESSION" || ereignis === "TOKEN_REFRESHED") {
+        setTimeout(() => {
+          if (ladenLaeuft) return;
+          ladenLaeuft = true;
+          einladungVerarbeiten().then((erledigt) => erledigt || Z.projekte.length ? null : projekteUndDatenLaden()).catch((e) => {
+            Z.ladeFehler = e.message || String(e);
+            zeichnen();
+          }).finally(() => {
+            ladenLaeuft = false;
+          });
+        }, 0);
+      }
+    });
+    ladenLaeuft = false;
+    EINLADUNG_SCHLUESSEL = "tw-einladung";
+    (function start() {
+      Z.sitzungVermutet = gespeicherteSitzungVorhanden();
+      zeichnen();
+      const token = einladungAusAdresse();
+      if (token) {
+        einladungInfo(token).then((info) => {
+          if (info) {
+            Z.einladung = info;
+            zeichnen();
+          }
+        }).catch(() => {
+        });
+      }
+      setTimeout(neueVersionPruefen, 3e3);
+      setInterval(neueVersionPruefen, 15 * 60 * 1e3);
+      setTimeout(() => {
+        if (Z.session || Z.projekt || Z.ladeFehler) return;
+        Z.authGeklaert = true;
+        if (!Z.session) Z.authHinweis = "Die Anmeldung konnte nicht geprüft werden – bitte erneut anmelden.";
+        zeichnen();
+      }, 15e3);
+    })();
   }
-  setTimeout(neueVersionPruefen, 3e3);
-  setInterval(neueVersionPruefen, 15 * 60 * 1e3);
-  setTimeout(() => {
-    if (Z.session || Z.projekt || Z.ladeFehler) return;
-    Z.authGeklaert = true;
-    if (!Z.session) Z.authHinweis = "Die Anmeldung konnte nicht geprüft werden – bitte erneut anmelden.";
-    zeichnen();
-  }, 15e3);
-})();
+});
+init_app();
 export {
   Z,
   frischLaden,

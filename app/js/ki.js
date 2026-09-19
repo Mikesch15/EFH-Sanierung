@@ -26,7 +26,9 @@ export function analyseFehlerText(e) {
       "Das Dokument kann weiterhin von Hand erfasst werden.";
   }
   if (code === "schluessel_ungueltig") return "Der KI-Dienst lehnt den hinterlegten Zugang ab. Bitte den Schlüssel prüfen.";
-  if (code === "kontingent") return "Das Kontingent des KI-Dienstes ist erschöpft. Bitte später erneut versuchen.";
+  // Beim Kontingent zählt der Wortlaut des Dienstes: Er sagt, welches Limit greift
+  // und wie lange zu warten ist. Eine eigene Kurzfassung würde das verschlucken.
+  if (code === "kontingent" || code === "kein_modell") return (e && e.message) || "Die Analyse ist fehlgeschlagen.";
   return "Auslesen fehlgeschlagen: " + ((e && e.message) || e);
 }
 

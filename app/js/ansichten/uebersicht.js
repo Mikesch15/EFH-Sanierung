@@ -57,6 +57,12 @@ export function render(Z) {
       ? kpi("Fördergelder gesichert", chfKurz(s.foerderGesichert),
           s.foerderErwartet ? "erwartet: " + chfKurz(s.foerderErwartet) : "zugesichert oder ausbezahlt", "rand-gruen")
       : "") +
+    (s.anschaffungenSumme
+      ? kpi("Anschaffungen", chfKurz(s.anschaffungenSumme),
+          s.kreditVerwendet
+            ? "ausserhalb des Budgets · Kredit " + chfKurz(s.kreditVerwendet)
+            : "ausserhalb des Sanierungsbudgets", "")
+      : "") +
     (s.spaeter
       ? kpi("Später vorgesehen", chfKurz(s.spaeter),
           s.spaeterAnzahl + (s.spaeterAnzahl === 1 ? " Position zählt" : " Positionen zählen") + " noch nicht mit", "")

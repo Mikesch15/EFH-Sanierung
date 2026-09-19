@@ -4,13 +4,22 @@ import { budgetAnlegen, budgetAktualisieren, budgetLoeschen } from "../daten.js"
 import { modalOeffnen, neuLaden, kannBearbeiten } from "../app.js";
 import { STANDARD_KATEGORIEN } from "../konfig.js";
 import * as Foerder from "./foerdergelder.js";
+import * as Anschaffungen from "./anschaffungen.js";
 
 export function render(Z) {
   const s = summen(Z);
   const budgetiert = s.budgetiert;
   const bearbeitbar = kannBearbeiten();
 
-  let h = '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Budget</h2>' +
+  // Der Tab trägt vier Abschnitte. Eine Sprungleiste hält ihn trotzdem übersichtlich.
+  let h = '<nav class="sprungleiste">' +
+    '<a href="#abschnitt-budget">Budget</a>' +
+    '<a href="#abschnitt-vergleich">Kostenvergleich</a>' +
+    '<a href="#abschnitt-foerderung">Fördergelder</a>' +
+    '<a href="#abschnitt-anschaffungen">Anschaffungen</a>' +
+    "</nav>";
+
+  h += '<section class="abschnitt" id="abschnitt-budget"><div class="abschnitt-kopf"><div><h2>Budget</h2>' +
     "<p>Sanierungsrahmen " + chfKurz(s.rahmen) + " · verplant " + chfKurz(budgetiert) +
     (s.spaeter ? " · später " + chfKurz(s.spaeter) : "") + "</p></div>" +
     (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="budget-neu">+ Position</button>' : "") +
@@ -68,7 +77,7 @@ export function render(Z) {
   h += "</section>";
 
   const liste = (Z.kostenvergleich || []).filter((k) => k.budget > 0 || k.offerte > 0 || k.rechnung > 0);
-  h += '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Kostenvergleich</h2>' +
+  h += '<section class="abschnitt" id="abschnitt-vergleich"><div class="abschnitt-kopf"><div><h2>Kostenvergleich</h2>' +
     "<p>Budget gegen Offerten und Rechnungen, über alle Kategorien</p></div></div>";
   if (!liste.length) {
     h += leerZustand("Noch nichts zu vergleichen", "Sobald Budget, Offerten oder Rechnungen erfasst sind, erscheint hier die Gegenüberstellung.", "");
@@ -101,9 +110,10 @@ export function render(Z) {
   }
   h += "</section>";
 
-  // Fördergelder stehen im selben Tab: Es ist dieselbe Frage – was kostet die
-  // Sanierung und was kommt herein.
-  return h + Foerder.render(Z);
+  // Fördergelder und Anschaffungen stehen im selben Tab: Es ist dieselbe Frage –
+  // was kostet es und woher kommt das Geld. Die Anschaffungen sind dabei
+  // ausdrücklich vom Sanierungsbudget getrennt.
+  return h + Foerder.render(Z) + Anschaffungen.render(Z);
 }
 
 function formular(Z, p) {
@@ -145,11 +155,12 @@ function formular(Z, p) {
   });
 }
 
-// Das Modal der Fördergelder lebt im selben Tab – Eingaben dorthin weiterreichen.
-export function eingabe(e, Z) { Foerder.eingabe(e, Z); }
+// Die Modale der beiden Register leben im selben Tab – Eingaben dorthin weiterreichen.
+export function eingabe(e, Z) { Foerder.eingabe(e, Z); Anschaffungen.eingabe(e, Z); }
 
 export function aktion(a, knopf, Z) {
   if (a.startsWith("foerder-") || a === "datei-oeffnen") return Foerder.aktion(a, knopf, Z);
+  if (a.startsWith("ansch-") || a === "kredit-rahmen") return Anschaffungen.aktion(a, knopf, Z);
   if (a === "budget-neu") return formular(Z, null);
   if (a === "budget-bearbeiten") return formular(Z, Z.budget.find((p) => p.id === knopf.dataset.id));
   if (a === "budget-umschalten") {

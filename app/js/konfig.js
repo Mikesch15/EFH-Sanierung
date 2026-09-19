@@ -35,6 +35,13 @@ export const FOERDER_STELLEN = [
   "Gasversorgung", "Pronovo (Einmalvergütung)", "Stiftung Klimaschutz", "Sonstige",
 ];
 
+// Anschaffungen ausserhalb des Sanierungsbudgets (Umzug, Einrichtung, Maschinen).
+export const ANSCHAFFUNG_ARTEN = [
+  "Umzug", "Möbel", "Haushaltgeräte", "Maschinen / Werkzeug", "Garten",
+  "Reinigung", "Vorhänge / Storen", "Sonstiges",
+];
+export const FINANZIERUNGEN = ["Kredit", "Eigenmittel"];
+
 export const ROLLEN = {
   eigentuemer: "Eigentümer",
   bearbeiter: "Bearbeiter",

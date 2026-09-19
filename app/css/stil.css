@@ -169,6 +169,14 @@ tfoot td{font-weight:650; background:#F7F9FB; border-top:2px solid var(--linie-s
 .badge.amber{background:var(--amber-bg); color:var(--amber)}
 .badge.demo{background:#F0E6F7; color:#6B2E8F}
 
+/* Sprungleiste: hält einen Tab mit mehreren Abschnitten begehbar. */
+.sprungleiste{display:flex; gap:6px; overflow-x:auto; padding:2px 2px 10px; -webkit-overflow-scrolling:touch}
+.sprungleiste a{flex:0 0 auto; text-decoration:none; font-size:.78rem; font-weight:600;
+  color:var(--blau-700); background:var(--blau-100); border-radius:20px; padding:6px 12px; white-space:nowrap}
+.sprungleiste a:hover{background:#D8E6F2}
+/* Der Kopf klebt oben – ohne diesen Abstand landet die Überschrift darunter. */
+[id^="abschnitt-"]{scroll-margin-top:calc(var(--kopf-h) + 14px)}
+
 /* Auf "später" gestellte Budgetpositionen: sichtbar, aber zurückgenommen. */
 tr.spaeter td{color:var(--grau)}
 tr.spaeter td b{font-weight:600}
