@@ -25,7 +25,7 @@
 
 <div id="app">
   <main><div class="karte karte-pad" style="margin:20px auto;max-width:520px">
-    <div class="leer"><b>App wird geladen …</b>Stand 4 · 19.09.2026</div>
+    <div class="leer"><b>App wird geladen …</b>Stand 5 · 19.09.2026</div>
     <noscript><div class="hinweis warn"><div><b>JavaScript ist ausgeschaltet</b>Die App braucht JavaScript.</div></div></noscript>
   </div></main>
 </div>
@@ -67,8 +67,14 @@
   };
   window.addEventListener("error", function (e) {
     if (e.target && (e.target.tagName === "SCRIPT" || e.target.tagName === "LINK")) {
-      window.startFehler("Eine Datei der App konnte nicht geladen werden: " + (e.target.src || e.target.href));
+      window.startFehler("Eine Datei der App konnte nicht geladen werden:<br><code>" +
+        String(e.target.src || e.target.href) + "</code>");
+      return;
     }
+    // Fehler beim Ausführen – genau den brauchen wir, um die Ursache zu sehen.
+    window.startFehler("<code>" + String(e.message || "Unbekannter Fehler") +
+      (e.filename ? "<br>" + String(e.filename).split("/").slice(-2).join("/") + ":" + e.lineno : "") +
+      "</code>");
   }, true);
   setTimeout(function () {
     window.startFehler("Der Start dauert ungewöhnlich lange. Meist hilft «Zwischenspeicher leeren».");

@@ -6,8 +6,50 @@
 import { createClient } from "./vendor/supabase-js.js";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./konfig.js";
 
+// Manche Browser (blockierte Websitedaten, strenger Datenschutzmodus) werfen schon
+// beim blossen Zugriff auf localStorage eine Ausnahme. Ohne diesen Puffer bricht
+// dann bereits der Start der App ab. Ersatzweise wird im Arbeitsspeicher gehalten –
+// die Anmeldung überlebt dann kein Neuladen, aber die App läuft.
+const merker = new Map();
+function sichererSpeicher() {
+  let echt = null;
+  try {
+    echt = window.localStorage;
+    const probe = "tw-probe";
+    echt.setItem(probe, "1");
+    echt.removeItem(probe);
+  } catch (e) {
+    echt = null;
+  }
+  if (echt) {
+    return {
+      getItem: (k) => { try { return echt.getItem(k); } catch (e) { return merker.get(k) ?? null; } },
+      setItem: (k, v) => { try { echt.setItem(k, v); } catch (e) { merker.set(k, v); } },
+      removeItem: (k) => { try { echt.removeItem(k); } catch (e) { merker.delete(k); } },
+    };
+  }
+  return {
+    getItem: (k) => (merker.has(k) ? merker.get(k) : null),
+    setItem: (k, v) => merker.set(k, v),
+    removeItem: (k) => merker.delete(k),
+  };
+}
+
+export const speicherIstFluechtig = (() => {
+  try {
+    window.localStorage.setItem("tw-probe", "1");
+    window.localStorage.removeItem("tw-probe");
+    return false;
+  } catch (e) { return true; }
+})();
+
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: sichererSpeicher(),
+  },
 });
 
 export async function registrieren(email, passwort) {

@@ -1,5 +1,5 @@
 import { esc, meldung } from "../format.js";
-import { anmelden, registrieren, passwortZuruecksetzen } from "../supabase.js";
+import { anmelden, registrieren, passwortZuruecksetzen, speicherIstFluechtig } from "../supabase.js";
 import { neuZeichnen } from "../app.js";
 
 let modus = "anmelden"; // anmelden | registrieren | zuruecksetzen
@@ -10,6 +10,11 @@ export function render() {
   return '<div class="anmelde-buehne"><div class="karte karte-pad anmelde-karte">' +
     '<div class="anmelde-kopf"><b>Tulpenweg 37</b><span>Sanierungs- und Dokumentenverwaltung</span></div>' +
     (hinweis ? '<div class="hinweis info" style="margin-bottom:14px"><div>' + esc(hinweis) + "</div></div>" : "") +
+    (speicherIstFluechtig
+      ? '<div class="hinweis warn" style="margin-bottom:14px"><div><b>Websitedaten sind blockiert</b>' +
+        "Die Anmeldung gilt nur für diese Sitzung und geht beim Neuladen verloren. " +
+        "In den Browser-Einstellungen für diese Seite Cookies und Websitedaten erlauben.</div></div>"
+      : "") +
     '<form id="anmelde-formular">' +
     '<h2 style="margin-bottom:14px">' + titel + "</h2>" +
     '<label class="feld"><span>E-Mail</span><input type="email" id="a-email" required autocomplete="email"></label>' +
