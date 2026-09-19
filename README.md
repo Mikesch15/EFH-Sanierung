@@ -94,7 +94,7 @@ app/
   index.html            Haupt-App (Eigentümer, Bearbeiter, Leser)
   handwerker.html       eigene, eng begrenzte Seite für Handwerker
   manifest.webmanifest  macht die App auf dem Handy installierbar
-  sw.js                 Service Worker – speichert nur die App-Hülle, nie Daten
+  sw.js                 Service Worker – nur für die Installierbarkeit, ohne Zwischenspeicher
   icons/                App-Icons (192, 512, maskable, Apple)
   css/stil.css          Design aus dem Prototyp, unverändert übernommen
   js/konfig.js          Supabase-URL, Publishable Key, Listen und Vorgaben
@@ -134,13 +134,13 @@ die alte Fassung startete.
 
 Im Repo-Stammverzeichnis liegt `.nojekyll`: GitHub Pages veröffentlicht die Dateien damit
 unverändert und schickt sie nicht durch Jekyll.
+
 Keine Ansicht greift direkt auf Supabase zu – alles läuft über `daten.js`, und dort
 gehen alle Schreibvorgänge durch eine einzige Stelle (`schreiben()`), die später um
 eine Warteschlange für Offline-Betrieb ergänzt werden kann.
 
 **Die App ist eine Online-App.** Ohne Verbindung erscheint ein roter Balken
-«Keine Verbindung zum Server»; es wird nichts halb gespeichert. Der Service Worker
-speichert ausschliesslich die App-Hülle (HTML, CSS, JS, Icons), nie Projektdaten.
+«Keine Verbindung zum Server»; es wird nichts halb gespeichert.
 
 ### Lokal starten
 
