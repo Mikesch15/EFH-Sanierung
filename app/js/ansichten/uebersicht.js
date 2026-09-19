@@ -42,7 +42,8 @@ export function render(Z) {
     '<div class="kpi-raster">' +
     '<div class="kpi gross"><div class="label">Verfügbar für die Sanierung</div>' +
     '<div class="wert zahl">' + chfKurz(s.verfuegbar) + "</div>" +
-    '<div class="zusatz">Sanierungsrahmen ' + chfKurz(s.rahmen) + " abzüglich Rechnungen und beauftragter Offerten</div></div>" +
+    '<div class="zusatz">Sanierungsrahmen ' + chfKurz(s.rahmen) + " abzüglich Rechnungen und beauftragter Offerten" +
+    (s.foerderGesichert ? ", zuzüglich gesicherter Fördergelder " + chfKurz(s.foerderGesichert) : "") + "</div></div>" +
     kpi("Gesamtbudget", chfKurz(s.gesamtbudget), "inkl. Kaufpreis und Nebenkosten", "") +
     kpi("Kaufpreis", chfKurz(s.kaufpreis),
       s.kaufnebenkosten ? "zzgl. Nebenkosten " + chfKurz(s.kaufnebenkosten) : "ohne Nebenkosten", "") +
@@ -52,6 +53,10 @@ export function render(Z) {
     kpi("Offertsumme", chfKurz(s.offerten), Z.offerten.length + " Offerten, ohne abgelehnte", "rand-blau") +
     kpi("Rechnungssumme", chfKurz(s.rechnungen), Z.belege.length + " Belege, inkl. MWST", "rand-amber") +
     kpi("Bezahlt", chfKurz(s.bezahlt), "offen: " + chfKurz(s.offen), "rand-gruen") +
+    (s.foerderGesichert || s.foerderErwartet
+      ? kpi("Fördergelder gesichert", chfKurz(s.foerderGesichert),
+          s.foerderErwartet ? "erwartet: " + chfKurz(s.foerderErwartet) : "zugesichert oder ausbezahlt", "rand-gruen")
+      : "") +
     (s.spaeter
       ? kpi("Später vorgesehen", chfKurz(s.spaeter),
           s.spaeterAnzahl + (s.spaeterAnzahl === 1 ? " Position zählt" : " Positionen zählen") + " noch nicht mit", "")

@@ -237,6 +237,64 @@ export function nebenkostenLoeschen(id) {
   return schreiben(async () => pruefen(await supabase.from("kaufnebenkosten").delete().eq("id", id)));
 }
 
+/* ----------------------------------------------------------- Fördergelder */
+// Register der Beiträge von Bund, Kanton, Gemeinde und Werken. Der Betrag ist
+// bis zur Zusicherung der erwartete, danach der verfügte – der Status sagt,
+// woran man ist.
+export function foerdergelderLaden(projektId) {
+  return lesen(async () =>
+    pruefen(
+      await supabase
+        .from("foerdergelder")
+        .select("*")
+        .eq("projekt_id", projektId)
+        .order("sortierung")
+        .order("erstellt_am")
+    )
+  );
+}
+
+function foerderFelder(daten) {
+  return {
+    bezeichnung: daten.bezeichnung || "",
+    stelle: daten.stelle || "",
+    gesuchsnummer: daten.gesuchsnummer || "",
+    betrag: daten.betrag || 0,
+    status: daten.status || "Geplant",
+    budgetposition_id: daten.budgetposition_id || null,
+    frist: daten.frist || null,
+    eingereicht_am: daten.eingereicht_am || null,
+    entscheid_am: daten.entscheid_am || null,
+    auszahlung_am: daten.auszahlung_am || null,
+    bemerkung: daten.bemerkung || "",
+    datei_pfad: daten.datei_pfad || null,
+    datei_name: daten.datei_name || null,
+  };
+}
+
+export function foerdergeldAnlegen(projektId, daten) {
+  return schreiben(async () =>
+    pruefen(
+      await supabase
+        .from("foerdergelder")
+        .insert({ projekt_id: projektId, ...foerderFelder(daten) })
+        .select()
+        .single()
+    )
+  );
+}
+
+export function foerdergeldAktualisieren(id, daten, geladenAm) {
+  return schreiben(async () => {
+    await konfliktPruefen("foerdergelder", id, geladenAm);
+    return pruefen(await supabase.from("foerdergelder").update(daten).eq("id", id).select().single());
+  });
+}
+
+export function foerdergeldLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("foerdergelder").delete().eq("id", id)));
+}
+
 /* ------------------------------------------------------------- Einladungen */
 export function einladungenLaden(projektId) {
   return lesen(async () =>
@@ -470,6 +528,8 @@ export function projektAbonnieren(projektId, aufAenderung) {
     .on("postgres_changes", { event: "*", schema: "public", table: "offert_positionen" }, () => aufAenderung("offerten"))
     .on("postgres_changes", { event: "*", schema: "public", table: "belege", filter: "projekt_id=eq." + projektId }, () => aufAenderung("belege"))
     .on("postgres_changes", { event: "*", schema: "public", table: "dokumente", filter: "projekt_id=eq." + projektId }, () => aufAenderung("dokumente"))
+    .on("postgres_changes", { event: "*", schema: "public", table: "kaufnebenkosten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("nebenkosten"))
+    .on("postgres_changes", { event: "*", schema: "public", table: "foerdergelder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("foerdergelder"))
     .on("postgres_changes", { event: "*", schema: "public", table: "projekt_mitglieder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("mitglieder"))
     .subscribe();
   return () => supabase.removeChannel(kanal);

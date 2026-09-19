@@ -15,6 +15,7 @@ dieses auch nicht.
 | Web-App mit Login und Synchronisation | fertig, siehe `app/` |
 | Auf dem Handy installierbar (PWA) | fertig, siehe «Auf dem Handy installieren» |
 | Handwerker-Zugang für einzelne Offerten | fertig, siehe `app/handwerker.html` |
+| Register für Fördergelder | fertig, siehe «Fördergelder» |
 | Echte Dokumentenanalyse (Gemini) | fertig in der App, siehe «KI-Auswertung»; im Prototyp weiterhin simuliert |
 
 ## Supabase-Projekt
@@ -41,6 +42,7 @@ projekte                 Objekt, Adresse, Kaufpreis, Gesamtbudget
    ├─ offerten           Lieferant, Nummer, Status, MWST-Satz, Datei
    │  └─ offert_positionen   Nr., Beschreibung, Menge, Einheit, Einzelpreis
    ├─ belege             Netto, MWST, Brutto, bezahlt, Bezug zu Offerte und Datei
+   ├─ foerdergelder      Beiträge von Bund, Kanton, Gemeinde, Werken – mit Stand und Frist
    └─ dokumente          Kaufvertrag, Pläne, Bewilligungen, Garantien
 ```
 
@@ -134,7 +136,7 @@ app/
   js/ki.js              KI-Auswertung: hochladen und Edge Function rufen (eine Funktion zum Austauschen)
   js/import.js          Übernahme der Prototyp-Sicherung
   js/app.js             Start, Navigation, Modal, Realtime
-  js/ansichten/*.js     Anmeldung, Übersicht, Budget, Offerten, Belege, Dokumente
+  js/ansichten/*.js     Anmeldung, Übersicht, Budget, Fördergelder, Offerten, Belege, Dokumente
   js/paket/*.js         daraus gebaute Auslieferung (nicht von Hand ändern)
 ```
 
@@ -343,6 +345,33 @@ Position entscheiden, ob ihr Betrag schon in die Rechnung einfliesst oder erst s
   bleibt es in Offertsumme, Rechnungssumme und im verfügbaren Betrag enthalten.
 - **Bestehende Positionen** zählen wie bisher mit; die Spalte hat den Vorgabewert `true`.
 
+## Fördergelder
+
+Das Register liegt im Tab *Budget*, unterhalb von Budget und Kostenvergleich – es ist
+dieselbe Frage: was kostet die Sanierung, und was kommt herein.
+
+Je Beitrag werden erfasst: Förderung/Massnahme, Fördergeber (Gebäudeprogramm, Kanton,
+Gemeinde, Bund, Werk …), Gesuchsnummer, Betrag, Budgetkategorie, Bemerkung und eine
+Datei (Gesuch oder Verfügung). Dazu vier Daten: Eingabefrist, eingereicht, Entscheid,
+ausbezahlt. Beim Wechsel des Stands wird das passende Datum auf heute vorgeschlagen und
+bleibt änderbar.
+
+**Der Stand entscheidet, ob das Geld zählt:**
+
+| Stand | zählt als |
+|---|---|
+| Geplant, Beantragt | erwartet – wird ausgewiesen, zählt aber nirgends mit |
+| Zugesichert, Ausbezahlt | gesichert – erhöht den verfügbaren Betrag |
+| Abgelehnt | nichts |
+
+Der Betrag ist bis zur Zusicherung der erwartete und danach der verfügte; bei der
+Zusicherung wird er auf den Betrag der Verfügung korrigiert. Auf der Übersicht steht die
+Kennzahl *Fördergelder gesichert* mit dem erwarteten Betrag als Zusatz, und der verfügbare
+Betrag nennt die gesicherte Förderung ausdrücklich.
+
+Steht eine Eingabefrist in der Vergangenheit und ist das Gesuch noch auf *Geplant*, warnt
+das Register – viele Programme verlangen das Gesuch vor Baubeginn.
+
 ## Migrationen anwenden
 
 Die Migrationen sind im Supabase-Projekt bereits eingespielt. Für eine zweite Umgebung
@@ -376,12 +405,18 @@ Am besten auf zwei Geräten (oder einem normalen Fenster und einem privaten Fens
 6. **Beleg** erfassen, einer Offerte zuordnen, *bezahlt* setzen (Zahlungsdatum wird
    automatisch auf heute gesetzt). Zwei der drei Beträge genügen, der dritte wird ergänzt.
    Für Belege ohne MWST-Ausweis: Haken *Ohne MWST*.
-7. **Drei Dokumente auf einmal** hochladen (Tab *Dokumente* → *+ Dateien*, Mehrfachauswahl).
-8. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
+7. **Fördergeld erfassen**: Tab *Budget* → Abschnitt *Fördergelder* → *+ Fördergeld*.
+   Mit Stand *Beantragt* erscheint der Betrag nur als «erwartet»; nach dem Umstellen auf
+   *Zugesichert* steigt der verfügbare Betrag auf der Übersicht um genau diesen Betrag.
+8. **Drei Dokumente auf einmal** hochladen (Tab *Dokumente* → *+ Dateien*, Mehrfachauswahl).
+9. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
    Werten passen. Der Kostenvergleich kommt aus der View `v_kostenvergleich`.
-9. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen; beim Zurückkehren
+10. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür
+    nötigen Tabellen stehen seit Migration 0012 in der Veröffentlichung
+    `supabase_realtime` – vorher war sie leer, und es wurde erst beim Tabwechsel
+    aktualisiert); beim Zurückkehren
    in den Tab wird zusätzlich neu geladen.
-10. **Prototyp-Sicherung importieren**: im Prototyp *Daten exportieren*, dann in der App
+11. **Prototyp-Sicherung importieren**: im Prototyp *Daten exportieren*, dann in der App
     Übersicht → *Sicherung importieren*. Der erste Klick auf *Importieren* zeigt nur, was
     eingefügt würde; erst der zweite führt den Import aus. Derselbe Export wird pro Projekt
     nur einmal importiert.

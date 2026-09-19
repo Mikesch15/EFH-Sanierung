@@ -26,6 +26,15 @@ export const NEBENKOSTEN_ARTEN = [
   "Bankspesen", "Gebäudeversicherung", "Umzug", "Sonstiges",
 ];
 
+// Fördergelder: Der Status sagt, wie sicher das Geld ist. Nur "Zugesichert" und
+// "Ausbezahlt" zählen in den verfügbaren Betrag.
+export const FOERDER_STATUS = ["Geplant", "Beantragt", "Zugesichert", "Ausbezahlt", "Abgelehnt"];
+export const FOERDER_STATUS_SICHER = ["Zugesichert", "Ausbezahlt"];
+export const FOERDER_STELLEN = [
+  "Das Gebäudeprogramm", "Kanton", "Gemeinde", "Bund", "Elektrizitätswerk",
+  "Gasversorgung", "Pronovo (Einmalvergütung)", "Stiftung Klimaschutz", "Sonstige",
+];
+
 export const ROLLEN = {
   eigentuemer: "Eigentümer",
   bearbeiter: "Bearbeiter",

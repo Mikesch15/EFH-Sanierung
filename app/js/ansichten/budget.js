@@ -3,6 +3,7 @@ import { leerZustand, summen, budgetZaehlt } from "./gemeinsam.js";
 import { budgetAnlegen, budgetAktualisieren, budgetLoeschen } from "../daten.js";
 import { modalOeffnen, neuLaden, kannBearbeiten } from "../app.js";
 import { STANDARD_KATEGORIEN } from "../konfig.js";
+import * as Foerder from "./foerdergelder.js";
 
 export function render(Z) {
   const s = summen(Z);
@@ -98,7 +99,11 @@ export function render(Z) {
         ? " Positionen mit «später» sind im Total der Budgetspalte nicht enthalten."
         : "") + "</div></div>";
   }
-  return h + "</section>";
+  h += "</section>";
+
+  // Fördergelder stehen im selben Tab: Es ist dieselbe Frage – was kostet die
+  // Sanierung und was kommt herein.
+  return h + Foerder.render(Z);
 }
 
 function formular(Z, p) {
@@ -140,7 +145,11 @@ function formular(Z, p) {
   });
 }
 
+// Das Modal der Fördergelder lebt im selben Tab – Eingaben dorthin weiterreichen.
+export function eingabe(e, Z) { Foerder.eingabe(e, Z); }
+
 export function aktion(a, knopf, Z) {
+  if (a.startsWith("foerder-") || a === "datei-oeffnen") return Foerder.aktion(a, knopf, Z);
   if (a === "budget-neu") return formular(Z, null);
   if (a === "budget-bearbeiten") return formular(Z, Z.budget.find((p) => p.id === knopf.dataset.id));
   if (a === "budget-umschalten") {
