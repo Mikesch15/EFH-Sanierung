@@ -5,7 +5,7 @@ import { modalOeffnen, neuLaden, kannBearbeiten } from "../app.js";
 import { STANDARD_KATEGORIEN } from "../konfig.js";
 
 export function render(Z) {
-  const s = { rahmen: zahl(Z.projekt.gesamtbudget) - zahl(Z.projekt.kaufpreis) };
+  const s = { rahmen: zahl(Z.projekt.gesamtbudget) - zahl(Z.projekt.kaufpreis) - zahl(Z.projekt.kaufnebenkosten) };
   const budgetiert = Z.budget.reduce((a, p) => a + zahl(p.betrag), 0);
   const bearbeitbar = kannBearbeiten();
 

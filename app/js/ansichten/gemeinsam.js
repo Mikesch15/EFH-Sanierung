@@ -13,7 +13,10 @@ export function belegBrutto(b) { return zahl(b.brutto); }
 export function summen(Z) {
   const gesamtbudget = zahl(Z.projekt?.gesamtbudget);
   const kaufpreis = zahl(Z.projekt?.kaufpreis);
-  const rahmen = gesamtbudget - kaufpreis;
+  const kaufnebenkosten = zahl(Z.projekt?.kaufnebenkosten);
+  // Kaufpreis und Nebenkosten sind bereits gebunden – was übrig bleibt, ist der
+  // Rahmen für die Sanierung.
+  const rahmen = gesamtbudget - kaufpreis - kaufnebenkosten;
   const budgetiert = Z.budget.reduce((s, p) => s + zahl(p.betrag), 0);
   const offerten = Z.offerten.filter(offerteZaehlt).reduce((s, o) => s + offerteTotal(o), 0);
   const rechnungen = Z.belege.reduce((s, b) => s + belegBrutto(b), 0);
@@ -24,7 +27,7 @@ export function summen(Z) {
     verpflichtet += Math.max(0, offerteTotal(o) - verrechnet);
   });
   return {
-    gesamtbudget, kaufpreis, rahmen, budgetiert, offerten, rechnungen, bezahlt, verpflichtet,
+    gesamtbudget, kaufpreis, kaufnebenkosten, rahmen, budgetiert, offerten, rechnungen, bezahlt, verpflichtet,
     offen: rechnungen - bezahlt,
     verfuegbar: rahmen - rechnungen - verpflichtet,
   };

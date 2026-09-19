@@ -18,7 +18,12 @@ export function renderProjektAnlegen() {
     "Objekt, Adresse, Kaufpreis und Gesamtbudget sind noch nicht erfasst.</p>" +
     '<label class="feld"><span>Objekt / Projektname</span><input id="p-name" placeholder="z.B. Einfamilienhaus Tulpenweg 37"></label>' +
     '<label class="feld"><span>Adresse</span><input id="p-adresse" placeholder="Strasse Nr., PLZ Ort"></label>' +
+    '<div class="feld-paar">' +
     '<label class="feld"><span>Kaufpreis (CHF)</span><input id="p-kauf" inputmode="decimal" placeholder="0"></label>' +
+    '<label class="feld"><span>Kaufnebenkosten (CHF)</span><input id="p-neben" inputmode="decimal" placeholder="0"></label>' +
+    "</div>" +
+    '<p style="margin:-4px 0 12px;font-size:.78rem;color:var(--grau)">' +
+    "Nebenkosten des Kaufs: Notariat, Handänderungssteuer, Grundbuch, Schätzung …</p>" +
     '<label class="feld"><span>Gesamtbudget (CHF)</span><input id="p-gesamt" inputmode="decimal" placeholder="0"></label>' +
     '<div id="p-fehler"></div>' +
     '<button class="btn breit" type="button" data-aktion="projekt-anlegen">Projekt anlegen</button>' +
@@ -39,8 +44,10 @@ export function render(Z) {
     '<div class="wert zahl">' + chfKurz(s.verfuegbar) + "</div>" +
     '<div class="zusatz">Sanierungsrahmen ' + chfKurz(s.rahmen) + " abzüglich Rechnungen und beauftragter Offerten</div></div>" +
     kpi("Gesamtbudget", chfKurz(s.gesamtbudget), "inkl. Kaufpreis und Nebenkosten", "") +
-    kpi("Kaufpreis", chfKurz(s.kaufpreis), "aktueller Stand", "") +
-    kpi("Sanierungsrahmen", chfKurz(s.rahmen), "Gesamtbudget − Kaufpreis", "rand-blau") +
+    kpi("Kaufpreis", chfKurz(s.kaufpreis),
+      s.kaufnebenkosten ? "zzgl. Nebenkosten " + chfKurz(s.kaufnebenkosten) : "ohne Nebenkosten", "") +
+    kpi("Kaufnebenkosten", chfKurz(s.kaufnebenkosten), "Notariat, Steuern, Grundbuch", "") +
+    kpi("Sanierungsrahmen", chfKurz(s.rahmen), "Gesamtbudget − Kaufpreis − Nebenkosten", "rand-blau") +
     kpi("Offertsumme", chfKurz(s.offerten), Z.offerten.length + " Offerten, ohne abgelehnte", "rand-blau") +
     kpi("Rechnungssumme", chfKurz(s.rechnungen), Z.belege.length + " Belege, inkl. MWST", "rand-amber") +
     kpi("Bezahlt", chfKurz(s.bezahlt), "offen: " + chfKurz(s.offen), "rand-gruen") +
@@ -186,7 +193,9 @@ export async function aktion(a, knopf, Z) {
     try {
       const projekt = await projektAnlegen({
         name, adresse: el("p-adresse").value.trim(),
-        kaufpreis: zahl(el("p-kauf").value), gesamtbudget: zahl(el("p-gesamt").value),
+        kaufpreis: zahl(el("p-kauf").value),
+        kaufnebenkosten: zahl(el("p-neben").value),
+        gesamtbudget: zahl(el("p-gesamt").value),
       });
       ZUstand.projekte.push(projekt);
       await projektWechseln(projekt.id);
@@ -217,14 +226,21 @@ export async function aktion(a, knopf, Z) {
       koerper:
         '<label class="feld"><span>Objekt / Projektname</span><input id="e-name" value="' + esc(p.name) + '"></label>' +
         '<label class="feld"><span>Adresse</span><input id="e-adresse" value="' + esc(p.adresse || "") + '"></label>' +
+        '<div class="feld-paar">' +
         '<label class="feld"><span>Kaufpreis (CHF)</span><input id="e-kauf" inputmode="decimal" value="' + (zahl(p.kaufpreis) || "") + '"></label>' +
+        '<label class="feld"><span>Kaufnebenkosten (CHF)</span><input id="e-neben" inputmode="decimal" value="' + (zahl(p.kaufnebenkosten) || "") + '"></label>' +
+        "</div>" +
+        '<p style="margin:-4px 0 12px;font-size:.78rem;color:var(--grau)">' +
+        "Nebenkosten des Kaufs: Notariat, Handänderungssteuer, Grundbuch, Schätzung …</p>" +
         '<label class="feld"><span>Gesamtbudget (CHF)</span><input id="e-gesamt" inputmode="decimal" value="' + (zahl(p.gesamtbudget) || "") + '"></label>' +
-        '<div class="hinweis info"><div>Der Sanierungsrahmen ergibt sich aus Gesamtbudget minus Kaufpreis.</div></div>',
+        '<div class="hinweis info"><div>Sanierungsrahmen = Gesamtbudget − Kaufpreis − Kaufnebenkosten.</div></div>',
       speichern: async () => {
         try {
           const neu = await projektAktualisieren(p.id, {
             name: el("e-name").value.trim(), adresse: el("e-adresse").value.trim(),
-            kaufpreis: zahl(el("e-kauf").value), gesamtbudget: zahl(el("e-gesamt").value),
+            kaufpreis: zahl(el("e-kauf").value),
+            kaufnebenkosten: zahl(el("e-neben").value),
+            gesamtbudget: zahl(el("e-gesamt").value),
           }, p.geaendert_am);
           Object.assign(ZUstand.projekt, neu);
           const ix = ZUstand.projekte.findIndex((x) => x.id === neu.id);

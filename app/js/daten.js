@@ -72,12 +72,17 @@ export function projekteLaden() {
   return lesen(async () => pruefen(await supabase.from("projekte").select("*").order("erstellt_am")));
 }
 
-export function projektAnlegen({ name, adresse, kaufpreis, gesamtbudget }) {
+export function projektAnlegen({ name, adresse, kaufpreis, kaufnebenkosten, gesamtbudget }) {
   return schreiben(async () =>
     pruefen(
       await supabase
         .from("projekte")
-        .insert({ name, adresse, kaufpreis: kaufpreis || 0, gesamtbudget: gesamtbudget || 0 })
+        .insert({
+          name, adresse,
+          kaufpreis: kaufpreis || 0,
+          kaufnebenkosten: kaufnebenkosten || 0,
+          gesamtbudget: gesamtbudget || 0,
+        })
         .select()
         .single()
     )

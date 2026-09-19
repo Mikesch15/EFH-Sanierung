@@ -34,7 +34,7 @@ Datenbank-Passwort, Gemini-API-Key.
 ## Datenmodell
 
 ```
-projekte                 Objekt, Adresse, Kaufpreis, Gesamtbudget
+projekte                 Objekt, Adresse, Kaufpreis, Kaufnebenkosten, Gesamtbudget
 └─ projekt_mitglieder    wer darf was (eigentuemer / bearbeiter / leser / handwerker)
 └─ budgetpositionen      Kategorie, Budgetbetrag
    ├─ offerten           Lieferant, Nummer, Status, MWST-Satz, Datei
@@ -52,6 +52,10 @@ Auswertungen:
 Dateien liegen im privaten Bucket `projektdateien`, Pfad `<projekt_id>/<bereich>/<datei>`.
 Bereich ist `offerten`, `belege`, `dokumente` – oder `handwerker/<offerte_id>` für
 Dateien, die ein Handwerker selbst hochlädt.
+
+Der Sanierungsrahmen ist `gesamtbudget − kaufpreis − kaufnebenkosten`. Kaufnebenkosten
+sind die einmaligen Kosten des Erwerbs (Notariat, Handänderungssteuer, Grundbuch,
+Schätzung) – sie gehören nicht zur Sanierung, binden aber Geld aus dem Gesamtbudget.
 
 MWST ist optional: `offerten.mwst_satz` und `belege.mwst` dürfen `null` sein. `null`
 heisst «keine MWST ausgewiesen» und ist etwas anderes als der Betrag 0.
