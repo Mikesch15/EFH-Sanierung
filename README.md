@@ -136,6 +136,11 @@ python3 -m http.server 8000
 **GitHub Actions** auswählen. Die App liegt danach unter
 `https://<benutzername>.github.io/EFH-Sanierung/`.
 
+Steht unter *Settings → Pages* stattdessen «Deploy from a branch», wird das ganze Repo
+veröffentlicht und die App liegt unter
+`https://<benutzername>.github.io/EFH-Sanierung/app/index.html`. Beides funktioniert,
+auch die Installation auf dem Handy.
+
 Hinweis: Bei einem **privaten** Repo braucht GitHub Pages ein kostenpflichtiges Konto
 (Pro/Team). Alternativen ohne Kosten: Netlify oder Vercel – beide brauchen nur den
 Ordner `app/` und keinen Build-Schritt.
