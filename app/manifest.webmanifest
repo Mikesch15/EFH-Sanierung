@@ -4,6 +4,7 @@
   "description": "Budget, Offerten, Belege und Dokumente der Sanierung – auf allen Geräten synchronisiert.",
   "lang": "de-CH",
   "dir": "ltr",
+  "id": "./index.html",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
