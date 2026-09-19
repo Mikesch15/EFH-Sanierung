@@ -1,0 +1,13 @@
+# Umgebung / Geheimnisse
+.env
+.env.*
+!.env.beispiel
+
+# Supabase CLI
+supabase/.temp/
+supabase/.branches/
+
+# System
+.DS_Store
+Thumbs.db
+node_modules/
