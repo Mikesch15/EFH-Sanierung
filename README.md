@@ -123,7 +123,17 @@ npx esbuild einstieg.js --bundle --format=esm --platform=browser --target=es2020
 
 Bleibt der Start hängen, zeigt die App nach acht Sekunden einen Hinweis mit den Knöpfen
 *Neu laden* und *Zwischenspeicher leeren* (letzterer entfernt Service Worker und Cache),
-statt eine leere Seite zu zeigen.
+statt eine leere Seite zu zeigen. Vor dem Start steht «App wird geladen … Stand N» in der
+Seite – daran ist auf einen Blick erkennbar, ob ein Gerät den aktuellen Stand geladen hat.
+
+Der Service Worker speichert **nichts** zwischen: Er reicht jede Anfrage ans Netz weiter
+und löscht beim Aktivieren alle früheren Zwischenspeicher. Er existiert nur, weil Android
+Chrome sonst die Installation auf dem Startbildschirm nicht anbietet. Ein zwischen-
+gespeicherter Programmstand hatte zuvor dafür gesorgt, dass nach einer Korrektur weiterhin
+die alte Fassung startete.
+
+Im Repo-Stammverzeichnis liegt `.nojekyll`: GitHub Pages veröffentlicht die Dateien damit
+unverändert und schickt sie nicht durch Jekyll.
 Keine Ansicht greift direkt auf Supabase zu – alles läuft über `daten.js`, und dort
 gehen alle Schreibvorgänge durch eine einzige Stelle (`schreiben()`), die später um
 eine Warteschlange für Offline-Betrieb ergänzt werden kann.

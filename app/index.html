@@ -24,11 +24,10 @@
 </header>
 
 <div id="app">
-  <noscript>
-    <main><div class="karte karte-pad" style="margin:20px auto;max-width:520px">
-      <div class="hinweis warn"><div><b>JavaScript ist ausgeschaltet</b>Die App braucht JavaScript.</div></div>
-    </div></main>
-  </noscript>
+  <main><div class="karte karte-pad" style="margin:20px auto;max-width:520px">
+    <div class="leer"><b>App wird geladen …</b>Stand 4 · 19.09.2026</div>
+    <noscript><div class="hinweis warn"><div><b>JavaScript ist ausgeschaltet</b>Die App braucht JavaScript.</div></div></noscript>
+  </div></main>
 </div>
 
 <nav class="tabs-mobil" id="nav-mobil" hidden></nav>
@@ -88,9 +87,15 @@
   window.startFehler("Dieser Browser ist zu alt für die App (keine JavaScript-Module).");
 </script>
 <script>
-  // Service Worker nur für die App-Hülle – macht die App auf dem Handy installierbar.
+  // Service Worker macht die App auf dem Handy installierbar. Er speichert nichts
+  // zwischen; updateViaCache "none" sorgt dafür, dass er selbst nie aus dem
+  // Browser-Zwischenspeicher kommt, sondern immer frisch geprüft wird.
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
-    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js", { updateViaCache: "none" })
+        .then(function (reg) { reg.update(); })
+        .catch(function () {});
+    });
   }
 </script>
 </body>
