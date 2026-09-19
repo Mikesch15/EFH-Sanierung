@@ -153,6 +153,17 @@ Aktualisierung alte und neue Dateien – die passen nicht zusammen, und die App 
 mehr, bis man den Zwischenspeicher von Hand leert. Mit einem Paket pro Seite ist entweder
 der alte Stand vollständig geladen oder der neue. Auch `stil.css` trägt eine Kennung in der
 Adresse.
+
+Zwei Dinge gehören zwingend dazu, sonst bleibt das Problem bestehen:
+
+1. **Alte Pakete bleiben liegen** (die letzten acht je Seite). GitHub Pages liefert
+   `index.html` bis zu zehn Minuten aus dem Zwischenspeicher aus; diese alte Seite verweist
+   auf das vorherige Paket. Würde man es löschen, fände die App ihr Programm nicht mehr.
+2. **Die App prüft selbst auf neue Versionen** – beim Start, beim Zurückkehren in den Tab
+   und alle 15 Minuten. Sie holt `index.html` mit `cache: "no-store"`, vergleicht die
+   Paketkennung und blendet bei Bedarf «Neue Version verfügbar» mit einem Knopf ein. Der
+   lädt mit `?stand=<zeit>` neu und umgeht so den Zwischenspeicher. Niemand muss dafür
+   etwas von Hand leeren.
 `@supabase/supabase-js` v2.45.4 liegt fertig gebündelt im Repo unter
 `app/js/vendor/supabase-js.js` – bewusst **kein CDN**, damit die App auch in einem Netz
 startet, das fremde Domains blockiert oder langsam ausliefert. Neu erzeugen, wenn die

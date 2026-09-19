@@ -25,7 +25,7 @@
 
 <div id="app">
   <main><div class="karte karte-pad" style="margin:20px auto;max-width:520px">
-    <div class="leer"><b>App wird geladen …</b>Stand 2026-09-19 · aa15b11c92</div>
+    <div class="leer"><b>App wird geladen …</b>Stand 2026-09-19 · 1ca5e9fa4f</div>
     <noscript><div class="hinweis warn"><div><b>JavaScript ist ausgeschaltet</b>Die App braucht JavaScript.</div></div></noscript>
   </div></main>
 </div>
@@ -42,6 +42,11 @@
 <script>
   // Startprobleme sichtbar machen: Ohne das bliebe die Seite einfach leer,
   // wenn ein Modul nicht lädt (z.B. blockiertes Netz, alter Zwischenspeicher).
+  // Neu laden MIT frischem Abruf: Ein gewöhnliches Neuladen nimmt die alte
+  // index.html aus dem Zwischenspeicher – und damit den alten Verweis aufs Paket.
+  window.frischLaden = function () {
+    location.replace(location.pathname + "?frisch=" + Date.now());
+  };
   window.startFehler = function (text) {
     var ziel = document.getElementById("app");
     if (!ziel || ziel.dataset.gestartet === "ja" || ziel.dataset.fehler === "ja") return;
@@ -63,7 +68,7 @@
       '<div class="hinweis fehler"><div><b>Die App konnte nicht starten</b>' +
       String(text || "") + "</div></div>" +
       '<div class="btn-reihe" style="margin-top:12px">' +
-      '<button class="btn" type="button" onclick="location.reload()">Neu laden</button>' +
+      '<button class="btn" type="button" onclick="window.frischLaden()">Neu laden</button>' +
       '<a class="btn zweit" href="hilfe.html">Diagnose öffnen</a>' +
       "</div></div></main>";
   };
@@ -100,7 +105,7 @@
     window.startFehler("Die App hat sich nicht gemeldet. Bitte neu laden.");
   }, 30000);
 </script>
-<script type="module" src="js/paket/app.aa15b11c92.js"></script>
+<script type="module" src="js/paket/app.1ca5e9fa4f.js"></script>
 <script type="module">
   // Läuft nur, wenn Module überhaupt unterstützt werden und app.js geladen hat.
   window.addEventListener("unhandledrejection", (e) => {

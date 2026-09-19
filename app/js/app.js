@@ -24,7 +24,7 @@ export const Z = {
   // Beim Start wird sofort gezeichnet. sitzungVermutet kommt aus dem lokalen
   // Speicher, authGeklaert wird gesetzt, sobald Supabase geantwortet hat.
   sitzungVermutet: false, authGeklaert: false, authHinweis: "",
-  laedt: false, ladeFehler: "",
+  laedt: false, ladeFehler: "", neueVersion: false,
   einladungen: [], einladung: null,   // einladung: offener Link, noch nicht eingelöst
 };
 
@@ -124,6 +124,36 @@ function neuLadenGesammelt(bereich) {
   }, 400);
 }
 
+/* ------------------------------------------------- Aktualisierung bemerken */
+// GitHub Pages liefert index.html bis zu zehn Minuten aus dem Zwischenspeicher.
+// Die App schaut deshalb selbst nach, ob es einen neueren Stand gibt, und bietet
+// ihn an – statt dass jemand von Hand Zwischenspeicher leeren muss.
+function laufendeKennung() {
+  const skript = document.querySelector('script[type=module][src*="js/paket/"]');
+  const treffer = skript && /app\.([0-9a-f]+)\.js/.exec(skript.getAttribute("src"));
+  return treffer ? treffer[1] : null;
+}
+
+async function neueVersionPruefen() {
+  if (Z.neueVersion) return;
+  const laufend = laufendeKennung();
+  if (!laufend) return;
+  try {
+    const antwort = await fetch("index.html?stand=" + Date.now(), { cache: "no-store" });
+    if (!antwort.ok) return;
+    const html = await antwort.text();
+    const treffer = /js\/paket\/app\.([0-9a-f]+)\.js/.exec(html);
+    if (treffer && treffer[1] !== laufend) {
+      Z.neueVersion = true;
+      zeichnen();
+    }
+  } catch (e) { /* ohne Verbindung eben später */ }
+}
+
+export function frischLaden() {
+  location.replace(location.pathname + "?stand=" + Date.now());
+}
+
 function ansichtWechseln(name) {
   Z.aktuelleAnsicht = name;
   zeichnen();
@@ -212,17 +242,24 @@ function zeichnenInner() {
 /** Zeigt dauerhaft an, ob gerade geladen wird oder etwas fehlgeschlagen ist –
  *  ein flüchtiger Hinweis reicht dafür nicht. */
 function ladeBanner() {
+  const aktualisierung = Z.neueVersion
+    ? '<div class="hinweis info abschnitt"><div style="flex:1"><b>Neue Version verfügbar</b>' +
+      "Ihre Änderungen sind gespeichert – ein Klick genügt." +
+      '<div class="btn-reihe" style="margin-top:9px">' +
+      '<button class="btn klein" type="button" data-aktion="version-laden">Jetzt aktualisieren</button>' +
+      "</div></div></div>"
+    : "";
   if (Z.laedt) {
-    return '<div class="hinweis info abschnitt"><div>Daten werden geladen …</div></div>';
+    return aktualisierung + '<div class="hinweis info abschnitt"><div>Daten werden geladen …</div></div>';
   }
   if (Z.ladeFehler) {
-    return '<div class="hinweis fehler abschnitt"><div style="flex:1"><b>Daten konnten nicht geladen werden</b>' +
+    return aktualisierung + '<div class="hinweis fehler abschnitt"><div style="flex:1"><b>Daten konnten nicht geladen werden</b>' +
       esc(Z.ladeFehler) +
       '<div class="btn-reihe" style="margin-top:9px">' +
       '<button class="btn zweit klein" type="button" data-aktion="neu-laden">Erneut versuchen</button>' +
       '<a class="btn still klein" href="hilfe.html">Diagnose</a></div></div></div>';
   }
-  return "";
+  return aktualisierung;
 }
 
 function navZeichnen() {
@@ -298,6 +335,7 @@ document.addEventListener("click", async (e) => {
       abmelden().catch(() => { /* Server erfährt es beim nächsten Mal */ });
       return;
     }
+    if (a === "version-laden") return frischLaden();
     if (a === "neu-laden") {
       Z.ladeFehler = "";
       if (Z.projektId) neuLaden();
@@ -328,7 +366,11 @@ document.addEventListener("keydown", (e) => {
 });
 window.addEventListener("online", () => { Z.online = true; if (Z.projektId) neuLaden(); else zeichnen(); });
 window.addEventListener("offline", () => { Z.online = false; zeichnen(); });
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && Z.projektId) neuLaden(); });
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible") return;
+  neueVersionPruefen();
+  if (Z.projektId) neuLaden();
+});
 
 /* ------------------------------------------------------------------- Start */
 async function projekteUndDatenLaden() {
@@ -429,6 +471,9 @@ async function einladungVerarbeiten() {
       .then((info) => { if (info) { Z.einladung = info; zeichnen(); } })
       .catch(() => { /* Hinweis ist nur Beiwerk */ });
   }
+
+  setTimeout(neueVersionPruefen, 3000);
+  setInterval(neueVersionPruefen, 15 * 60 * 1000);
 
   // Notausgang: Antwortet die Anmeldung gar nicht, nicht ewig "lädt" anzeigen.
   setTimeout(() => {

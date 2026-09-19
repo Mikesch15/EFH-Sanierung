@@ -11,7 +11,7 @@
 
 import { build } from "esbuild";
 import { createHash } from "node:crypto";
-import { readFile, writeFile, readdir, unlink, mkdir } from "node:fs/promises";
+import { readFile, writeFile, readdir, unlink, mkdir, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
@@ -47,10 +47,26 @@ async function paketBauen(einstieg) {
   return ergebnis.outputFiles[0].text.replace(/(["'])\.\/vendor\/supabase-js\.js\1/g, '"../vendor/supabase-js.js"');
 }
 
-async function alteVersionenEntfernen(behalten) {
+// Ältere Pakete bleiben liegen! Der Browser hat die alte index.html noch eine
+// Weile zwischengespeichert; sie verweist auf das vorherige Paket. Würde man es
+// löschen, fände die App ihr Programm nicht mehr und startete nicht.
+const ALTE_BEHALTEN = 8;
+
+async function alteVersionenAufraeumen(aktuell) {
   if (!existsSync(paketOrdner)) return;
-  for (const datei of await readdir(paketOrdner)) {
-    if (!behalten.includes(datei)) await unlink(path.join(paketOrdner, datei));
+  const dateien = await readdir(paketOrdner);
+  for (const name of ["app", "handwerker"]) {
+    const passende = [];
+    for (const datei of dateien) {
+      if (!datei.startsWith(name + ".")) continue;
+      if (aktuell.includes(datei)) continue;
+      const info = await stat(path.join(paketOrdner, datei));
+      passende.push({ datei, zeit: info.mtimeMs });
+    }
+    passende.sort((a, b) => b.zeit - a.zeit);
+    for (const alt of passende.slice(ALTE_BEHALTEN)) {
+      await unlink(path.join(paketOrdner, alt.datei));
+    }
   }
 }
 
@@ -104,7 +120,7 @@ for (const [htmlPfad, html] of htmlNeu) {
 
 if (!nurPruefen) {
   for (const [htmlPfad, html] of htmlNeu) await writeFile(htmlPfad, html, "utf8");
-  await alteVersionenEntfernen(behalten);
+  await alteVersionenAufraeumen(behalten);
   console.log("Gebaut: " + behalten.join(", ") + " · stil.css?v=" + stilKennung);
 } else if (abweichungen.length) {
   console.error("Pakete sind nicht aktuell:\n  " + abweichungen.join("\n  "));
