@@ -17,7 +17,61 @@ const CORS = {
 };
 
 const MAX_BYTES = 15 * 1024 * 1024;          // grössere Dateien lehnt Gemini ab
-const MODELLE = [Deno.env.get("GEMINI_MODELL") || "gemini-2.5-flash", "gemini-2.0-flash"];
+
+// Modellnamen ändern sich und sind nicht für jeden Schlüssel freigeschaltet. Fest
+// verdrahtete Namen führen deshalb zu "nicht verfügbar", obwohl alles eingerichtet
+// ist. Darum: beim Dienst nachfragen, welche Modelle dieser Schlüssel verwenden darf.
+const BASIS = "https://generativelanguage.googleapis.com/v1beta";
+
+/** Je höher, desto lieber: schnell, aktuell, kann Dokumente lesen. */
+function modellRang(name: string): number {
+  let rang = 0;
+  if (name.includes("flash")) rang += 10;
+  if (name.includes("pro")) rang += 4;
+  if (name.includes("2.5")) rang += 6;
+  else if (name.includes("2.0")) rang += 3;
+  if (name.includes("latest")) rang += 2;
+  if (name.includes("lite")) rang -= 3;
+  if (name.includes("preview") || name.includes("exp")) rang -= 5;
+  if (/\d{3,}/.test(name)) rang -= 1;          // datierte Vorabversionen
+  return rang;
+}
+
+const UNGEEIGNET = /embedding|aqa|imagen|image-generation|tts|audio|live|veo|learnlm|gemma/;
+
+let zwischenspeicher: { modelle: string[]; zeit: number } | null = null;
+
+/** Modelle, die dieser Schlüssel für generateContent nutzen darf – beste zuerst. */
+async function modelleErmitteln(schluessel: string): Promise<{ modelle: string[]; fehler?: string }> {
+  if (zwischenspeicher && Date.now() - zwischenspeicher.zeit < 10 * 60 * 1000) {
+    return { modelle: zwischenspeicher.modelle };
+  }
+  let listenAntwort: Response;
+  try {
+    listenAntwort = await fetch(BASIS + "/models?pageSize=200", {
+      headers: { "x-goog-api-key": schluessel },
+      signal: AbortSignal.timeout(20000),
+    });
+  } catch (e) {
+    return { modelle: [], fehler: "Der KI-Dienst war nicht erreichbar: " + (e as Error).message };
+  }
+  if (!listenAntwort.ok) {
+    const text = await listenAntwort.text();
+    return { modelle: [], fehler: "Modellliste (" + listenAntwort.status + "): " + text.slice(0, 300) };
+  }
+  const daten = await listenAntwort.json();
+  const namen: string[] = (daten.models ?? [])
+    .filter((m: { supportedGenerationMethods?: string[] }) =>
+      (m.supportedGenerationMethods ?? []).includes("generateContent"))
+    .map((m: { name: string }) => m.name.replace(/^models\//, ""))
+    .filter((n: string) => !UNGEEIGNET.test(n))
+    .sort((a: string, b: string) => modellRang(b) - modellRang(a));
+
+  const wunsch = Deno.env.get("GEMINI_MODELL");
+  const liste = wunsch ? [wunsch, ...namen.filter((n) => n !== wunsch)] : namen;
+  if (liste.length) zwischenspeicher = { modelle: liste, zeit: Date.now() };
+  return { modelle: liste };
+}
 
 function antwort(daten: unknown, status = 200) {
   return new Response(JSON.stringify(daten), {
@@ -152,12 +206,24 @@ Deno.serve(async (anfrage) => {
     },
   };
 
+  const { modelle, fehler: listenFehler } = await modelleErmitteln(schluessel);
+  if (!modelle.length) {
+    return antwort({
+      code: "kein_modell",
+      fehler: listenFehler
+        ? "Der KI-Dienst gibt kein nutzbares Modell frei. " + listenFehler
+        : "Der hinterlegte Zugang gibt kein Modell frei, das Dokumente auslesen kann.",
+    }, 502);
+  }
+
   let letzterFehler = "";
-  for (const modell of MODELLE) {
+  // Höchstens drei Versuche: Was der Dienst als verfügbar meldet, kann im Einzelfall
+  // trotzdem abgelehnt werden – aber die ganze Liste durchzugehen dauert zu lange.
+  for (const modell of modelle.slice(0, 3)) {
     let gemini: Response;
     try {
       gemini = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${modell}:generateContent`,
+        `${BASIS}/models/${modell}:generateContent`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": schluessel },
@@ -170,8 +236,10 @@ Deno.serve(async (anfrage) => {
       continue;
     }
 
-    if (gemini.status === 404) {          // Modell gibt es nicht (mehr) – nächstes versuchen
-      letzterFehler = "Modell " + modell + " nicht verfügbar";
+    if (gemini.status === 404) {          // Modell doch nicht nutzbar – nächstes versuchen
+      const text = await gemini.text();
+      zwischenspeicher = null;             // Liste war veraltet, beim nächsten Mal neu holen
+      letzterFehler = "Modell " + modell + " abgelehnt: " + text.slice(0, 200);
       continue;
     }
     if (!gemini.ok) {
@@ -201,5 +269,8 @@ Deno.serve(async (anfrage) => {
     return antwort({ art, modell, werte });
   }
 
-  return antwort({ fehler: letzterFehler || "Kein passendes Modell verfügbar." }, 502);
+  return antwort({
+    fehler: (letzterFehler || "Kein passendes Modell verfügbar.") +
+      " Geprüft: " + modelle.slice(0, 3).join(", "),
+  }, 502);
 });

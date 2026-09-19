@@ -315,7 +315,10 @@ als Supabase-Secret und erreicht den Browser nie:
    supabase secrets set GEMINI_API_KEY=... --project-ref evozevkzwcvpbnvcmmfp
    ```
 
-   Optional lässt sich mit `GEMINI_MODELL` ein anderes Modell wählen.
+   Optional lässt sich mit `GEMINI_MODELL` ein bestimmtes Modell erzwingen. Ohne diese
+   Angabe fragt die Funktion beim Dienst nach, welche Modelle der Schlüssel verwenden
+   darf, und nimmt das schnellste aktuelle davon. Modellnamen sind damit nirgends fest
+   verdrahtet – sie ändern sich und sind nicht für jeden Zugang freigeschaltet.
 3. Fertig – die Funktion ist bereits deployt. Nach einer Änderung am Code:
 
    ```bash
@@ -326,6 +329,9 @@ Solange kein Schlüssel hinterlegt ist, meldet die App im Klartext «Die KI-Ausw
 auf dem Server noch nicht freigeschaltet» und man erfasst von Hand – es wird keine
 Funktion vorgetäuscht. Weitere Meldungen: abgelehnter Schlüssel, erschöpftes Kontingent,
 Datei grösser als 15 MB (dann ist nur das Auslesen nicht möglich, das Speichern schon).
+Gibt der Zugang kein Modell frei, steht die Begründung von Google wörtlich in der Meldung –
+meist ist dann die «Generative Language API» im zugehörigen Google-Cloud-Projekt nicht
+aktiviert oder der Schlüssel eingeschränkt.
 
 Der Quellcode der Funktion liegt in `supabase/functions/dokument-analysieren/index.ts`.
 
