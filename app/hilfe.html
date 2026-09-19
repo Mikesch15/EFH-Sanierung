@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Diagnose</title>
+<link rel="stylesheet" href="css/stil.css">
+<meta name="theme-color" content="#0C2742">
+</head>
+<body>
+<header class="kopf">
+  <div class="kopf-inner">
+    <div class="marke"><b>Diagnose</b><span>Tulpenweg 37</span></div>
+  </div>
+</header>
+
+<main style="max-width:560px;margin:0 auto;padding:14px 12px 40px">
+  <div class="karte karte-pad abschnitt">
+    <h2>Was auf diesem Gerät ankommt</h2>
+    <p style="margin:6px 0 0;font-size:.84rem;color:var(--grau)">
+      Diese Seite kommt ohne die App-Bausteine aus. Bitte einen Screenshot davon schicken.</p>
+  </div>
+
+  <div class="karte abschnitt"><div class="tab-scroll"><table>
+    <tbody id="ergebnis"><tr><td>wird geprüft …</td></tr></tbody>
+  </table></div></div>
+
+  <div class="karte karte-pad abschnitt">
+    <h3>Reparieren</h3>
+    <p style="margin:6px 0 12px;font-size:.84rem;color:var(--grau)">
+      Entfernt den Service Worker und alle Zwischenspeicher dieser Seite. Die Anmeldung
+      muss danach neu erfolgen, Daten gehen keine verloren – die liegen auf dem Server.</p>
+    <div class="btn-reihe">
+      <button class="btn" type="button" id="reparieren">Alles zurücksetzen</button>
+      <a class="btn zweit" href="index.html">Zur App</a>
+    </div>
+    <div id="reparatur-meldung" style="margin-top:12px"></div>
+  </div>
+</main>
+
+<script>
+"use strict";
+var zeilen = [];
+function zeile(name, wert, gut) {
+  zeilen.push(
+    "<tr><td style='white-space:normal'><b>" + name + "</b></td>" +
+    "<td style='white-space:normal'>" +
+    (gut === true ? "<span class='badge gruen'>ok</span> " : gut === false ? "<span class='badge rot'>Problem</span> " : "") +
+    String(wert) + "</td></tr>"
+  );
+  document.getElementById("ergebnis").innerHTML = zeilen.join("");
+}
+
+function kurz(text, n) {
+  text = String(text).replace(/\s+/g, " ").trim();
+  return text.length > n ? text.slice(0, n) + " …" : text;
+}
+
+async function pruefeDatei(pfad, erwartet) {
+  try {
+    var antwort = await fetch(pfad + "?diagnose=" + Date.now(), { cache: "no-store" });
+    var typ = antwort.headers.get("content-type") || "?";
+    var text = await antwort.text();
+    var gut = antwort.ok && text.indexOf(erwartet) !== -1;
+    zeile(pfad, antwort.status + " · " + kurz(typ, 30) + " · " + Math.round(text.length / 1024) + " KB" +
+      (antwort.ok && !gut ? "<br>Inhalt unerwartet: " + kurz(text, 60) : ""), gut);
+    return text;
+  } catch (e) {
+    zeile(pfad, "nicht erreichbar: " + kurz(e.message, 60), false);
+    return "";
+  }
+}
+
+(async function () {
+  zeile("Adresse", kurz(location.href, 70));
+  zeile("Browser", kurz(navigator.userAgent, 90));
+
+  // Websitedaten (localStorage) – häufigste Startbremse
+  try {
+    localStorage.setItem("tw-probe", "1");
+    localStorage.removeItem("tw-probe");
+    zeile("Websitedaten (localStorage)", "erlaubt", true);
+  } catch (e) {
+    zeile("Websitedaten (localStorage)", "blockiert: " + kurz(e.name + " " + e.message, 60), false);
+  }
+
+  // Service Worker und Zwischenspeicher
+  try {
+    if (navigator.serviceWorker) {
+      var regs = await navigator.serviceWorker.getRegistrations();
+      var beschreibung = regs.length
+        ? regs.map(function (r) {
+            var s = r.active && r.active.scriptURL ? r.active.scriptURL.split("/").pop() : "?";
+            return s + " (" + r.scope.replace(location.origin, "") + ")";
+          }).join(", ")
+        : "keiner registriert";
+      zeile("Service Worker", beschreibung, regs.length <= 1);
+    } else {
+      zeile("Service Worker", "vom Browser nicht unterstützt");
+    }
+  } catch (e) { zeile("Service Worker", "Fehler: " + kurz(e.message, 50), false); }
+
+  try {
+    var namen = window.caches ? await caches.keys() : [];
+    zeile("Zwischenspeicher", namen.length ? namen.join(", ") : "leer", namen.length === 0);
+  } catch (e) { zeile("Zwischenspeicher", "Fehler: " + kurz(e.message, 50)); }
+
+  // Dateien der App
+  var html = await pruefeDatei("index.html", "App wird geladen");
+  var treffer = html.match(/Stand\s+\d+[^<]*/);
+  zeile("Version in index.html", treffer ? treffer[0] : "nicht gefunden", !!treffer);
+  await pruefeDatei("js/app.js", "function zeichnen");
+  await pruefeDatei("js/vendor/supabase-js.js", "createClient");
+  await pruefeDatei("css/stil.css", "--blau-900");
+
+  // Verbindung zu Supabase
+  try {
+    var r = await fetch("https://evozevkzwcvpbnvcmmfp.supabase.co/auth/v1/health", {
+      headers: { apikey: "sb_publishable_us-LmqO0xw7nYgraQ7KCNw_dukOK3K-" },
+    });
+    zeile("Verbindung zu Supabase", "erreichbar (" + r.status + ")", r.ok);
+  } catch (e) {
+    zeile("Verbindung zu Supabase", "nicht erreichbar: " + kurz(e.message, 60), false);
+  }
+
+  // Module überhaupt möglich?
+  try {
+    await import("./js/format.js");
+    zeile("JavaScript-Module", "werden unterstützt und geladen", true);
+  } catch (e) {
+    zeile("JavaScript-Module", "Fehler: " + kurz(e.message, 80), false);
+  }
+})();
+
+document.getElementById("reparieren").addEventListener("click", async function () {
+  var ziel = document.getElementById("reparatur-meldung");
+  ziel.innerHTML = '<div class="hinweis info"><div>wird zurückgesetzt …</div></div>';
+  var erledigt = [];
+  try {
+    if (navigator.serviceWorker) {
+      var regs = await navigator.serviceWorker.getRegistrations();
+      for (var i = 0; i < regs.length; i++) await regs[i].unregister();
+      erledigt.push(regs.length + " Service Worker entfernt");
+    }
+  } catch (e) { erledigt.push("Service Worker: " + e.message); }
+  try {
+    if (window.caches) {
+      var namen = await caches.keys();
+      for (var j = 0; j < namen.length; j++) await caches.delete(namen[j]);
+      erledigt.push(namen.length + " Zwischenspeicher gelöscht");
+    }
+  } catch (e) { erledigt.push("Zwischenspeicher: " + e.message); }
+  try { localStorage.clear(); erledigt.push("Websitedaten geleert"); } catch (e) { /* egal */ }
+  ziel.innerHTML = '<div class="hinweis gruen" style="background:var(--gruen-bg);color:var(--gruen);border:1px solid #BFE0CE">' +
+    "<div><b>Fertig</b>" + erledigt.join(" · ") + '<br><a href="index.html?frisch=' + Date.now() + '">Jetzt die App öffnen</a></div></div>';
+});
+</script>
+</body>
+</html>

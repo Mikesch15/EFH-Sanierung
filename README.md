@@ -93,6 +93,7 @@ ausschliesslich an `benutzer_id` und `rolle`.
 app/
   index.html            Haupt-App (Eigentümer, Bearbeiter, Leser)
   handwerker.html       eigene, eng begrenzte Seite für Handwerker
+  hilfe.html            Diagnose und Zurücksetzen, falls die App nicht startet
   manifest.webmanifest  macht die App auf dem Handy installierbar
   sw.js                 Service Worker – nur für die Installierbarkeit, ohne Zwischenspeicher
   icons/                App-Icons (192, 512, maskable, Apple)
@@ -121,9 +122,14 @@ npx esbuild einstieg.js --bundle --format=esm --platform=browser --target=es2020
   --minify --legal-comments=none --outfile=app/js/vendor/supabase-js.js
 ```
 
-Bleibt der Start hängen, zeigt die App nach acht Sekunden einen Hinweis mit den Knöpfen
-*Neu laden* und *Zwischenspeicher leeren* (letzterer entfernt Service Worker und Cache),
-statt eine leere Seite zu zeigen. Vor dem Start steht «App wird geladen … Stand N» in der
+Scheitert der Start, räumt die App einmal selbst auf (Service Worker und Zwischenspeicher
+entfernen, neu laden mit Marker `?reparatur=1`, der eine Endlosschleife verhindert).
+Klappt es danach immer noch nicht, erscheint der echte Fehlertext samt Datei und Zeile,
+plus ein Verweis auf `app/hilfe.html`.
+
+`app/hilfe.html` ist eine Diagnoseseite ohne Module und ohne Abhängigkeiten: Sie zeigt
+Browser, Websitedaten, Service Worker, Zwischenspeicher, welche Dateien in welcher Version
+ankommen und ob Supabase erreichbar ist – und hat einen Knopf, der alles zurücksetzt. Vor dem Start steht «App wird geladen … Stand N» in der
 Seite – daran ist auf einen Blick erkennbar, ob ein Gerät den aktuellen Stand geladen hat.
 
 Der Service Worker speichert **nichts** zwischen: Er reicht jede Anfrage ans Netz weiter

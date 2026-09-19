@@ -25,7 +25,7 @@
 
 <div id="app">
   <main><div class="karte karte-pad" style="margin:20px auto;max-width:520px">
-    <div class="leer"><b>App wird geladen …</b>Stand 5 · 19.09.2026</div>
+    <div class="leer"><b>App wird geladen …</b>Stand 6 · 19.09.2026</div>
     <noscript><div class="hinweis warn"><div><b>JavaScript ist ausgeschaltet</b>Die App braucht JavaScript.</div></div></noscript>
   </div></main>
 </div>
@@ -44,26 +44,43 @@
   // wenn ein Modul nicht lädt (z.B. blockiertes Netz, alter Zwischenspeicher).
   window.startFehler = function (text) {
     var ziel = document.getElementById("app");
-    if (!ziel || ziel.dataset.gestartet === "ja") return;
+    if (!ziel || ziel.dataset.gestartet === "ja" || ziel.dataset.fehler === "ja") return;
+    ziel.dataset.fehler = "ja";
+
+    // Erster Fehlversuch: einmal selbst aufräumen und neu laden. Der Marker in
+    // der Adresse verhindert eine Endlosschleife, auch ohne Websitedaten.
+    if (location.search.indexOf("reparatur=1") === -1) {
+      ziel.innerHTML =
+        '<main><div class="karte karte-pad" style="margin:20px auto;max-width:520px">' +
+        '<div class="hinweis info"><div><b>Start wird wiederholt</b>' +
+        "Alte Zwischenstände werden entfernt …</div></div></div></main>";
+      window.appZuruecksetzen(true);
+      return;
+    }
+
     ziel.innerHTML =
       '<main><div class="karte karte-pad" style="margin:20px auto;max-width:520px">' +
       '<div class="hinweis fehler"><div><b>Die App konnte nicht starten</b>' +
       String(text || "") + "</div></div>" +
       '<div class="btn-reihe" style="margin-top:12px">' +
       '<button class="btn" type="button" onclick="location.reload()">Neu laden</button>' +
-      '<button class="btn zweit" type="button" onclick="window.appZuruecksetzen()">Zwischenspeicher leeren</button>' +
+      '<a class="btn zweit" href="hilfe.html">Diagnose öffnen</a>' +
       "</div></div></main>";
   };
-  // Leert Service-Worker-Cache und Registrierung – hilft nach einem fehlerhaften Stand.
-  window.appZuruecksetzen = async function () {
+  // Entfernt Service Worker und Zwischenspeicher – hilft nach einem fehlerhaften Stand.
+  window.appZuruecksetzen = async function (mitMarker) {
     try {
-      if (window.caches) { const n = await caches.keys(); await Promise.all(n.map((x) => caches.delete(x))); }
+      if (window.caches) { var n = await caches.keys(); await Promise.all(n.map(function (x) { return caches.delete(x); })); }
       if (navigator.serviceWorker) {
-        const regs = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(regs.map((r) => r.unregister()));
+        var regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(function (r) { return r.unregister(); }));
       }
     } catch (e) { /* egal */ }
-    location.reload();
+    if (mitMarker) {
+      location.replace(location.pathname + "?reparatur=1&t=" + Date.now());
+    } else {
+      location.reload();
+    }
   };
   window.addEventListener("error", function (e) {
     if (e.target && (e.target.tagName === "SCRIPT" || e.target.tagName === "LINK")) {
