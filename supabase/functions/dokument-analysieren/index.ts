@@ -22,6 +22,9 @@ const MAX_BYTES = 15 * 1024 * 1024;          // grössere Dateien lehnt Gemini a
 // verdrahtete Namen führen deshalb zu "nicht verfügbar", obwohl alles eingerichtet
 // ist. Darum: beim Dienst nachfragen, welche Modelle dieser Schlüssel verwenden darf.
 const BASIS = "https://generativelanguage.googleapis.com/v1beta";
+// Nicht jedes Modell wird unter beiden Schnittstellen-Versionen ausgeliefert.
+// Antwortet v1beta mit 404, ist derselbe Name unter v1 oft erreichbar.
+const BASIS_V1 = "https://generativelanguage.googleapis.com/v1";
 
 /** Je höher, desto lieber: schnell, aktuell, kann Dokumente lesen. */
 function modellRang(name: string): number {
@@ -37,7 +40,16 @@ function modellRang(name: string): number {
   return rang;
 }
 
-const UNGEEIGNET = /embedding|aqa|imagen|image-generation|tts|audio|live|veo|learnlm|gemma/;
+// "gemini-2.5-flash-image" erzeugt Bilder, statt sie zu lesen – solche Namen
+// kosten nur einen Versuch. Deshalb alles mit "image" aussortieren.
+const UNGEEIGNET = /embedding|aqa|imagen|image|tts|audio|live|veo|learnlm|gemma/;
+
+// Modelle, die dieser Schlüssel laut Liste dürfte, die beim Aufruf aber 404
+// antworten. Das ändert sich nicht innerhalb einer Minute – also merken und
+// keinen weiteren Versuch daran verschwenden.
+const untauglich = new Set<string>();
+// Was zuletzt funktioniert hat, wird zuerst wieder gefragt.
+let bewaehrt = "";
 
 /**
  * Familie eines Modells: "gemini-2.5-flash-preview-09-2025" und
@@ -53,7 +65,12 @@ function familie(name: string): string {
 }
 
 /** Beste Modelle, aber je Familie nur eines – damit ein Ausweichen auch eines ist. */
-function breitStreuen(namen: string[], anzahl: number): string[] {
+function breitStreuen(alle: string[], anzahl: number): string[] {
+  const namen = alle.filter((n) => !untauglich.has(n));
+  if (bewaehrt && namen.includes(bewaehrt)) {
+    namen.splice(namen.indexOf(bewaehrt), 1);
+    namen.unshift(bewaehrt);
+  }
   const gesehen = new Set<string>();
   const auswahl: string[] = [];
   for (const name of namen) {
@@ -272,20 +289,22 @@ Deno.serve(async (anfrage) => {
   // Jedes Modell bis zu zweimal: Ein "gerade überlastet" ist oft nach ein paar
   // Sekunden vorbei. Danach das nächste Modell – höchstens vier, sonst dauert es
   // länger, als jemand vor dem Bildschirm warten mag.
-  const kandidaten = breitStreuen(modelle, 4);
-  const versuche: string[] = [];
-  for (const modell of kandidaten) versuche.push(modell, modell);
+  // Fünf statt vier: Erfahrungsgemäss sind ein, zwei Namen aus der Liste beim
+  // Aufruf doch nicht nutzbar – die sollen nicht die echten Versuche auffressen.
+  const kandidaten = breitStreuen(modelle, 5);
+  const versuche: { modell: string; basis: string }[] = [];
+  for (const modell of kandidaten) versuche.push({ modell, basis: BASIS }, { modell, basis: BASIS });
   const protokoll: string[] = [];
 
   for (let i = 0; i < versuche.length; i++) {
-    const modell = versuche[i];
-    const zweiterAnlauf = i > 0 && versuche[i - 1] === modell;
+    const { modell, basis } = versuche[i];
+    const zweiterAnlauf = i > 0 && versuche[i - 1].modell === modell && versuche[i - 1].basis === basis;
     if (zweiterAnlauf) await new Promise((weiter) => setTimeout(weiter, 2500));
 
     let gemini: Response;
     try {
       gemini = await fetch(
-        `${BASIS}/models/${modell}:generateContent`,
+        `${basis}/models/${modell}:generateContent`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": schluessel },
@@ -299,12 +318,18 @@ Deno.serve(async (anfrage) => {
       continue;
     }
 
-    if (gemini.status === 404) {          // Modell doch nicht nutzbar – nächstes versuchen
+    if (gemini.status === 404) {
       const text = await gemini.text();
-      zwischenspeicher = null;             // Liste war veraltet, beim nächsten Mal neu holen
-      protokoll.push(modell + ": 404");
+      protokoll.push(modell + ": 404" + (basis === BASIS_V1 ? " (v1)" : ""));
       letzterFehler = "Modell " + modell + " abgelehnt: " + text.slice(0, 200);
-      i++;                                 // zweiter Anlauf erübrigt sich
+      i++;                                 // Wiederholen ändert an einem 404 nichts
+      if (basis === BASIS) {
+        // Vielleicht gibt es den Namen unter der anderen Version – einmal probieren.
+        versuche.splice(i + 1, 0, { modell, basis: BASIS_V1 });
+      } else {
+        untauglich.add(modell);            // unter beiden Versionen nicht da
+        zwischenspeicher = null;           // Liste war veraltet, beim nächsten Mal neu holen
+      }
       continue;
     }
     if (!gemini.ok) {
@@ -323,7 +348,7 @@ Deno.serve(async (anfrage) => {
       if (gemini.status === 500 || gemini.status === 503) {
         // "high demand" – vorübergehend. Gleich nochmals, dann das nächste Modell.
         ueberlastet = true;
-        protokoll.push(modell + ": " + gemini.status);
+        protokoll.push(modell + ": " + gemini.status + (basis === BASIS_V1 ? " (v1)" : ""));
         letzterFehler = "Modell " + modell + ": überlastet (" + gemini.status + ")";
         continue;
       }
@@ -343,6 +368,7 @@ Deno.serve(async (anfrage) => {
       return antwort({ fehler: "Die Antwort des KI-Dienstes war unlesbar." }, 502);
     }
 
+    bewaehrt = modell;                     // beim nächsten Mal zuerst dieses fragen
     return antwort({ art, modell, werte });
   }
 
