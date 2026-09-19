@@ -34,7 +34,8 @@ Datenbank-Passwort, Gemini-API-Key.
 ## Datenmodell
 
 ```
-projekte                 Objekt, Adresse, Kaufpreis, Kaufnebenkosten, Gesamtbudget
+projekte                 Objekt, Adresse, Kaufpreis, Gesamtbudget
+└─ kaufnebenkosten       Notariat, Steuern, Grundbuch … je als eigene Position
 └─ projekt_mitglieder    wer darf was (eigentuemer / bearbeiter / leser / handwerker)
 └─ budgetpositionen      Kategorie, Budgetbetrag
    ├─ offerten           Lieferant, Nummer, Status, MWST-Satz, Datei
@@ -53,9 +54,11 @@ Dateien liegen im privaten Bucket `projektdateien`, Pfad `<projekt_id>/<bereich>
 Bereich ist `offerten`, `belege`, `dokumente` – oder `handwerker/<offerte_id>` für
 Dateien, die ein Handwerker selbst hochlädt.
 
-Der Sanierungsrahmen ist `gesamtbudget − kaufpreis − kaufnebenkosten`. Kaufnebenkosten
-sind die einmaligen Kosten des Erwerbs (Notariat, Handänderungssteuer, Grundbuch,
-Schätzung) – sie gehören nicht zur Sanierung, binden aber Geld aus dem Gesamtbudget.
+Der Sanierungsrahmen ist `gesamtbudget − kaufpreis − summe(kaufnebenkosten)`.
+Kaufnebenkosten werden seit Migration 0010 **einzeln** erfasst (Tabelle `kaufnebenkosten`:
+Bezeichnung, Betrag, Datum, bezahlt, Bemerkung) – Notariat, Handänderungssteuer,
+Grundbuch, Schätzung und so weiter. Sie gehören nicht zur Sanierung, binden aber Geld
+aus dem Gesamtbudget.
 
 MWST ist optional: `offerten.mwst_satz` und `belege.mwst` dürfen `null` sein. `null`
 heisst «keine MWST ausgewiesen» und ist etwas anderes als der Betrag 0.
@@ -132,9 +135,24 @@ app/
   js/import.js          Übernahme der Prototyp-Sicherung
   js/app.js             Start, Navigation, Modal, Realtime
   js/ansichten/*.js     Anmeldung, Übersicht, Budget, Offerten, Belege, Dokumente
+  js/paket/*.js         daraus gebaute Auslieferung (nicht von Hand ändern)
 ```
 
-Vanilla JavaScript als ES-Module, kein Framework, kein Build-Schritt.
+Vanilla JavaScript als ES-Module, kein Framework. Die Quelldateien unter `app/js/`
+werden zu **je einer Datei pro Seite** gepackt (`app/js/paket/app.<kennung>.js`), deren
+Name sich bei jeder Codeänderung mitändert:
+
+```bash
+npm install          # einmalig, installiert esbuild
+npm run bauen        # nach jeder Änderung an app/js/**
+npm run pruefen      # meldet, wenn das Paket nicht zum Code passt
+```
+
+Warum: Der Browser speichert jede Datei einzeln zwischen. Ohne Paket mischt er nach einer
+Aktualisierung alte und neue Dateien – die passen nicht zusammen, und die App startet nicht
+mehr, bis man den Zwischenspeicher von Hand leert. Mit einem Paket pro Seite ist entweder
+der alte Stand vollständig geladen oder der neue. Auch `stil.css` trägt eine Kennung in der
+Adresse.
 `@supabase/supabase-js` v2.45.4 liegt fertig gebündelt im Repo unter
 `app/js/vendor/supabase-js.js` – bewusst **kein CDN**, damit die App auch in einem Netz
 startet, das fremde Domains blockiert oder langsam ausliefert. Neu erzeugen, wenn die

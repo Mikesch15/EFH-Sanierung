@@ -1,11 +1,11 @@
 import { esc, chf, chfKurz, zahl, meldung, bestaetigen } from "../format.js";
-import { leerZustand } from "./gemeinsam.js";
+import { leerZustand, summen } from "./gemeinsam.js";
 import { budgetAnlegen, budgetAktualisieren, budgetLoeschen } from "../daten.js";
 import { modalOeffnen, neuLaden, kannBearbeiten } from "../app.js";
 import { STANDARD_KATEGORIEN } from "../konfig.js";
 
 export function render(Z) {
-  const s = { rahmen: zahl(Z.projekt.gesamtbudget) - zahl(Z.projekt.kaufpreis) - zahl(Z.projekt.kaufnebenkosten) };
+  const s = summen(Z);
   const budgetiert = Z.budget.reduce((a, p) => a + zahl(p.betrag), 0);
   const bearbeitbar = kannBearbeiten();
 

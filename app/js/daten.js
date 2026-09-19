@@ -72,7 +72,7 @@ export function projekteLaden() {
   return lesen(async () => pruefen(await supabase.from("projekte").select("*").order("erstellt_am")));
 }
 
-export function projektAnlegen({ name, adresse, kaufpreis, kaufnebenkosten, gesamtbudget }) {
+export function projektAnlegen({ name, adresse, kaufpreis, gesamtbudget }) {
   return schreiben(async () =>
     pruefen(
       await supabase
@@ -80,7 +80,6 @@ export function projektAnlegen({ name, adresse, kaufpreis, kaufnebenkosten, gesa
         .insert({
           name, adresse,
           kaufpreis: kaufpreis || 0,
-          kaufnebenkosten: kaufnebenkosten || 0,
           gesamtbudget: gesamtbudget || 0,
         })
         .select()
@@ -153,6 +152,50 @@ export function mitgliedEntfernen(projektId, benutzerId) {
         .eq("benutzer_id", benutzerId)
     )
   );
+}
+
+/* --------------------------------------------------------- Kaufnebenkosten */
+export function nebenkostenLaden(projektId) {
+  return lesen(async () =>
+    pruefen(
+      await supabase
+        .from("kaufnebenkosten")
+        .select("*")
+        .eq("projekt_id", projektId)
+        .order("sortierung")
+        .order("erstellt_am")
+    )
+  );
+}
+
+export function nebenkostenAnlegen(projektId, daten) {
+  return schreiben(async () =>
+    pruefen(
+      await supabase
+        .from("kaufnebenkosten")
+        .insert({
+          projekt_id: projektId,
+          bezeichnung: daten.bezeichnung || "",
+          betrag: daten.betrag || 0,
+          datum: daten.datum || null,
+          bezahlt: !!daten.bezahlt,
+          bemerkung: daten.bemerkung || "",
+        })
+        .select()
+        .single()
+    )
+  );
+}
+
+export function nebenkostenAktualisieren(id, daten, geladenAm) {
+  return schreiben(async () => {
+    await konfliktPruefen("kaufnebenkosten", id, geladenAm);
+    return pruefen(await supabase.from("kaufnebenkosten").update(daten).eq("id", id).select().single());
+  });
+}
+
+export function nebenkostenLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("kaufnebenkosten").delete().eq("id", id)));
 }
 
 /* ------------------------------------------------------------- Einladungen */

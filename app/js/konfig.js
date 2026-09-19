@@ -21,6 +21,11 @@ export const STANDARD_KATEGORIEN = [
   "Wände / Decken", "Böden", "Küche", "Badezimmer EG", "Badezimmer OG", "Fassade",
   "Heizung", "Fenster", "Sonstiges", "Reserve",
 ];
+export const NEBENKOSTEN_ARTEN = [
+  "Notariat", "Handänderungssteuer", "Grundbuchgebühren", "Schätzung / Gutachten",
+  "Bankspesen", "Gebäudeversicherung", "Umzug", "Sonstiges",
+];
+
 export const ROLLEN = {
   eigentuemer: "Eigentümer",
   bearbeiter: "Bearbeiter",

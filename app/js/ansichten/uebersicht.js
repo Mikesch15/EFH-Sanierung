@@ -4,8 +4,9 @@ import {
   projektAnlegen, projektAktualisieren, projekteLaden, mitgliederLaden,
   mitgliedRolleAendern, mitgliedEntfernen,
   einladungenLaden, einladungAnlegen, einladungZuruecknehmen,
+  nebenkostenAnlegen, nebenkostenAktualisieren, nebenkostenLoeschen,
 } from "../daten.js";
-import { ROLLEN } from "../konfig.js";
+import { ROLLEN, NEBENKOSTEN_ARTEN } from "../konfig.js";
 import * as ImportModul from "../import.js";
 import { Z as ZUstand, modalOeffnen, neuLaden, neuZeichnen, projektWechseln } from "../app.js";
 
@@ -19,12 +20,10 @@ export function renderProjektAnlegen() {
     "Objekt, Adresse, Kaufpreis und Gesamtbudget sind noch nicht erfasst.</p>" +
     '<label class="feld"><span>Objekt / Projektname</span><input id="p-name" placeholder="z.B. Einfamilienhaus Tulpenweg 37"></label>' +
     '<label class="feld"><span>Adresse</span><input id="p-adresse" placeholder="Strasse Nr., PLZ Ort"></label>' +
-    '<div class="feld-paar">' +
     '<label class="feld"><span>Kaufpreis (CHF)</span><input id="p-kauf" inputmode="decimal" placeholder="0"></label>' +
-    '<label class="feld"><span>Kaufnebenkosten (CHF)</span><input id="p-neben" inputmode="decimal" placeholder="0"></label>' +
-    "</div>" +
     '<p style="margin:-4px 0 12px;font-size:.78rem;color:var(--grau)">' +
-    "Nebenkosten des Kaufs: Notariat, Handänderungssteuer, Grundbuch, Schätzung …</p>" +
+    "Kaufnebenkosten (Notariat, Handänderungssteuer, Grundbuch …) erfassen Sie danach " +
+    "einzeln in der Übersicht.</p>" +
     '<label class="feld"><span>Gesamtbudget (CHF)</span><input id="p-gesamt" inputmode="decimal" placeholder="0"></label>' +
     '<div id="p-fehler"></div>' +
     '<button class="btn breit" type="button" data-aktion="projekt-anlegen">Projekt anlegen</button>' +
@@ -47,7 +46,8 @@ export function render(Z) {
     kpi("Gesamtbudget", chfKurz(s.gesamtbudget), "inkl. Kaufpreis und Nebenkosten", "") +
     kpi("Kaufpreis", chfKurz(s.kaufpreis),
       s.kaufnebenkosten ? "zzgl. Nebenkosten " + chfKurz(s.kaufnebenkosten) : "ohne Nebenkosten", "") +
-    kpi("Kaufnebenkosten", chfKurz(s.kaufnebenkosten), "Notariat, Steuern, Grundbuch", "") +
+    kpi("Kaufnebenkosten", chfKurz(s.kaufnebenkosten),
+      (Z.nebenkosten || []).length + " Positionen, siehe unten", "") +
     kpi("Sanierungsrahmen", chfKurz(s.rahmen), "Gesamtbudget − Kaufpreis − Nebenkosten", "rand-blau") +
     kpi("Offertsumme", chfKurz(s.offerten), Z.offerten.length + " Offerten, ohne abgelehnte", "rand-blau") +
     kpi("Rechnungssumme", chfKurz(s.rechnungen), Z.belege.length + " Belege, inkl. MWST", "rand-amber") +
@@ -114,10 +114,80 @@ export function render(Z) {
     titel: d.dateiname || "Ohne Namen", unter: (d.typ || "Sonstiges") + " · " + datumCH(d.datum), betrag: "", badge: "",
   })));
 
+  h += nebenkostenAbschnitt(Z);
   h += mitgliederAbschnitt(Z);
   h += datenAbschnitt(Z);
   h += kontoAbschnitt(Z);
   return h;
+}
+
+function nebenkostenAbschnitt(Z) {
+  const liste = Z.nebenkosten || [];
+  const summe = liste.reduce((a, n) => a + zahl(n.betrag), 0);
+  const bezahlt = liste.filter((n) => n.bezahlt).reduce((a, n) => a + zahl(n.betrag), 0);
+  const bearbeitbar = Z.meineRolle === "eigentuemer" || Z.meineRolle === "bearbeiter";
+
+  let h = '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Kaufnebenkosten</h2>' +
+    "<p>" + (liste.length ? chf(summe) + " · davon bezahlt " + chf(bezahlt) : "Notariat, Steuern, Grundbuch, Schätzung …") + "</p></div>" +
+    (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="neben-neu">+ Position</button>' : "") +
+    '</div><div class="karte">';
+
+  if (!liste.length) {
+    h += '<div class="leer" style="padding:16px">Noch keine Nebenkosten erfasst.' +
+      (bearbeitbar ? '<div style="margin-top:12px"><button class="btn zweit klein" type="button" data-aktion="neben-neu">Erste Position erfassen</button></div>' : "") +
+      "</div>";
+    return h + "</div></section>";
+  }
+
+  h += '<div class="tab-scroll"><table><thead><tr><th>Position</th><th>Datum</th>' +
+    '<th class="num">Betrag</th><th>Status</th><th></th></tr></thead><tbody>';
+  liste.forEach((n) => {
+    h += "<tr><td><b>" + esc(n.bezeichnung || "ohne Bezeichnung") + "</b>" +
+      (n.bemerkung ? '<div style="font-size:.76rem;color:var(--grau);white-space:normal;max-width:240px">' + esc(n.bemerkung) + "</div>" : "") +
+      "</td><td>" + datumCH(n.datum) + "</td>" +
+      '<td class="num">' + chf(n.betrag) + "</td>" +
+      "<td>" + (n.bezahlt ? '<span class="badge gruen">bezahlt</span>' : '<span class="badge amber">offen</span>') + "</td>" +
+      '<td><div class="zeile-aktion">' +
+      (bearbeitbar
+        ? '<button class="btn still klein" type="button" data-aktion="neben-bearbeiten" data-id="' + n.id + '">Bearbeiten</button>' +
+          '<button class="btn still klein" type="button" data-aktion="neben-loeschen" data-id="' + n.id + '">Löschen</button>'
+        : "") + "</div></td></tr>";
+  });
+  h += '</tbody><tfoot><tr><td>Total</td><td></td><td class="num">' + chf(summe) + "</td><td colspan=\"2\"></td></tr></tfoot></table></div>";
+  return h + "</div></section>";
+}
+
+function nebenkostenFormular(Z, n) {
+  modalOeffnen({
+    titel: n ? "Nebenkosten bearbeiten" : "Kaufnebenkosten erfassen",
+    koerper:
+      '<label class="feld"><span>Position</span>' +
+      '<input id="n-bezeichnung" list="neben-arten" value="' + esc(n ? n.bezeichnung : "") + '" placeholder="z.B. Notariat">' +
+      '<datalist id="neben-arten">' + NEBENKOSTEN_ARTEN.map((a) => '<option value="' + esc(a) + '">').join("") + "</datalist></label>" +
+      '<div class="feld-paar">' +
+      '<label class="feld"><span>Betrag (CHF)</span><input id="n-betrag" inputmode="decimal" value="' + (n ? zahl(n.betrag) : "") + '"></label>' +
+      '<label class="feld"><span>Datum</span><input type="date" id="n-datum" value="' + esc(n && n.datum ? n.datum : "") + '"></label></div>' +
+      '<label class="check"><input type="checkbox" id="n-bezahlt"' + (n && n.bezahlt ? " checked" : "") + "> bereits bezahlt</label>" +
+      '<label class="feld"><span>Bemerkung</span><textarea id="n-bemerkung" placeholder="optional">' + esc(n ? n.bemerkung : "") + "</textarea></label>",
+    speichern: async () => {
+      const bezeichnung = document.getElementById("n-bezeichnung").value.trim();
+      const betrag = zahl(document.getElementById("n-betrag").value);
+      if (!bezeichnung) { meldung("Bitte die Position benennen.", true); return false; }
+      const daten = {
+        bezeichnung, betrag,
+        datum: document.getElementById("n-datum").value || null,
+        bezahlt: document.getElementById("n-bezahlt").checked,
+        bemerkung: document.getElementById("n-bemerkung").value.trim(),
+      };
+      try {
+        if (n) await nebenkostenAktualisieren(n.id, daten, n.geaendert_am);
+        else await nebenkostenAnlegen(Z.projektId, daten);
+        meldung(n ? "Position aktualisiert." : "Position erfasst.");
+        await neuLaden(["nebenkosten"]);
+        return true;
+      } catch (err) { meldung(err.message, true); return false; }
+    },
+  });
 }
 
 function kontoAbschnitt(Z) {
@@ -214,7 +284,6 @@ export async function aktion(a, knopf, Z) {
       const projekt = await projektAnlegen({
         name, adresse: el("p-adresse").value.trim(),
         kaufpreis: zahl(el("p-kauf").value),
-        kaufnebenkosten: zahl(el("p-neben").value),
         gesamtbudget: zahl(el("p-gesamt").value),
       });
       ZUstand.projekte.push(projekt);
@@ -246,12 +315,9 @@ export async function aktion(a, knopf, Z) {
       koerper:
         '<label class="feld"><span>Objekt / Projektname</span><input id="e-name" value="' + esc(p.name) + '"></label>' +
         '<label class="feld"><span>Adresse</span><input id="e-adresse" value="' + esc(p.adresse || "") + '"></label>' +
-        '<div class="feld-paar">' +
         '<label class="feld"><span>Kaufpreis (CHF)</span><input id="e-kauf" inputmode="decimal" value="' + (zahl(p.kaufpreis) || "") + '"></label>' +
-        '<label class="feld"><span>Kaufnebenkosten (CHF)</span><input id="e-neben" inputmode="decimal" value="' + (zahl(p.kaufnebenkosten) || "") + '"></label>' +
-        "</div>" +
         '<p style="margin:-4px 0 12px;font-size:.78rem;color:var(--grau)">' +
-        "Nebenkosten des Kaufs: Notariat, Handänderungssteuer, Grundbuch, Schätzung …</p>" +
+        "Die Kaufnebenkosten stehen als eigene Liste in der Übersicht.</p>" +
         '<label class="feld"><span>Gesamtbudget (CHF)</span><input id="e-gesamt" inputmode="decimal" value="' + (zahl(p.gesamtbudget) || "") + '"></label>' +
         '<div class="hinweis info"><div>Sanierungsrahmen = Gesamtbudget − Kaufpreis − Kaufnebenkosten.</div></div>',
       speichern: async () => {
@@ -259,7 +325,6 @@ export async function aktion(a, knopf, Z) {
           const neu = await projektAktualisieren(p.id, {
             name: el("e-name").value.trim(), adresse: el("e-adresse").value.trim(),
             kaufpreis: zahl(el("e-kauf").value),
-            kaufnebenkosten: zahl(el("e-neben").value),
             gesamtbudget: zahl(el("e-gesamt").value),
           }, p.geaendert_am);
           Object.assign(ZUstand.projekt, neu);
@@ -271,6 +336,20 @@ export async function aktion(a, knopf, Z) {
         } catch (err) { meldung(err.message, true); return false; }
       },
     });
+    return;
+  }
+
+  if (a === "neben-neu") return nebenkostenFormular(Z, null);
+  if (a === "neben-bearbeiten") return nebenkostenFormular(Z, (Z.nebenkosten || []).find((n) => n.id === knopf.dataset.id));
+  if (a === "neben-loeschen") {
+    const n = (Z.nebenkosten || []).find((x) => x.id === knopf.dataset.id);
+    if (n && bestaetigen('Position "' + (n.bezeichnung || "") + '" löschen?')) {
+      try {
+        await nebenkostenLoeschen(n.id);
+        meldung("Position gelöscht.");
+        await neuLaden(["nebenkosten"]);
+      } catch (err) { meldung(err.message, true); }
+    }
     return;
   }
 

@@ -13,7 +13,7 @@ export function belegBrutto(b) { return zahl(b.brutto); }
 export function summen(Z) {
   const gesamtbudget = zahl(Z.projekt?.gesamtbudget);
   const kaufpreis = zahl(Z.projekt?.kaufpreis);
-  const kaufnebenkosten = zahl(Z.projekt?.kaufnebenkosten);
+  const kaufnebenkosten = (Z.nebenkosten || []).reduce((s, n) => s + zahl(n.betrag), 0);
   // Kaufpreis und Nebenkosten sind bereits gebunden – was übrig bleibt, ist der
   // Rahmen für die Sanierung.
   const rahmen = gesamtbudget - kaufpreis - kaufnebenkosten;

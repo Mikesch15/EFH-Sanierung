@@ -1,0 +1,12 @@
+{
+  "name": "tulpenweg-sanierung",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bauen": "node werkzeuge/bauen.mjs",
+    "pruefen": "node werkzeuge/bauen.mjs --pruefen"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

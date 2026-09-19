@@ -107,9 +107,10 @@ async function pruefeDatei(pfad, erwartet) {
 
   // Dateien der App
   var html = await pruefeDatei("index.html", "App wird geladen");
-  var treffer = html.match(/Stand\s+\d+[^<]*/);
+  var treffer = html.match(/Stand[^<]*/);
   zeile("Version in index.html", treffer ? treffer[0] : "nicht gefunden", !!treffer);
-  await pruefeDatei("js/app.js", "function zeichnen");
+  var paket = (html.match(/js\/paket\/app\.[0-9a-f]+\.js/) || ["js/app.js"])[0];
+  await pruefeDatei(paket, "zeichnen");
   await pruefeDatei("js/vendor/supabase-js.js", "createClient");
   await pruefeDatei("css/stil.css", "--blau-900");
 

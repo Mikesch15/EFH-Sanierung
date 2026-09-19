@@ -2,7 +2,7 @@ import { supabase, aufAuthAchten, abmelden, gespeicherteSitzungVorhanden } from 
 import {
   DatenFehler, projekteLaden, mitgliederLaden, budgetLaden, offertenLaden,
   belegeLaden, dokumenteLaden, kostenvergleichLaden, projektAbonnieren,
-  einladungenLaden, einladungInfo, einladungEinloesen,
+  einladungenLaden, einladungInfo, einladungEinloesen, nebenkostenLaden,
 } from "./daten.js";
 import { esc, meldung } from "./format.js";
 import * as Anmeldung from "./ansichten/anmeldung.js";
@@ -17,7 +17,7 @@ const el = (id) => document.getElementById(id);
 export const Z = {
   session: null, benutzer: null,
   projekte: [], projektId: null, projekt: null, mitglieder: [], meineRolle: null,
-  budget: [], offerten: [], belege: [], dokumente: [], kostenvergleich: [],
+  budget: [], offerten: [], belege: [], dokumente: [], kostenvergleich: [], nebenkosten: [],
   aktuelleAnsicht: "uebersicht",
   online: navigator.onLine, ladeVorgaenge: 0,
   abmeldeAbo: null,
@@ -65,6 +65,7 @@ async function neuLaden(teile) {
   if (braucht("mitglieder")) {
     auftraege.push(einladungenLaden(projektId).then((d) => { Z.einladungen = d; return null; }, () => null));
   }
+  holen("nebenkosten", nebenkostenLaden, "nebenkosten");
   holen("budget", budgetLaden, "budget");
   holen("offerten", offertenLaden, "offerten");
   holen("belege", belegeLaden, "belege");
