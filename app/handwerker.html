@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Offerte einreichen</title>
+<link rel="stylesheet" href="css/stil.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0C2742">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+<body>
+<header class="kopf">
+  <div class="kopf-inner">
+    <div class="marke"><b>Offerte einreichen</b><span id="kopf-unter">Tulpenweg 37</span></div>
+    <nav class="tabs-desktop"><span class="kopf-rechts">
+      <button class="btn still klein" type="button" data-aktion="abmelden" style="color:#fff">Abmelden</button>
+    </span></nav>
+  </div>
+</header>
+
+<div id="app"></div>
+<div id="modal-wrap"></div>
+<div id="meldung" aria-live="polite"></div>
+
+<script type="module" src="js/handwerker.js"></script>
+<script>
+  if ("serviceWorker" in navigator && location.protocol !== "file:") {
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  }
+</script>
+</body>
+</html>
