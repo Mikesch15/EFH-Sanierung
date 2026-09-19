@@ -402,6 +402,25 @@ klarer Abgrenzung:
 Damit der Tab *Budget* mit seinen vier Abschnitten übersichtlich bleibt, steht oben eine
 Sprungleiste: Budget · Kostenvergleich · Fördergelder · Anschaffungen.
 
+## Dokumente und Fotos
+
+Der Tab *Dokumente* trennt zwei Dinge, die sich unterschiedlich benutzen:
+
+- **Dokumente** (Kaufvertrag, Pläne, Bewilligungen, Garantien) stehen in der Tabelle –
+  man sucht sie über Name, Typ und Datum.
+- **Fotos** stehen darunter als Galerie mit Vorschaubild, Dateiname, Datum, Kategorie und
+  Bemerkung. Ein Tippen aufs Bild öffnet es gross (signierter Link).
+
+Als Foto gilt, was einen Bild-Dateityp hat (`mime_typ` beginnt mit `image/`, ersatzweise
+die Endung). HEIC-Dateien vom iPhone zählen dazu, lassen sich aber ausserhalb von Safari
+nicht anzeigen: Statt eines kaputten Symbols steht dann «Format ohne Vorschau» – öffnen
+und herunterladen geht trotzdem.
+
+Die Vorschau-Adressen sind signiert und laufen nach zehn Minuten ab. Sie werden für alle
+Bilder **in einer einzigen Anfrage** geholt und zwischengespeichert, damit nicht jedes
+Neuzeichnen (etwa durch eine Änderung auf dem anderen Gerät) alle Bilder neu anfragt.
+Geladen wird erst, wenn die Kacheln stehen, und mit `loading="lazy"`.
+
 ## Migrationen anwenden
 
 Die Migrationen sind im Supabase-Projekt bereits eingespielt. Für eine zweite Umgebung
@@ -442,6 +461,8 @@ Am besten auf zwei Geräten (oder einem normalen Fenster und einem privaten Fens
    Der verfügbare Betrag auf der Übersicht darf sich dadurch **nicht** ändern. Mit
    *Kreditrahmen* lässt sich zeigen, wie viel vom Kredit schon gebunden ist.
 9. **Drei Dokumente auf einmal** hochladen (Tab *Dokumente* → *+ Dateien*, Mehrfachauswahl).
+   Bilder landen dabei im eigenen Abschnitt *Fotos* mit Vorschau, alles andere in der
+   Dokumenttabelle.
 10. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
    Werten passen. Der Kostenvergleich kommt aus der View `v_kostenvergleich`.
 11. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür

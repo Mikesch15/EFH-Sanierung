@@ -1,14 +1,84 @@
 import { esc, datumCH, heuteISO, meldung, bestaetigen, dateigroesse } from "../format.js";
 import { leerZustand, kategorieOptionen, kategorieName } from "./gemeinsam.js";
 import { dokumenteAnlegen, dokumentAktualisieren, dokumentLoeschen } from "../daten.js";
-import { hochladen, signierterLink, loeschen as dateiLoeschen, dateiPruefen } from "../dateien.js";
+import { hochladen, signierterLink, vorschauLinks, loeschen as dateiLoeschen, dateiPruefen } from "../dateien.js";
 import { modalOeffnen, neuLaden, kannBearbeiten } from "../app.js";
 import { DOKUMENT_TYPEN } from "../konfig.js";
 
+// Was der Browser als Bild anzeigen kann. HEIC gehört bewusst nicht dazu: Es zählt
+// als Foto, lässt sich aber ausserhalb von Safari nicht darstellen – dafür gibt es
+// unten eine Ersatzkachel statt eines kaputten Bildes.
+const BILD_ENDUNG = /\.(jpe?g|png|webp|gif|heic|heif)$/i;
+const ANZEIGBAR = /^image\/(jpeg|png|webp|gif)$/i;
+
+function istFoto(d) {
+  if (d.mime_typ) return d.mime_typ.startsWith("image/");
+  return BILD_ENDUNG.test(d.dateiname || "");
+}
+function istAnzeigbar(d) {
+  if (d.mime_typ) return ANZEIGBAR.test(d.mime_typ);
+  return /\.(jpe?g|png|webp|gif)$/i.test(d.dateiname || "");
+}
+
+// Einmal geholte Vorschau-Adressen halten: Ohne diesen Puffer würde jede
+// Aktualisierung (auch die von anderen Geräten) alle Bilder neu anfragen.
+const vorschauSpeicher = new Map();   // Pfad → { url, zeit }
+const VORSCHAU_GUELTIG_MS = 8 * 60 * 1000;
+let vorschauLaeuft = false;
+
+function vorschauAusSpeicher(pfad) {
+  const eintrag = vorschauSpeicher.get(pfad);
+  if (!eintrag || Date.now() - eintrag.zeit > VORSCHAU_GUELTIG_MS) return null;
+  return eintrag.url;
+}
+
+/** Holt die fehlenden Vorschau-Adressen und setzt sie in die schon gezeichneten Kacheln. */
+async function vorschauenNachladen() {
+  if (vorschauLaeuft) return;
+  // Lädt eine Adresse nicht (abgelaufen, gelöscht), zeigt die Kachel Text statt
+  // eines kaputten Bildsymbols.
+  document.querySelectorAll("img[data-vorschau]").forEach((bild) => {
+    if (bild.dataset.wacht) return;
+    bild.dataset.wacht = "1";
+    bild.addEventListener("error", () => kachelOhneBild(bild, "Vorschau nicht geladen"));
+  });
+  const offen = Array.from(document.querySelectorAll("img[data-vorschau]"))
+    .filter((bild) => !bild.getAttribute("src"));
+  const pfade = [...new Set(offen.map((bild) => bild.dataset.vorschau))];
+  if (!pfade.length) return;
+  vorschauLaeuft = true;
+  try {
+    const karte = await vorschauLinks(pfade);
+    Object.entries(karte).forEach(([pfad, url]) => vorschauSpeicher.set(pfad, { url, zeit: Date.now() }));
+    offen.forEach((bild) => {
+      const url = karte[bild.dataset.vorschau];
+      if (url) bild.setAttribute("src", url);
+      else kachelOhneBild(bild, "kein Zugriff");
+    });
+  } catch (e) {
+    offen.forEach((bild) => kachelOhneBild(bild, "Vorschau nicht geladen"));
+  } finally {
+    vorschauLaeuft = false;
+  }
+}
+
+/** Ersatz für ein Bild, das nicht angezeigt werden kann – nie ein kaputtes Symbol. */
+function kachelOhneBild(bild, text) {
+  const halter = bild.parentElement;
+  if (!halter) return;
+  bild.remove();
+  halter.innerHTML = '<span class="foto-ersatz">' + esc(text) + "</span>";
+}
+
 export function render(Z) {
   const bearbeitbar = kannBearbeiten();
+  const fotos = Z.dokumente.filter(istFoto).slice().reverse();
+  const uebrige = Z.dokumente.filter((d) => !istFoto(d)).slice().reverse();
+
   let h = '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Dokumente</h2>' +
-    "<p>" + Z.dokumente.length + " Ablagen · Kaufvertrag, Pläne, Bewilligungen, Garantien</p></div>" +
+    "<p>" + uebrige.length + (uebrige.length === 1 ? " Dokument" : " Dokumente") +
+    (fotos.length ? " · " + fotos.length + (fotos.length === 1 ? " Foto" : " Fotos") : "") +
+    "</p></div>" +
     (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="dokument-neu">+ Dateien</button>' : "") + "</div>";
 
   if (!Z.dokumente.length) {
@@ -18,9 +88,13 @@ export function render(Z) {
     return h + "</section>";
   }
 
+  if (!uebrige.length) {
+    h += '<div class="karte karte-pad"><div class="leer" style="padding:8px 0">' +
+      "Nur Fotos abgelegt – Verträge, Pläne und Bewilligungen erscheinen hier.</div></div>";
+  } else {
   h += '<div class="karte"><div class="tab-scroll"><table><thead><tr>' +
     "<th>Dateiname</th><th>Dokumenttyp</th><th>Datum</th><th>Kategorie</th><th>Bemerkung</th><th></th></tr></thead><tbody>";
-  Z.dokumente.slice().reverse().forEach((d) => {
+  uebrige.forEach((d) => {
     h += "<tr><td><b>" + esc(d.dateiname) + "</b>" +
       (d.groesse ? ' <span class="badge">' + dateigroesse(d.groesse) + "</span>" : "") + "</td>" +
       "<td>" + esc(d.typ || "Sonstiges") + "</td>" +
@@ -33,7 +107,45 @@ export function render(Z) {
       (bearbeitbar ? '<button class="btn still klein" type="button" data-aktion="dokument-loeschen" data-id="' + d.id + '">Löschen</button>' : "") +
       "</div></td></tr>";
   });
-  return h + "</tbody></table></div></div></section>";
+  h += "</tbody></table></div></div>";
+  }
+  h += "</section>";
+
+  if (fotos.length) h += fotoAbschnitt(Z, fotos, bearbeitbar);
+  return h;
+}
+
+/** Fotos als Galerie: Ein Bild erkennt man schneller, als man einen Dateinamen liest. */
+function fotoAbschnitt(Z, fotos, bearbeitbar) {
+  let h = '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Fotos</h2>' +
+    "<p>" + fotos.length + " Bilder · zum Vergrössern antippen</p></div></div>" +
+    '<div class="foto-raster">';
+
+  fotos.forEach((d) => {
+    const gespeichert = d.datei_pfad ? vorschauAusSpeicher(d.datei_pfad) : null;
+    h += '<figure class="foto-kachel">' +
+      '<button class="foto-bild" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(d.datei_pfad || "") + '"' +
+      ' title="' + esc(d.dateiname) + '">' +
+      (d.datei_pfad && istAnzeigbar(d)
+        ? '<img alt="' + esc(d.dateiname) + '" loading="lazy" data-vorschau="' + esc(d.datei_pfad) + '"' +
+          (gespeichert ? ' src="' + esc(gespeichert) + '"' : "") + ">"
+        : '<span class="foto-ersatz">' + (d.datei_pfad ? "Format ohne Vorschau" : "keine Datei") + "</span>") +
+      "</button>" +
+      '<figcaption><b title="' + esc(d.dateiname) + '">' + esc(d.dateiname) + "</b>" +
+      "<span>" + (d.datum ? datumCH(d.datum) : "ohne Datum") +
+      (d.budgetposition_id ? " · " + esc(kategorieName(Z.budget, d.budgetposition_id)) : "") + "</span>" +
+      (d.bemerkung ? '<span class="bemerkung">' + esc(d.bemerkung) + "</span>" : "") +
+      '<span class="foto-aktionen">' +
+      '<button class="btn still klein" type="button" data-aktion="dokument-bearbeiten" data-id="' + d.id + '">' +
+      (bearbeitbar ? "Bearbeiten" : "Ansehen") + "</button>" +
+      (bearbeitbar ? '<button class="btn still klein" type="button" data-aktion="dokument-loeschen" data-id="' + d.id + '">Löschen</button>' : "") +
+      "</span></figcaption></figure>";
+  });
+
+  // Die Adressen sind signiert und laufen ab – sie werden erst geholt, wenn die
+  // Kacheln stehen, und nur für die, die noch keine haben.
+  setTimeout(vorschauenNachladen, 0);
+  return h + "</div></section>";
 }
 
 function hochladenFormular(Z) {

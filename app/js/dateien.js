@@ -5,7 +5,7 @@ import {
 } from "./supabase.js";
 import {
   STORAGE_BUCKET, DATEI_MAX_BYTES, DATEI_ERLAUBTE_TYPEN, DATEI_ERLAUBTE_ENDUNGEN,
-  SIGNIERTER_LINK_SEKUNDEN,
+  SIGNIERTER_LINK_SEKUNDEN, VORSCHAU_LINK_SEKUNDEN,
 } from "./konfig.js";
 import { DatenFehler, mitZeitlimit, UPLOAD_ZEITLIMIT_MS } from "./daten.js";
 
@@ -68,6 +68,29 @@ export async function signierterLink(pfad) {
     throw new DatenFehler(istVerbindungsfehler(error) ? MELDUNG_KEINE_VERBINDUNG : "Datei nicht verfügbar: " + error.message, istVerbindungsfehler(error));
   }
   return data.signedUrl;
+}
+
+/**
+ * Signierte Links für mehrere Dateien auf einmal – für Vorschaubilder.
+ * Einzelabfragen wären bei zwanzig Fotos zwanzig Anfragen.
+ * Gibt eine Zuordnung Pfad → Adresse zurück; nicht lesbare Dateien fehlen darin.
+ */
+export async function vorschauLinks(pfade) {
+  if (!pfade.length) return {};
+  let data, error;
+  try {
+    ({ data, error } = await mitZeitlimit(
+      supabase.storage.from(STORAGE_BUCKET).createSignedUrls(pfade, VORSCHAU_LINK_SEKUNDEN)
+    ));
+  } catch (e) {
+    throw e instanceof DatenFehler ? e : new DatenFehler("Vorschau nicht verfügbar: " + (e.message || e));
+  }
+  if (error) throw new DatenFehler("Vorschau nicht verfügbar: " + error.message, istVerbindungsfehler(error));
+  const karte = {};
+  (data || []).forEach((eintrag) => {
+    if (eintrag && eintrag.signedUrl && !eintrag.error) karte[eintrag.path] = eintrag.signedUrl;
+  });
+  return karte;
 }
 
 export async function loeschen(pfad) {

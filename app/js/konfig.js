@@ -51,3 +51,6 @@ export const ROLLEN = {
 
 // Signierte Links für Dateivorschau/-download laufen nach dieser Zeit ab.
 export const SIGNIERTER_LINK_SEKUNDEN = 120;
+// Vorschaubilder stehen länger auf dem Bildschirm als ein Download-Klick dauert –
+// sonst wäre die Galerie nach zwei Minuten voller kaputter Bilder.
+export const VORSCHAU_LINK_SEKUNDEN = 600;
