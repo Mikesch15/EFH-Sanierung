@@ -39,6 +39,38 @@ function modellRang(name: string): number {
 
 const UNGEEIGNET = /embedding|aqa|imagen|image-generation|tts|audio|live|veo|learnlm|gemma/;
 
+/**
+ * Familie eines Modells: "gemini-2.5-flash-preview-09-2025" und
+ * "gemini-2.5-flash-latest" sind Namen für dieselbe Maschine. Ist die überlastet,
+ * hilft es nichts, den nächsten Namen derselben Familie zu versuchen – man muss
+ * auf eine andere ausweichen.
+ */
+function familie(name: string): string {
+  return name
+    .replace(/-(latest|preview|exp|experimental)(-.*)?$/, "")
+    .replace(/-\d{3,}.*$/, "")
+    .replace(/-\d{2}-\d{4}$/, "");
+}
+
+/** Beste Modelle, aber je Familie nur eines – damit ein Ausweichen auch eines ist. */
+function breitStreuen(namen: string[], anzahl: number): string[] {
+  const gesehen = new Set<string>();
+  const auswahl: string[] = [];
+  for (const name of namen) {
+    const f = familie(name);
+    if (gesehen.has(f)) continue;
+    gesehen.add(f);
+    auswahl.push(name);
+    if (auswahl.length >= anzahl) break;
+  }
+  // Reicht die Vielfalt nicht, mit dem Rest auffüllen.
+  for (const name of namen) {
+    if (auswahl.length >= anzahl) break;
+    if (!auswahl.includes(name)) auswahl.push(name);
+  }
+  return auswahl;
+}
+
 let zwischenspeicher: { modelle: string[]; zeit: number } | null = null;
 
 /** Modelle, die dieser Schlüssel für generateContent nutzen darf – beste zuerst. */
@@ -240,8 +272,10 @@ Deno.serve(async (anfrage) => {
   // Jedes Modell bis zu zweimal: Ein "gerade überlastet" ist oft nach ein paar
   // Sekunden vorbei. Danach das nächste Modell – höchstens vier, sonst dauert es
   // länger, als jemand vor dem Bildschirm warten mag.
+  const kandidaten = breitStreuen(modelle, 4);
   const versuche: string[] = [];
-  for (const modell of modelle.slice(0, 4)) versuche.push(modell, modell);
+  for (const modell of kandidaten) versuche.push(modell, modell);
+  const protokoll: string[] = [];
 
   for (let i = 0; i < versuche.length; i++) {
     const modell = versuche[i];
@@ -260,6 +294,7 @@ Deno.serve(async (anfrage) => {
         },
       );
     } catch (e) {
+      protokoll.push(modell + ": nicht erreichbar");
       letzterFehler = "Der KI-Dienst war nicht erreichbar: " + (e as Error).message;
       continue;
     }
@@ -267,6 +302,7 @@ Deno.serve(async (anfrage) => {
     if (gemini.status === 404) {          // Modell doch nicht nutzbar – nächstes versuchen
       const text = await gemini.text();
       zwischenspeicher = null;             // Liste war veraltet, beim nächsten Mal neu holen
+      protokoll.push(modell + ": 404");
       letzterFehler = "Modell " + modell + " abgelehnt: " + text.slice(0, 200);
       i++;                                 // zweiter Anlauf erübrigt sich
       continue;
@@ -279,6 +315,7 @@ Deno.serve(async (anfrage) => {
       if (gemini.status === 429) {
         // Kontingente gelten je Modell: Das nächste kann durchaus noch frei sein.
         if (!kontingentDetails) kontingentDetails = kontingentDetail(text);
+        protokoll.push(modell + ": 429");
         letzterFehler = "Modell " + modell + ": Kontingent erschöpft";
         i++;                               // Warten hilft beim Kontingent nicht
         continue;
@@ -286,6 +323,7 @@ Deno.serve(async (anfrage) => {
       if (gemini.status === 500 || gemini.status === 503) {
         // "high demand" – vorübergehend. Gleich nochmals, dann das nächste Modell.
         ueberlastet = true;
+        protokoll.push(modell + ": " + gemini.status);
         letzterFehler = "Modell " + modell + ": überlastet (" + gemini.status + ")";
         continue;
       }
@@ -308,11 +346,13 @@ Deno.serve(async (anfrage) => {
     return antwort({ art, modell, werte });
   }
 
+  console.error("Analyse gescheitert:", protokoll.join(" · "), "| Liste:", modelle.slice(0, 8).join(", "));
+
   if (ueberlastet) {
     return antwort({
       code: "ueberlastet",
-      fehler: "Der KI-Dienst ist gerade überlastet und hat auch bei den Ersatzmodellen abgewiesen. " +
-        "Das ist vorübergehend: In ein paar Minuten nochmals auslesen. Die Datei ist gespeichert, " +
+      fehler: "Der KI-Dienst weist gerade ab (Überlastung). Versucht: " + protokoll.join(", ") +
+        ". Das ist vorübergehend – in ein paar Minuten nochmals auslesen. Die Datei ist gespeichert, " +
         "die Offerte lässt sich inzwischen von Hand erfassen.",
     }, 502);
   }
@@ -322,11 +362,11 @@ Deno.serve(async (anfrage) => {
       fehler: "Das Kontingent des KI-Dienstes ist für alle verfügbaren Modelle erschöpft (" +
         kontingentDetails + "). Bei einem kostenlosen Zugang gilt meist ein Minuten- UND ein " +
         "Tageslimit: In einer Minute nochmals versuchen; hilft das nicht, ist das Tageslimit " +
-        "erreicht. Geprüft: " + modelle.slice(0, 4).join(", "),
+        "erreicht. Versucht: " + protokoll.join(", "),
     }, 502);
   }
   return antwort({
     fehler: (letzterFehler || "Kein passendes Modell verfügbar.") +
-      " Geprüft: " + modelle.slice(0, 4).join(", "),
+      " Versucht: " + protokoll.join(", "),
   }, 502);
 });
