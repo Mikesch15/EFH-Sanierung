@@ -28,7 +28,9 @@ export function analyseFehlerText(e) {
   if (code === "schluessel_ungueltig") return "Der KI-Dienst lehnt den hinterlegten Zugang ab. Bitte den Schlüssel prüfen.";
   // Beim Kontingent zählt der Wortlaut des Dienstes: Er sagt, welches Limit greift
   // und wie lange zu warten ist. Eine eigene Kurzfassung würde das verschlucken.
-  if (code === "kontingent" || code === "kein_modell") return (e && e.message) || "Die Analyse ist fehlgeschlagen.";
+  if (code === "kontingent" || code === "kein_modell" || code === "ueberlastet") {
+    return (e && e.message) || "Die Analyse ist fehlgeschlagen.";
+  }
   return "Auslesen fehlgeschlagen: " + ((e && e.message) || e);
 }
 

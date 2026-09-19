@@ -236,9 +236,18 @@ Deno.serve(async (anfrage) => {
 
   let letzterFehler = "";
   let kontingentDetails = "";
-  // Höchstens vier Versuche: Was der Dienst als verfügbar meldet, kann im Einzelfall
-  // trotzdem abgelehnt werden – aber die ganze Liste durchzugehen dauert zu lange.
-  for (const modell of modelle.slice(0, 4)) {
+  let ueberlastet = false;
+  // Jedes Modell bis zu zweimal: Ein "gerade überlastet" ist oft nach ein paar
+  // Sekunden vorbei. Danach das nächste Modell – höchstens vier, sonst dauert es
+  // länger, als jemand vor dem Bildschirm warten mag.
+  const versuche: string[] = [];
+  for (const modell of modelle.slice(0, 4)) versuche.push(modell, modell);
+
+  for (let i = 0; i < versuche.length; i++) {
+    const modell = versuche[i];
+    const zweiterAnlauf = i > 0 && versuche[i - 1] === modell;
+    if (zweiterAnlauf) await new Promise((weiter) => setTimeout(weiter, 2500));
+
     let gemini: Response;
     try {
       gemini = await fetch(
@@ -247,7 +256,7 @@ Deno.serve(async (anfrage) => {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": schluessel },
           body: JSON.stringify(nutzlast),
-          signal: AbortSignal.timeout(90000),
+          signal: AbortSignal.timeout(60000),
         },
       );
     } catch (e) {
@@ -259,6 +268,7 @@ Deno.serve(async (anfrage) => {
       const text = await gemini.text();
       zwischenspeicher = null;             // Liste war veraltet, beim nächsten Mal neu holen
       letzterFehler = "Modell " + modell + " abgelehnt: " + text.slice(0, 200);
+      i++;                                 // zweiter Anlauf erübrigt sich
       continue;
     }
     if (!gemini.ok) {
@@ -270,6 +280,13 @@ Deno.serve(async (anfrage) => {
         // Kontingente gelten je Modell: Das nächste kann durchaus noch frei sein.
         if (!kontingentDetails) kontingentDetails = kontingentDetail(text);
         letzterFehler = "Modell " + modell + ": Kontingent erschöpft";
+        i++;                               // Warten hilft beim Kontingent nicht
+        continue;
+      }
+      if (gemini.status === 500 || gemini.status === 503) {
+        // "high demand" – vorübergehend. Gleich nochmals, dann das nächste Modell.
+        ueberlastet = true;
+        letzterFehler = "Modell " + modell + ": überlastet (" + gemini.status + ")";
         continue;
       }
       return antwort({ fehler: "Der KI-Dienst meldet einen Fehler (" + gemini.status + "): " + text.slice(0, 300) }, 502);
@@ -291,6 +308,14 @@ Deno.serve(async (anfrage) => {
     return antwort({ art, modell, werte });
   }
 
+  if (ueberlastet) {
+    return antwort({
+      code: "ueberlastet",
+      fehler: "Der KI-Dienst ist gerade überlastet und hat auch bei den Ersatzmodellen abgewiesen. " +
+        "Das ist vorübergehend: In ein paar Minuten nochmals auslesen. Die Datei ist gespeichert, " +
+        "die Offerte lässt sich inzwischen von Hand erfassen.",
+    }, 502);
+  }
   if (kontingentDetails) {
     return antwort({
       code: "kontingent",

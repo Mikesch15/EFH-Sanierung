@@ -336,6 +336,19 @@ Gibt der Zugang kein Modell frei, steht die Begründung von Google wörtlich in 
 meist ist dann die «Generative Language API» im zugehörigen Google-Cloud-Projekt nicht
 aktiviert oder der Schlüssel eingeschränkt.
 
+**Wenn der Dienst abweist,** gibt die Funktion nicht sofort auf. Sie probiert bis zu vier
+freigegebene Modelle, jedes bis zu zweimal mit ein paar Sekunden Abstand:
+
+| Antwort von Google | Verhalten |
+|---|---|
+| 404 (Modell unbekannt) | nächstes Modell, Modellliste wird neu geholt |
+| 429 (Kontingent) | nächstes Modell – Kontingente gelten je Modell |
+| 500 / 503 (überlastet) | gleich nochmals, dann nächstes Modell |
+| 401 / 403 (Schlüssel) | Abbruch, das behebt kein Wiederholen |
+
+Erst wenn alles scheitert, kommt eine Meldung – und die sagt, woran es lag (Kontingent mit
+Wartezeit, vorübergehende Überlastung, abgelehnter Schlüssel).
+
 Der Quellcode der Funktion liegt in `supabase/functions/dokument-analysieren/index.ts`.
 
 ## Budget: zählt schon oder erst später
