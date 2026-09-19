@@ -58,13 +58,26 @@ function fetchMitZeitlimit(eingabe, optionen) {
     .finally(() => clearTimeout(uhr));
 }
 
+const authSpeicher = sichererSpeicher();
+
+/** Liegt lokal ein Anmeldetoken? Beantwortet sofort, ohne Netz – damit die App
+ *  gleich das Richtige zeichnen kann, statt auf den Server zu warten. */
+export function gespeicherteSitzungVorhanden() {
+  try {
+    const referenz = new URL(SUPABASE_URL).hostname.split(".")[0];
+    return !!authSpeicher.getItem("sb-" + referenz + "-auth-token");
+  } catch (e) {
+    return false;
+  }
+}
+
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   global: { fetch: fetchMitZeitlimit },
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    storage: sichererSpeicher(),
+    storage: authSpeicher,
     // Ohne diese Zeile serialisiert supabase-js Auth-Vorgänge über die Web-Locks-
     // Schnittstelle. Hängt eine Sperre (z.B. weil dieselbe Seite noch in einem
     // anderen Fenster offen ist), warten alle weiteren Aufrufe endlos. Für eine

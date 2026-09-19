@@ -122,8 +122,14 @@ npx esbuild einstieg.js --bundle --format=esm --platform=browser --target=es2020
   --minify --legal-comments=none --outfile=app/js/vendor/supabase-js.js
 ```
 
-Scheitert der Start, räumt die App einmal selbst auf (Service Worker und Zwischenspeicher
-entfernen, neu laden mit Marker `?reparatur=1`, der eine Endlosschleife verhindert).
+**Die App zeichnet sofort**, ohne auf den Server zu warten: Liegt lokal ein Anmeldetoken,
+erscheint direkt der Rahmen der App, sonst die Anmeldemaske. Die Anmeldung wird erst danach
+im Hintergrund geprüft (`aufAuthAchten`). Vorher wartete der Start auf `getSession()` – bei
+langsamer Verbindung blieb die Seite dadurch leer und ein Wächter schlug fälschlich Alarm.
+
+Scheitert der Start wirklich (fehlende Datei, Laufzeitfehler), räumt die App einmal selbst
+auf (Service Worker und Zwischenspeicher entfernen, neu laden mit Marker `?reparatur=1`,
+der eine Endlosschleife verhindert).
 Klappt es danach immer noch nicht, erscheint der echte Fehlertext samt Datei und Zeile,
 plus ein Verweis auf `app/hilfe.html`.
 

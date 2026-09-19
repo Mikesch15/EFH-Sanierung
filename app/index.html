@@ -25,7 +25,7 @@
 
 <div id="app">
   <main><div class="karte karte-pad" style="margin:20px auto;max-width:520px">
-    <div class="leer"><b>App wird geladen …</b>Stand 7 · 19.09.2026</div>
+    <div class="leer"><b>App wird geladen …</b>Stand 8 · 19.09.2026</div>
     <noscript><div class="hinweis warn"><div><b>JavaScript ist ausgeschaltet</b>Die App braucht JavaScript.</div></div></noscript>
   </div></main>
 </div>
@@ -93,9 +93,12 @@
       (e.filename ? "<br>" + String(e.filename).split("/").slice(-2).join("/") + ":" + e.lineno : "") +
       "</code>");
   }, true);
+  // Letzte Sicherung, nur falls wirklich nichts gezeichnet wurde. Grosszügig
+  // bemessen: Eine langsame Verbindung darf keinen Fehlalarm auslösen, denn die
+  // App zeichnet sofort und klärt die Anmeldung erst danach im Hintergrund.
   setTimeout(function () {
-    window.startFehler("Der Start dauert ungewöhnlich lange. Meist hilft «Zwischenspeicher leeren».");
-  }, 8000);
+    window.startFehler("Die App hat sich nicht gemeldet. Bitte neu laden.");
+  }, 30000);
 </script>
 <script type="module" src="js/app.js"></script>
 <script type="module">

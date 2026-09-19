@@ -1,4 +1,4 @@
-import { supabase, aufAuthAchten, aktuelleSitzung, abmelden } from "./supabase.js";
+import { supabase, aufAuthAchten, abmelden, gespeicherteSitzungVorhanden } from "./supabase.js";
 import {
   DatenFehler, projekteLaden, mitgliederLaden, budgetLaden, offertenLaden,
   belegeLaden, dokumenteLaden, kostenvergleichLaden, projektAbonnieren,
@@ -20,6 +20,9 @@ export const Z = {
   aktuelleAnsicht: "uebersicht",
   online: navigator.onLine, ladeVorgaenge: 0,
   abmeldeAbo: null,
+  // Beim Start wird sofort gezeichnet. sitzungVermutet kommt aus dem lokalen
+  // Speicher, authGeklaert wird gesetzt, sobald Supabase geantwortet hat.
+  sitzungVermutet: false, authGeklaert: false, authHinweis: "",
 };
 
 const ANSICHTEN = [
@@ -81,6 +84,18 @@ function ansichtWechseln(name) {
 function zeichnen() {
   const wrap = el("app");
   wrap.dataset.gestartet = "ja";   // schaltet die Startfehler-Meldung in index.html ab
+
+  // Angemeldet laut lokalem Speicher, aber der Server hat noch nicht geantwortet:
+  // den Rahmen der App zeigen, nicht die Anmeldemaske und keinen leeren Bildschirm.
+  if (!Z.session && Z.sitzungVermutet && !Z.authGeklaert) {
+    el("kopf").hidden = false;
+    el("nav-mobil").hidden = true;
+    el("nav-desktop").innerHTML = "";
+    wrap.innerHTML = '<main><div class="karte karte-pad" style="margin:20px auto;max-width:520px">' +
+      '<div class="leer"><b>Daten werden geladen …</b>Anmeldung wird geprüft</div></div></main>';
+    return;
+  }
+
   if (!Z.session) {
     el("kopf").hidden = true;
     el("nav-mobil").hidden = true;
@@ -215,6 +230,8 @@ async function projekteUndDatenLaden() {
 }
 
 aufAuthAchten(async (ereignis, sitzung) => {
+  Z.authGeklaert = true;
+  Z.authHinweis = "";
   Z.session = sitzung;
   Z.benutzer = sitzung ? sitzung.user : null;
   if (ereignis === "SIGNED_OUT" || !sitzung) {
@@ -229,9 +246,18 @@ aufAuthAchten(async (ereignis, sitzung) => {
   }
 });
 
-(async function start() {
-  Z.session = await aktuelleSitzung();
-  Z.benutzer = Z.session ? Z.session.user : null;
+(function start() {
+  // Sofort zeichnen, ohne auf eine Antwort vom Server zu warten: Wer lokal ein
+  // Anmeldetoken hat, sieht den Rahmen der App, alle anderen die Anmeldemaske.
+  // Den Rest erledigt aufAuthAchten(), sobald Supabase geantwortet hat.
+  Z.sitzungVermutet = gespeicherteSitzungVorhanden();
   zeichnen();
-  if (Z.session) await projekteUndDatenLaden();
+
+  // Notausgang: Antwortet die Anmeldung gar nicht, nicht ewig "lädt" anzeigen.
+  setTimeout(() => {
+    if (Z.authGeklaert || Z.session) return;
+    Z.authGeklaert = true;
+    Z.authHinweis = "Die Anmeldung konnte nicht geprüft werden – bitte erneut anmelden.";
+    zeichnen();
+  }, 15000);
 })();

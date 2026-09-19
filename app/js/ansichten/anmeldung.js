@@ -1,6 +1,6 @@
 import { esc, meldung } from "../format.js";
 import { anmelden, registrieren, passwortZuruecksetzen, speicherIstFluechtig } from "../supabase.js";
-import { neuZeichnen } from "../app.js";
+import { neuZeichnen, Z } from "../app.js";
 
 let modus = "anmelden"; // anmelden | registrieren | zuruecksetzen
 let hinweis = "";
@@ -10,6 +10,7 @@ export function render() {
   return '<div class="anmelde-buehne"><div class="karte karte-pad anmelde-karte">' +
     '<div class="anmelde-kopf"><b>Tulpenweg 37</b><span>Sanierungs- und Dokumentenverwaltung</span></div>' +
     (hinweis ? '<div class="hinweis info" style="margin-bottom:14px"><div>' + esc(hinweis) + "</div></div>" : "") +
+    (Z.authHinweis ? '<div class="hinweis warn" style="margin-bottom:14px"><div>' + esc(Z.authHinweis) + "</div></div>" : "") +
     (speicherIstFluechtig
       ? '<div class="hinweis warn" style="margin-bottom:14px"><div><b>Websitedaten sind blockiert</b>' +
         "Die Anmeldung gilt nur für diese Sitzung und geht beim Neuladen verloren. " +
