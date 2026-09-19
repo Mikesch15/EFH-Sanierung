@@ -60,6 +60,21 @@ function fetchMitZeitlimit(eingabe, optionen) {
 
 const authSpeicher = sichererSpeicher();
 
+// Warteschlange nur für dieses Fenster: Auth-Vorgänge laufen nacheinander (damit
+// sich zwei Token-Erneuerungen nicht gegenseitig entwerten), aber niemand wartet
+// auf ein anderes Fenster – und nach 10 Sekunden wird auf keinen Fall weiter
+// blockiert, sondern der Vorgang trotzdem gestartet.
+let sperrKette = Promise.resolve();
+function eigeneSperre(name, dauer, fn) {
+  const vorher = sperrKette;
+  const ergebnis = (async () => {
+    await Promise.race([vorher.catch(() => {}), new Promise((ok) => setTimeout(ok, 10000))]);
+    return fn();
+  })();
+  sperrKette = ergebnis.then(() => undefined, () => undefined);
+  return ergebnis;
+}
+
 /** Liegt lokal ein Anmeldetoken? Beantwortet sofort, ohne Netz – damit die App
  *  gleich das Richtige zeichnen kann, statt auf den Server zu warten. */
 export function gespeicherteSitzungVorhanden() {
@@ -78,11 +93,15 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     autoRefreshToken: true,
     detectSessionInUrl: true,
     storage: authSpeicher,
-    // Ohne diese Zeile serialisiert supabase-js Auth-Vorgänge über die Web-Locks-
-    // Schnittstelle. Hängt eine Sperre (z.B. weil dieselbe Seite noch in einem
-    // anderen Fenster offen ist), warten alle weiteren Aufrufe endlos. Für eine
-    // App mit einem angemeldeten Konto pro Gerät wird das nicht gebraucht.
-    lock: async (name, dauer, fn) => await fn(),
+    // supabase-js serialisiert Auth-Vorgänge normalerweise über die Web-Locks-
+    // Schnittstelle. Die gilt fensterübergreifend: Hängt ein anderes Fenster
+    // derselben Adresse, warten hier alle Aufrufe endlos.
+    //
+    // Ganz ohne Serialisierung ist es aber auch nicht richtig – zwei gleichzeitige
+    // Token-Erneuerungen entwerten sich gegenseitig, und die Anmeldung geht
+    // verloren. Deshalb eine eigene Warteschlange, die nur in diesem Fenster gilt
+    // und zusätzlich nach 10 Sekunden weitermacht, statt zu blockieren.
+    lock: eigeneSperre,
   },
 });
 

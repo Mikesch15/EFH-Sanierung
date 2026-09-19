@@ -221,10 +221,26 @@ flüchtigen Hinweises, und auf jedem Bildschirm gibt es einen Ausweg (Abmelden, 
 «Der Server hat nicht geantwortet» und die Oberfläche ist wieder bedienbar – statt
 dauerhaft bei «wird angelegt …» stehen zu bleiben.
 
-Die Auth-Sperre von `supabase-js` (Web Locks) ist bewusst abgeschaltet
-(`auth.lock`). Sie serialisiert Auth-Vorgänge über alle Fenster derselben Adresse;
-hängt ein Fenster (etwa eine alte, defekte Fassung im Hintergrund), warten sonst alle
-weiteren Aufrufe endlos auf die Sperre.
+**Im Rückruf von `onAuthStateChange` darf nie auf eine Datenbankabfrage gewartet werden.**
+`supabase-js` ruft ihn innerhalb seiner eigenen Sperre auf. Wartet man dort auf eine
+Abfrage, die dieselbe Sperre braucht, blockieren sich beide gegenseitig – die Anfrage geht
+nicht einmal ans Netz, und die App bleibt für immer bei «Daten werden geladen» stehen.
+Besonders tückisch: Nach einer frischen Anmeldung tritt das **nicht** auf, nur beim
+Wiederherstellen einer gespeicherten Anmeldung. Deshalb «half» früher das Zurücksetzen
+(es löscht die gespeicherte Anmeldung). `app.js` setzt im Rückruf nur den Zustand und
+stösst das Laden per `setTimeout(…, 0)` an. Abgesichert durch `test-echtlauf`, der mit der
+**echten** Bibliothek gegen nachgebaute Server-Antworten läuft – ein Stub würde genau
+diese Fehlerklasse verstecken.
+
+Die Auth-Sperre selbst ist durch eine eigene ersetzt (`auth.lock`): Sie serialisiert nur
+innerhalb dieses Fensters und gibt nach 10 Sekunden auf. Die eingebaute Sperre gilt
+fensterübergreifend – hängt ein anderes Fenster derselben Adresse, warten sonst alle
+Aufrufe endlos. Ganz ohne Serialisierung wiederum entwerten sich zwei gleichzeitige
+Token-Erneuerungen gegenseitig und die Anmeldung geht verloren.
+
+Während des Ladens zeigt die App nach fünf Sekunden, worauf sie noch wartet (welche
+Abfragen offen sind), und ein Wächter beendet den Ladezustand spätestens nach 20 Sekunden
+mit einer Meldung.
 
 ### Lokal starten
 

@@ -25,6 +25,8 @@ export const Z = {
   // Speicher, authGeklaert wird gesetzt, sobald Supabase geantwortet hat.
   sitzungVermutet: false, authGeklaert: false, authHinweis: "",
   laedt: false, ladeFehler: "", neueVersion: false,
+  ladeStand: {},        // je Abfrage: "läuft" | "fertig" | Fehlertext
+  ladeBegonnen: 0,
   einladungen: [], einladung: null,   // einladung: offener Link, noch nicht eingelöst
 };
 
@@ -52,13 +54,17 @@ async function neuLaden(teile) {
   // Alle Abfragen gleichzeitig: nacheinander würden sich die Wartezeiten
   // addieren, und bei einer wackligen Verbindung stünde die App minutenlang.
   const auftraege = [];
+  Z.ladeStand = {};
   const holen = (name, fn, ziel) => {
     if (!braucht(name)) return;
+    Z.ladeStand[name] = "läuft";
     auftraege.push(
-      fn(projektId).then(
-        (daten) => { Z[ziel] = daten; return null; },
-        (fehler) => fehler
-      )
+      Promise.resolve()
+        .then(() => fn(projektId))
+        .then(
+          (daten) => { Z[ziel] = daten; Z.ladeStand[name] = "fertig"; return null; },
+          (fehler) => { Z.ladeStand[name] = fehler.message || String(fehler); return fehler; }
+        )
     );
   };
   holen("mitglieder", mitgliederLaden, "mitglieder");
@@ -71,12 +77,33 @@ async function neuLaden(teile) {
   holen("belege", belegeLaden, "belege");
   holen("dokumente", dokumenteLaden, "dokumente");
   if (alle || braucht("budget") || braucht("offerten") || braucht("belege")) {
-    auftraege.push(kostenvergleichLaden(projektId).then((d) => { Z.kostenvergleich = d; return null; }, (f) => f));
+    Z.ladeStand.kostenvergleich = "läuft";
+    auftraege.push(
+      Promise.resolve().then(() => kostenvergleichLaden(projektId)).then(
+        (d) => { Z.kostenvergleich = d; Z.ladeStand.kostenvergleich = "fertig"; return null; },
+        (f) => { Z.ladeStand.kostenvergleich = f.message || String(f); return f; }
+      )
+    );
   }
 
   Z.laedt = true;
+  Z.ladeBegonnen = Date.now();
   zeichnen();
+
+  // Nach fünf Sekunden zeigen, worauf gewartet wird – und nach zwanzig auf keinen
+  // Fall weiter "lädt" anzeigen, egal woran es hängt.
+  const zwischenstand = setTimeout(() => { if (Z.laedt) zeichnen(); }, 5000);
+  const waechter = setTimeout(() => {
+    if (!Z.laedt || Z.projektId !== projektId) return;
+    Z.laedt = false;
+    Z.ladeFehler = "Der Server hat nicht vollständig geantwortet. Offen: " +
+      Object.keys(Z.ladeStand).filter((k) => Z.ladeStand[k] === "läuft").join(", ");
+    zeichnen();
+  }, 20000);
+
   const fehlerListe = (await Promise.all(auftraege)).filter(Boolean);
+  clearTimeout(zwischenstand);
+  clearTimeout(waechter);
   Z.laedt = false;
 
   // Zwischenzeitlich das Projekt gewechselt oder abgemeldet: Ergebnis verwerfen.
@@ -250,7 +277,18 @@ function ladeBanner() {
       "</div></div></div>"
     : "";
   if (Z.laedt) {
-    return aktualisierung + '<div class="hinweis info abschnitt"><div>Daten werden geladen …</div></div>';
+    const dauer = Z.ladeBegonnen ? Math.round((Date.now() - Z.ladeBegonnen) / 1000) : 0;
+    const offen = Object.keys(Z.ladeStand).filter((k) => Z.ladeStand[k] === "läuft");
+    const fertig = Object.keys(Z.ladeStand).filter((k) => Z.ladeStand[k] === "fertig");
+    return aktualisierung + '<div class="hinweis info abschnitt"><div style="flex:1">Daten werden geladen …' +
+      (dauer >= 5
+        ? "<br>Das dauert ungewöhnlich lange (" + dauer + " s). Fertig: " +
+          (fertig.length ? esc(fertig.join(", ")) : "nichts") + ". Offen: " + esc(offen.join(", ")) +
+          '<div class="btn-reihe" style="margin-top:9px">' +
+          '<button class="btn zweit klein" type="button" data-aktion="neu-laden">Erneut versuchen</button>' +
+          '<a class="btn still klein" href="hilfe.html">Diagnose</a></div>'
+        : "") +
+      "</div></div>";
   }
   if (Z.ladeFehler) {
     return aktualisierung + '<div class="hinweis fehler abschnitt"><div style="flex:1"><b>Daten konnten nicht geladen werden</b>' +
@@ -403,7 +441,12 @@ async function projekteUndDatenLaden() {
   else zeichnen();
 }
 
-aufAuthAchten(async (ereignis, sitzung) => {
+// WICHTIG: In diesem Rückruf darf nicht auf Datenbankabfragen gewartet werden.
+// supabase-js ruft ihn innerhalb seiner eigenen Sperre auf – wartet man hier auf
+// eine Abfrage, die dieselbe Sperre braucht, blockieren sich beide gegenseitig
+// und die App bleibt für immer bei "Daten werden geladen" stehen.
+// Deshalb: Zustand setzen, zeichnen, und das Laden danach getrennt anstossen.
+aufAuthAchten((ereignis, sitzung) => {
   Z.authGeklaert = true;
   Z.authHinweis = "";
   Z.session = sitzung;
@@ -416,10 +459,19 @@ aufAuthAchten(async (ereignis, sitzung) => {
   }
   zeichnen();   // sofort den richtigen Bildschirm zeigen, dann erst laden
   if (ereignis === "SIGNED_IN" || ereignis === "INITIAL_SESSION" || ereignis === "TOKEN_REFRESHED") {
-    if (await einladungVerarbeiten()) return;
-    if (!Z.projekte.length) await projekteUndDatenLaden();
+    // Getrennt vom Rückruf starten (siehe Hinweis oben) und nie zweimal parallel.
+    setTimeout(() => {
+      if (ladenLaeuft) return;
+      ladenLaeuft = true;
+      einladungVerarbeiten()
+        .then((erledigt) => (erledigt || Z.projekte.length ? null : projekteUndDatenLaden()))
+        .catch((e) => { Z.ladeFehler = e.message || String(e); zeichnen(); })
+        .finally(() => { ladenLaeuft = false; });
+    }, 0);
   }
 });
+
+let ladenLaeuft = false;
 
 const EINLADUNG_SCHLUESSEL = "tw-einladung";
 
