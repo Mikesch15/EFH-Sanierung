@@ -23,6 +23,7 @@ export const Z = {
   // Beim Start wird sofort gezeichnet. sitzungVermutet kommt aus dem lokalen
   // Speicher, authGeklaert wird gesetzt, sobald Supabase geantwortet hat.
   sitzungVermutet: false, authGeklaert: false, authHinweis: "",
+  laedt: false, ladeFehler: "",
 };
 
 const ANSICHTEN = [
@@ -43,21 +44,50 @@ export function neuZeichnen() { zeichnen(); }
 async function neuLaden(teile) {
   if (!Z.projektId) return;
   const alle = !teile;
-  try {
-    if (alle || teile.includes("mitglieder")) Z.mitglieder = await mitgliederLaden(Z.projektId);
-    if (alle || teile.includes("budget")) Z.budget = await budgetLaden(Z.projektId);
-    if (alle || teile.includes("offerten")) Z.offerten = await offertenLaden(Z.projektId);
-    if (alle || teile.includes("belege")) Z.belege = await belegeLaden(Z.projektId);
-    if (alle || teile.includes("dokumente")) Z.dokumente = await dokumenteLaden(Z.projektId);
-    if (alle || teile.includes("budget") || teile.includes("offerten") || teile.includes("belege")) {
-      Z.kostenvergleich = await kostenvergleichLaden(Z.projektId);
-    }
+  const projektId = Z.projektId;
+  const braucht = (name) => alle || teile.includes(name);
+
+  // Alle Abfragen gleichzeitig: nacheinander würden sich die Wartezeiten
+  // addieren, und bei einer wackligen Verbindung stünde die App minutenlang.
+  const auftraege = [];
+  const holen = (name, fn, ziel) => {
+    if (!braucht(name)) return;
+    auftraege.push(
+      fn(projektId).then(
+        (daten) => { Z[ziel] = daten; return null; },
+        (fehler) => fehler
+      )
+    );
+  };
+  holen("mitglieder", mitgliederLaden, "mitglieder");
+  holen("budget", budgetLaden, "budget");
+  holen("offerten", offertenLaden, "offerten");
+  holen("belege", belegeLaden, "belege");
+  holen("dokumente", dokumenteLaden, "dokumente");
+  if (alle || braucht("budget") || braucht("offerten") || braucht("belege")) {
+    auftraege.push(kostenvergleichLaden(projektId).then((d) => { Z.kostenvergleich = d; return null; }, (f) => f));
+  }
+
+  Z.laedt = true;
+  zeichnen();
+  const fehlerListe = (await Promise.all(auftraege)).filter(Boolean);
+  Z.laedt = false;
+
+  // Zwischenzeitlich das Projekt gewechselt oder abgemeldet: Ergebnis verwerfen.
+  if (Z.projektId !== projektId) return;
+
+  if (Z.benutzer) {
     const mich = Z.mitglieder.find((m) => m.benutzer_id === Z.benutzer.id);
     Z.meineRolle = mich ? mich.rolle : null;
+  }
+
+  if (fehlerListe.length) {
+    const ersterFehler = fehlerListe[0];
+    Z.online = !(ersterFehler instanceof DatenFehler && ersterFehler.keineVerbindung);
+    Z.ladeFehler = ersterFehler.message || String(ersterFehler);
+  } else {
     Z.online = true;
-  } catch (e) {
-    if (e instanceof DatenFehler && e.keineVerbindung) { Z.online = false; }
-    meldung(e.message, true);
+    Z.ladeFehler = "";
   }
   zeichnen();
 }
@@ -70,8 +100,22 @@ export async function projektWechseln(projektId) {
   try { localStorage.setItem("tw-letztes-projekt", projektId); } catch (e) { /* egal */ }
   await neuLaden();
   if (Z.projektId) {
-    Z.abmeldeAbo = projektAbonnieren(Z.projektId, (bereich) => neuLaden([bereich]));
+    Z.abmeldeAbo = projektAbonnieren(Z.projektId, (bereich) => neuLadenGesammelt(bereich));
   }
+}
+
+// Ein Import löst dutzende Realtime-Ereignisse aus. Ohne Sammelfenster würde
+// jedes einzelne einen neuen Ladelauf starten.
+let sammelUhr = null;
+const sammelBereiche = new Set();
+function neuLadenGesammelt(bereich) {
+  sammelBereiche.add(bereich);
+  clearTimeout(sammelUhr);
+  sammelUhr = setTimeout(() => {
+    const bereiche = Array.from(sammelBereiche);
+    sammelBereiche.clear();
+    neuLaden(bereiche);
+  }, 400);
 }
 
 function ansichtWechseln(name) {
@@ -82,8 +126,22 @@ function ansichtWechseln(name) {
 
 /* ---------------------------------------------------------------- Zeichnen */
 function zeichnen() {
+  try {
+    zeichnenInner();
+    el("app").dataset.gestartet = "ja";   // erst jetzt: es steht wirklich etwas auf dem Schirm
+  } catch (e) {
+    el("app").innerHTML =
+      '<main><div class="karte karte-pad" style="margin:20px auto;max-width:520px">' +
+      '<div class="hinweis fehler"><div><b>Anzeigefehler</b>' + esc(e.message || String(e)) + "</div></div>" +
+      '<div class="btn-reihe" style="margin-top:12px">' +
+      '<button class="btn" type="button" onclick="location.reload()">Neu laden</button>' +
+      '<button class="btn zweit" type="button" data-aktion="abmelden">Abmelden</button></div></div></main>';
+    el("app").dataset.gestartet = "ja";
+  }
+}
+
+function zeichnenInner() {
   const wrap = el("app");
-  wrap.dataset.gestartet = "ja";   // schaltet die Startfehler-Meldung in index.html ab
 
   // Angemeldet laut lokalem Speicher, aber der Server hat noch nicht geantwortet:
   // den Rahmen der App zeigen, nicht die Anmeldemaske und keinen leeren Bildschirm.
@@ -92,7 +150,11 @@ function zeichnen() {
     el("nav-mobil").hidden = true;
     el("nav-desktop").innerHTML = "";
     wrap.innerHTML = '<main><div class="karte karte-pad" style="margin:20px auto;max-width:520px">' +
-      '<div class="leer"><b>Daten werden geladen …</b>Anmeldung wird geprüft</div></div></main>';
+      '<div class="leer"><b>Anmeldung wird geprüft …</b>Das dauert normalerweise einen Augenblick.</div>' +
+      '<div class="btn-reihe" style="margin-top:14px">' +
+      '<button class="btn zweit" type="button" data-aktion="neu-laden">Erneut versuchen</button>' +
+      '<button class="btn zweit" type="button" data-aktion="abmelden">Abmelden</button>' +
+      '<a class="btn still" href="hilfe.html">Diagnose</a></div></div></main>';
     return;
   }
 
@@ -107,7 +169,15 @@ function zeichnen() {
 
   if (!Z.projekt) {
     el("nav-mobil").hidden = true;
-    wrap.innerHTML = Uebersicht.renderProjektAnlegen();
+    // Solange geladen wird oder das Laden fehlschlug, nicht die Einrichtungsmaske
+    // zeigen: Sonst legt jemand ein zweites Projekt an, obwohl nur die Verbindung
+    // fehlte und sein Projekt längst existiert.
+    wrap.innerHTML = (Z.laedt || Z.ladeFehler)
+      ? '<main><div style="max-width:520px;margin:20px auto;padding:0 14px">' + ladeBanner() +
+        '<div class="btn-reihe" style="margin-top:12px">' +
+        '<button class="btn zweit" type="button" data-aktion="abmelden">Abmelden</button>' +
+        '<a class="btn still" href="hilfe.html">Diagnose</a></div></div></main>'
+      : Uebersicht.renderProjektAnlegen();
     return;
   }
   el("nav-mobil").hidden = false;
@@ -116,10 +186,37 @@ function zeichnen() {
   el("kopf-unter").textContent = Z.projekt.adresse || "Sanierung & Dokumente";
 
   const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
-  const innen = modul ? modul.render(Z) : "";
+  let innen = "";
+  try {
+    innen = modul ? modul.render(Z) : "";
+  } catch (e) {
+    // Ein Fehler beim Aufbau einer Ansicht darf nicht den ganzen Bildschirm leeren.
+    innen = '<div class="karte karte-pad"><div class="hinweis fehler"><div><b>Diese Ansicht konnte nicht aufgebaut werden</b>' +
+      esc(e.message || String(e)) + "</div></div>" +
+      '<div class="btn-reihe" style="margin-top:12px">' +
+      '<button class="btn zweit" type="button" data-ansicht="uebersicht">Zur Übersicht</button>' +
+      '<button class="btn zweit" type="button" data-aktion="neu-laden">Daten neu laden</button></div></div>';
+  }
+
   wrap.innerHTML =
     (!Z.online ? '<div class="banner-offline">Keine Verbindung zum Server – Änderungen sind erst nach erneuter Verbindung möglich.</div>' : "") +
-    '<main id="ansicht" tabindex="-1">' + innen + "</main>";
+    '<main id="ansicht" tabindex="-1">' + ladeBanner() + innen + "</main>";
+}
+
+/** Zeigt dauerhaft an, ob gerade geladen wird oder etwas fehlgeschlagen ist –
+ *  ein flüchtiger Hinweis reicht dafür nicht. */
+function ladeBanner() {
+  if (Z.laedt) {
+    return '<div class="hinweis info abschnitt"><div>Daten werden geladen …</div></div>';
+  }
+  if (Z.ladeFehler) {
+    return '<div class="hinweis fehler abschnitt"><div style="flex:1"><b>Daten konnten nicht geladen werden</b>' +
+      esc(Z.ladeFehler) +
+      '<div class="btn-reihe" style="margin-top:9px">' +
+      '<button class="btn zweit klein" type="button" data-aktion="neu-laden">Erneut versuchen</button>' +
+      '<a class="btn still klein" href="hilfe.html">Diagnose</a></div></div></div>';
+  }
+  return "";
 }
 
 function navZeichnen() {
@@ -185,7 +282,22 @@ document.addEventListener("click", async (e) => {
     const a = aktionsKnopf.dataset.aktion;
     if (a === "modal-zu") return modalSchliessen();
     if (a === "modal-speichern") return modalSpeichernAusloesen(aktionsKnopf);
-    if (a === "abmelden") { await abmelden(); return; }
+    if (a === "abmelden") {
+      // Sofort lokal abmelden – niemand soll auf den Server warten müssen.
+      if (Z.abmeldeAbo) { Z.abmeldeAbo(); Z.abmeldeAbo = null; }
+      Z.session = null; Z.benutzer = null; Z.sitzungVermutet = false; Z.authGeklaert = true;
+      Z.projekte = []; Z.projekt = null; Z.projektId = null;
+      Z.laedt = false; Z.ladeFehler = ""; Z.authHinweis = "";
+      zeichnen();
+      abmelden().catch(() => { /* Server erfährt es beim nächsten Mal */ });
+      return;
+    }
+    if (a === "neu-laden") {
+      Z.ladeFehler = "";
+      if (Z.projektId) neuLaden();
+      else projekteUndDatenLaden();
+      return;
+    }
     if (!Z.session) return Anmeldung.aktion(a, aktionsKnopf, Z);
     const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
     if (modul && modul.aktion) return modul.aktion(a, aktionsKnopf, Z);
@@ -214,14 +326,28 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 
 /* ------------------------------------------------------------------- Start */
 async function projekteUndDatenLaden() {
+  Z.laedt = true;
+  Z.ladeFehler = "";
+  zeichnen();
+  let gescheitert = null;
   try {
     Z.projekte = await projekteLaden();
     Z.online = true;
   } catch (e) {
     Z.online = !(e instanceof DatenFehler && e.keineVerbindung);
-    meldung(e.message, true);
+    gescheitert = e;
     Z.projekte = [];
   }
+  Z.laedt = false;
+
+  if (gescheitert) {
+    // Wichtig: Beim Fehler NICHT die Maske "Projekt einrichten" zeigen – sonst
+    // legt jemand ein zweites Projekt an, obwohl nur die Verbindung fehlte.
+    Z.ladeFehler = gescheitert.message || String(gescheitert);
+    zeichnen();
+    return;
+  }
+
   let letztes = null;
   try { letztes = localStorage.getItem("tw-letztes-projekt"); } catch (e) { /* egal */ }
   const gewaehlt = Z.projekte.find((p) => p.id === letztes) || Z.projekte[0] || null;
@@ -240,9 +366,9 @@ aufAuthAchten(async (ereignis, sitzung) => {
     zeichnen();
     return;
   }
+  zeichnen();   // sofort den richtigen Bildschirm zeigen, dann erst laden
   if (ereignis === "SIGNED_IN" || ereignis === "INITIAL_SESSION" || ereignis === "TOKEN_REFRESHED") {
     if (!Z.projekte.length) await projekteUndDatenLaden();
-    else zeichnen();
   }
 });
 
@@ -255,9 +381,9 @@ aufAuthAchten(async (ereignis, sitzung) => {
 
   // Notausgang: Antwortet die Anmeldung gar nicht, nicht ewig "lädt" anzeigen.
   setTimeout(() => {
-    if (Z.authGeklaert || Z.session) return;
+    if (Z.session || Z.projekt || Z.ladeFehler) return;
     Z.authGeklaert = true;
-    Z.authHinweis = "Die Anmeldung konnte nicht geprüft werden – bitte erneut anmelden.";
+    if (!Z.session) Z.authHinweis = "Die Anmeldung konnte nicht geprüft werden – bitte erneut anmelden.";
     zeichnen();
   }, 15000);
 })();

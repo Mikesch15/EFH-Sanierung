@@ -58,6 +58,8 @@ export async function formularAbschicken(form) {
   try {
     if (modus === "anmelden") {
       await anmelden(email, passwort);
+      knopf.textContent = "Anmeldung läuft …";
+      return;   // Knopf bleibt gesperrt, aufAuthAchten() übernimmt
     } else if (modus === "registrieren") {
       await registrieren(email, passwort);
       hinweis = "Konto erstellt. Falls eine Bestätigung nötig ist, prüfen Sie Ihr E-Mail-Postfach.";

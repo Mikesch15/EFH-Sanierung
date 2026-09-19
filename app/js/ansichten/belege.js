@@ -150,9 +150,18 @@ async function analysieren(Z) {
     "<b>Beleg wird analysiert …</b>" + ladeSchritte(schritte, 0) +
     '<p style="margin:12px 0 0;font-size:.76rem;color:var(--grau)">Simulierter Ablauf – es wird keine Datei ausgelesen.</p></div>';
 
-  const e = await analysiereDokument(dateiWartend || { name: entwurf.datei_name }, "beleg", (i) => {
-    block.querySelector(".lade-schritte").innerHTML = ladeSchritte(schritte, i + 1);
-  });
+  let e;
+  try {
+    e = await analysiereDokument(dateiWartend || { name: entwurf.datei_name }, "beleg", (i) => {
+      const liste = block.querySelector(".lade-schritte");
+      if (liste) liste.innerHTML = ladeSchritte(schritte, i + 1);
+    });
+  } catch (fehler) {
+    meldung("Analyse abgebrochen: " + (fehler.message || fehler), true);
+    return;
+  }
+  // Modal zwischenzeitlich geschlossen: Ergebnis verwerfen, nichts anfassen.
+  if (!document.querySelector(".modal") || !entwurf) return;
   Object.assign(entwurf, {
     ki_erkannt: true, lieferant: e.lieferant, nummer: e.nummer, datum: e.datum,
     netto: e.netto, mwst: e.mwst, brutto: e.brutto,
@@ -234,7 +243,7 @@ export function aktion(a, knopf, Z) {
   }
   if (a === "b-analysieren") return analysieren(Z);
   if (a === "b-datei-entfernen") {
-    if (entwurf.datei_pfad) dateiLoeschen(entwurf.datei_pfad);
+    if (entwurf.datei_pfad) dateiLoeschen(entwurf.datei_pfad).catch(() => {});
     entwurf.datei_pfad = null; entwurf.datei_name = null; dateiWartend = null;
     document.getElementById("b-analyse").innerHTML = analyseBlock();
     return;

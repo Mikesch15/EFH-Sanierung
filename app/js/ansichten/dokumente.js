@@ -80,7 +80,7 @@ function hochladenFormular(Z) {
         await neuLaden(["dokumente"]);
         return true;
       } catch (err) {
-        for (const z of zeilen) await dateiLoeschen(z.datei_pfad);
+        await Promise.allSettled(zeilen.map((z) => dateiLoeschen(z.datei_pfad)));
         meldung(err.message, true);
         return false;
       }

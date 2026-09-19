@@ -46,7 +46,7 @@ export const speicherIstFluechtig = (() => {
 // Kein Aufruf darf unendlich warten: Ohne Zeitlimit bleibt die Oberfläche bei
 // einer stockenden Verbindung für immer bei "wird gespeichert …" stehen, ohne
 // dass jemand erfährt, woran es liegt.
-export const ZEITLIMIT_MS = 20000;
+export const ZEITLIMIT_MS = 12000;
 const ZEITLIMIT_UPLOAD_MS = 120000;
 
 function fetchMitZeitlimit(eingabe, optionen) {
@@ -96,20 +96,30 @@ export function istZeitueberschreitung(fehler) {
 export const MELDUNG_ZEITUEBERSCHREITUNG =
   "Der Server hat nicht geantwortet (Zeitüberschreitung). Bitte Verbindung prüfen und erneut versuchen.";
 
+// Auch Auth-Aufrufe können innerhalb der Bibliothek hängen – harte Obergrenze.
+const AUTH_ZEITLIMIT_MS = 15000;
+function authMitZeitlimit(versprechen) {
+  let uhr;
+  const wecker = new Promise((_, ablehnen) => {
+    uhr = setTimeout(() => ablehnen(new Error(MELDUNG_ZEITUEBERSCHREITUNG)), AUTH_ZEITLIMIT_MS);
+  });
+  return Promise.race([versprechen, wecker]).finally(() => clearTimeout(uhr));
+}
+
 export async function registrieren(email, passwort) {
-  const { data, error } = await supabase.auth.signUp({ email, password: passwort });
+  const { data, error } = await authMitZeitlimit(supabase.auth.signUp({ email, password: passwort }));
   if (error) throw error;
   return data;
 }
 
 export async function anmelden(email, passwort) {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password: passwort });
+  const { data, error } = await authMitZeitlimit(supabase.auth.signInWithPassword({ email, password: passwort }));
   if (error) throw error;
   return data;
 }
 
 export async function abmelden() {
-  const { error } = await supabase.auth.signOut();
+  const { error } = await authMitZeitlimit(supabase.auth.signOut());
   if (error) throw error;
 }
 

@@ -7,7 +7,7 @@ import {
   STORAGE_BUCKET, DATEI_MAX_BYTES, DATEI_ERLAUBTE_TYPEN, DATEI_ERLAUBTE_ENDUNGEN,
   SIGNIERTER_LINK_SEKUNDEN,
 } from "./konfig.js";
-import { DatenFehler } from "./daten.js";
+import { DatenFehler, mitZeitlimit, UPLOAD_ZEITLIMIT_MS } from "./daten.js";
 
 function endung(name) {
   const i = name.lastIndexOf(".");
@@ -37,10 +37,13 @@ export async function hochladen(datei, projektId, bereich) {
   const uuid = crypto.randomUUID();
   const pfad = projektId + "/" + bereich + "/" + uuid + endung(datei.name);
   try {
-    const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(pfad, datei, {
-      contentType: datei.type || undefined,
-      upsert: false,
-    });
+    const { error } = await mitZeitlimit(
+      supabase.storage.from(STORAGE_BUCKET).upload(pfad, datei, {
+        contentType: datei.type || undefined,
+        upsert: false,
+      }),
+      UPLOAD_ZEITLIMIT_MS
+    );
     if (error) throw error;
   } catch (e) {
     if (istZeitueberschreitung(e)) throw new DatenFehler(MELDUNG_ZEITUEBERSCHREITUNG, true);
@@ -52,9 +55,14 @@ export async function hochladen(datei, projektId, bereich) {
 
 export async function signierterLink(pfad) {
   if (!pfad) return null;
-  const { data, error } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .createSignedUrl(pfad, SIGNIERTER_LINK_SEKUNDEN);
+  let data, error;
+  try {
+    ({ data, error } = await mitZeitlimit(
+      supabase.storage.from(STORAGE_BUCKET).createSignedUrl(pfad, SIGNIERTER_LINK_SEKUNDEN)
+    ));
+  } catch (e) {
+    throw e instanceof DatenFehler ? e : new DatenFehler("Datei nicht verfügbar: " + (e.message || e));
+  }
   if (error) {
     if (istZeitueberschreitung(error)) throw new DatenFehler(MELDUNG_ZEITUEBERSCHREITUNG, true);
     throw new DatenFehler(istVerbindungsfehler(error) ? MELDUNG_KEINE_VERBINDUNG : "Datei nicht verfügbar: " + error.message, istVerbindungsfehler(error));
@@ -64,7 +72,14 @@ export async function signierterLink(pfad) {
 
 export async function loeschen(pfad) {
   if (!pfad) return;
-  const { error } = await supabase.storage.from(STORAGE_BUCKET).remove([pfad]);
+  let error = null;
+  // Darf niemals werfen: Das Löschen des Datensatzes hängt nicht daran.
+  try {
+    ({ error } = await supabase.storage.from(STORAGE_BUCKET).remove([pfad]));
+  } catch (e) {
+    console.warn("Datei konnte nicht gelöscht werden:", pfad, e.message);
+    return;
+  }
   if (error && !istVerbindungsfehler(error)) {
     // Datensatz soll trotzdem gelöscht werden können, nur melden.
     console.warn("Datei konnte nicht gelöscht werden:", pfad, error.message);

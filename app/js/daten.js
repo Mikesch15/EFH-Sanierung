@@ -17,9 +17,28 @@ export class DatenFehler extends Error {
   }
 }
 
-async function schreiben(fn) {
+// Das Zeitlimit am fetch reicht nicht: Ein Aufruf kann auch INNERHALB der
+// Bibliothek hängen bleiben (Warten auf die Sitzung, interne Sperren), bevor
+// überhaupt eine Anfrage ans Netz geht. Deshalb bekommt jeder Vorgang zusätzlich
+// eine harte Obergrenze – die Oberfläche darf nie ohne Antwort zurückbleiben.
+const VORGANG_ZEITLIMIT_MS = 15000;
+const UPLOAD_ZEITLIMIT_MS = 130000;
+
+export function mitZeitlimit(versprechen, grenze = VORGANG_ZEITLIMIT_MS) {
+  let uhr;
+  const wecker = new Promise((_, ablehnen) => {
+    uhr = setTimeout(() => {
+      const fehler = new DatenFehler(MELDUNG_ZEITUEBERSCHREITUNG, true);
+      fehler.zeitueberschreitung = true;
+      ablehnen(fehler);
+    }, grenze);
+  });
+  return Promise.race([versprechen, wecker]).finally(() => clearTimeout(uhr));
+}
+
+async function schreiben(fn, grenze) {
   try {
-    return await fn();
+    return await mitZeitlimit(Promise.resolve().then(fn), grenze);
   } catch (e) {
     if (e instanceof DatenFehler) throw e;
     if (istZeitueberschreitung(e)) throw new DatenFehler(MELDUNG_ZEITUEBERSCHREITUNG, true);
@@ -27,6 +46,7 @@ async function schreiben(fn) {
     throw new DatenFehler(e.message || String(e));
   }
 }
+export { UPLOAD_ZEITLIMIT_MS };
 const lesen = schreiben;
 
 function pruefen({ data, error }) {

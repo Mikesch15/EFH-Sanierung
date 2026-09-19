@@ -1,8 +1,8 @@
 import { esc, chf, chfKurz, datumCH, zahl, meldung, bestaetigen, heuteISO } from "../format.js";
 import { kpi, statusBadge, listenKarte, summen, offerteTotal, belegBrutto, kategorieName } from "./gemeinsam.js";
 import {
-  projektAnlegen, projektAktualisieren, mitgliederLaden, mitgliedHinzufuegen,
-  mitgliedRolleAendern, mitgliedEntfernen, DatenFehler,
+  projektAnlegen, projektAktualisieren, projekteLaden, mitgliederLaden,
+  mitgliedHinzufuegen, mitgliedRolleAendern, mitgliedEntfernen, DatenFehler,
 } from "../daten.js";
 import { ROLLEN } from "../konfig.js";
 import * as ImportModul from "../import.js";
@@ -120,7 +120,7 @@ function kontoAbschnitt(Z) {
     : "";
   return '<section class="abschnitt"><div class="karte karte-pad">' +
     "<h3>Konto</h3>" +
-    '<p style="margin:5px 0 12px;font-size:.84rem;color:var(--grau)">Angemeldet als ' + esc(Z.benutzer.email) +
+    '<p style="margin:5px 0 12px;font-size:.84rem;color:var(--grau)">Angemeldet als ' + esc(Z.benutzer ? Z.benutzer.email : "") +
     " · " + (ROLLEN[Z.meineRolle] || "keine Rolle") + "</p>" +
     projektWahl +
     '<div class="btn-reihe"><button class="btn zweit" type="button" data-aktion="abmelden">Abmelden</button></div>' +
@@ -134,7 +134,7 @@ function mitgliederAbschnitt(Z) {
     (istEigentuemer ? '<button class="btn klein" type="button" data-aktion="mitglied-neu">+ Mitglied</button>' : "") +
     "</div><div class=\"karte karte-pad\">";
   h += (Z.mitglieder || []).map((m) => {
-    const ichSelbst = m.benutzer_id === Z.benutzer.id;
+    const ichSelbst = !!Z.benutzer && m.benutzer_id === Z.benutzer.id;
     return '<div class="mitglied-zeile"><div class="haupt"><b>' + esc(m.email || m.benutzer_id) +
       (ichSelbst ? " (Sie)" : "") + "</b><span style=\"font-size:.78rem;color:var(--grau)\">" + ROLLEN[m.rolle] + "</span></div>" +
       (istEigentuemer && !ichSelbst
@@ -162,7 +162,7 @@ export function aenderung(e, Z) {
   if (e.target.dataset.aenderung === "mitglied-rolle") {
     mitgliedRolleAendern(Z.projektId, e.target.dataset.id, e.target.value)
       .then(async () => { meldung("Rolle geändert."); Z.mitglieder = await mitgliederLaden(Z.projektId); neuZeichnen(); })
-      .catch((err) => meldung(err.message, true));
+      .catch((err) => { meldung(err.message, true); neuZeichnen(); });
   }
 }
 
@@ -192,6 +192,17 @@ export async function aktion(a, knopf, Z) {
       await projektWechseln(projekt.id);
       meldung("Projekt angelegt.");
     } catch (err) {
+      // Nach einer Zeitüberschreitung kann das Projekt trotzdem angelegt worden
+      // sein. Nachsehen, statt den Knopf freizugeben und ein zweites zu erzeugen.
+      try {
+        const vorhanden = (await projekteLaden()).find((p) => p.name === name);
+        if (vorhanden) {
+          ZUstand.projekte = await projekteLaden();
+          await projektWechseln(vorhanden.id);
+          meldung("Projekt war bereits angelegt.");
+          return;
+        }
+      } catch (e2) { /* dann eben die Fehlermeldung unten */ }
       knopf.disabled = false;
       knopf.textContent = "Projekt anlegen";
       zeigeFehler(err.message);

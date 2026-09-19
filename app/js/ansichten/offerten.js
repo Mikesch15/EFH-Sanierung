@@ -185,9 +185,17 @@ async function analysieren(Z) {
     "<b>Offerte wird analysiert …</b>" + ladeSchritte(schritte, 0) +
     '<p style="margin:12px 0 0;font-size:.76rem;color:var(--grau)">Simulierter Ablauf – es wird keine Datei ausgelesen und keine Schnittstelle aufgerufen.</p></div>';
 
-  const ergebnis = await analysiereDokument(dateiWartend || { name: entwurf.datei_name }, "offerte", (i) => {
-    block.querySelector(".lade-schritte").innerHTML = ladeSchritte(schritte, i + 1);
-  });
+  let ergebnis;
+  try {
+    ergebnis = await analysiereDokument(dateiWartend || { name: entwurf.datei_name }, "offerte", (i) => {
+      const liste = block.querySelector(".lade-schritte");
+      if (liste) liste.innerHTML = ladeSchritte(schritte, i + 1);
+    });
+  } catch (e) {
+    meldung("Analyse abgebrochen: " + (e.message || e), true);
+    return;
+  }
+  if (!document.querySelector(".modal")) return;   // Modal wurde zwischenzeitlich geschlossen
   entwurf.ki_erkannt = true;
   entwurf.lieferant = ergebnis.lieferant;
   entwurf.nummer = ergebnis.nummer;
@@ -280,7 +288,7 @@ export function aktion(a, knopf, Z) {
     return;
   }
   if (a === "o-datei-entfernen") {
-    if (entwurf.datei_pfad) dateiLoeschen(entwurf.datei_pfad);
+    if (entwurf.datei_pfad) dateiLoeschen(entwurf.datei_pfad).catch(() => {});
     entwurf.datei_pfad = null; entwurf.datei_name = null; dateiWartend = null;
     document.getElementById("o-analyse").innerHTML = analyseBlock();
     return;

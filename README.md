@@ -154,8 +154,16 @@ eine Warteschlange für Offline-Betrieb ergänzt werden kann.
 **Die App ist eine Online-App.** Ohne Verbindung erscheint ein roter Balken
 «Keine Verbindung zum Server»; es wird nichts halb gespeichert.
 
-Kein Aufruf darf unendlich warten: Alle Anfragen an Supabase laufen über ein eigenes
-`fetch` mit Zeitlimit (20 Sekunden, Datei-Uploads 120). Läuft es ab, erscheint
+Kein Aufruf darf unendlich warten – auf zwei Ebenen abgesichert: Alle Anfragen laufen über
+ein eigenes `fetch` mit Zeitlimit (12 Sekunden, Uploads 120), und zusätzlich bekommt jeder
+Vorgang in `daten.js` eine harte Obergrenze von 15 Sekunden (`mitZeitlimit`). Letzteres ist
+nötig, weil ein Aufruf auch **innerhalb** von `supabase-js` hängen bleiben kann, bevor
+überhaupt eine Anfrage ans Netz geht – genau das führte zum endlosen «Daten werden geladen».
+
+Die Daten eines Projekts werden **gleichzeitig** geladen (`Promise.all`), nicht nacheinander:
+Sonst addieren sich die Zeitlimits bei schlechter Verbindung auf Minuten. Während des Ladens
+und bei Fehlern zeigt die App ein dauerhaftes Banner mit «Erneut versuchen» statt eines
+flüchtigen Hinweises, und auf jedem Bildschirm gibt es einen Ausweg (Abmelden, Diagnose). Läuft es ab, erscheint
 «Der Server hat nicht geantwortet» und die Oberfläche ist wieder bedienbar – statt
 dauerhaft bei «wird angelegt …» stehen zu bleiben.
 
