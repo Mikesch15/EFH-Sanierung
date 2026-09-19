@@ -5,7 +5,10 @@
 // alle Änderungen laufen. Das hält die Tür offen für eine spätere
 // Warteschlange (Offline-Betrieb) ohne die Ansichten anfassen zu müssen.
 
-import { supabase, istVerbindungsfehler, MELDUNG_KEINE_VERBINDUNG } from "./supabase.js";
+import {
+  supabase, istVerbindungsfehler, MELDUNG_KEINE_VERBINDUNG,
+  istZeitueberschreitung, MELDUNG_ZEITUEBERSCHREITUNG,
+} from "./supabase.js";
 
 export class DatenFehler extends Error {
   constructor(text, keineVerbindung) {
@@ -18,6 +21,8 @@ async function schreiben(fn) {
   try {
     return await fn();
   } catch (e) {
+    if (e instanceof DatenFehler) throw e;
+    if (istZeitueberschreitung(e)) throw new DatenFehler(MELDUNG_ZEITUEBERSCHREITUNG, true);
     if (istVerbindungsfehler(e)) throw new DatenFehler(MELDUNG_KEINE_VERBINDUNG, true);
     throw new DatenFehler(e.message || String(e));
   }

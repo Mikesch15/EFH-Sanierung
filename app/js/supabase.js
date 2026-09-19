@@ -43,14 +43,45 @@ export const speicherIstFluechtig = (() => {
   } catch (e) { return true; }
 })();
 
+// Kein Aufruf darf unendlich warten: Ohne Zeitlimit bleibt die Oberfläche bei
+// einer stockenden Verbindung für immer bei "wird gespeichert …" stehen, ohne
+// dass jemand erfährt, woran es liegt.
+export const ZEITLIMIT_MS = 20000;
+const ZEITLIMIT_UPLOAD_MS = 120000;
+
+function fetchMitZeitlimit(eingabe, optionen) {
+  const adresse = typeof eingabe === "string" ? eingabe : (eingabe && eingabe.url) || "";
+  const grenze = adresse.includes("/storage/v1/object") ? ZEITLIMIT_UPLOAD_MS : ZEITLIMIT_MS;
+  const abbruch = new AbortController();
+  const uhr = setTimeout(() => abbruch.abort(), grenze);
+  return fetch(eingabe, Object.assign({}, optionen, { signal: abbruch.signal }))
+    .finally(() => clearTimeout(uhr));
+}
+
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  global: { fetch: fetchMitZeitlimit },
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
     storage: sichererSpeicher(),
+    // Ohne diese Zeile serialisiert supabase-js Auth-Vorgänge über die Web-Locks-
+    // Schnittstelle. Hängt eine Sperre (z.B. weil dieselbe Seite noch in einem
+    // anderen Fenster offen ist), warten alle weiteren Aufrufe endlos. Für eine
+    // App mit einem angemeldeten Konto pro Gerät wird das nicht gebraucht.
+    lock: async (name, dauer, fn) => await fn(),
   },
 });
+
+export function istZeitueberschreitung(fehler) {
+  if (!fehler) return false;
+  const name = fehler.name || "";
+  const text = String(fehler.message || fehler);
+  return name === "AbortError" || /abort|timeout|Zeitüberschreitung/i.test(text);
+}
+
+export const MELDUNG_ZEITUEBERSCHREITUNG =
+  "Der Server hat nicht geantwortet (Zeitüberschreitung). Bitte Verbindung prüfen und erneut versuchen.";
 
 export async function registrieren(email, passwort) {
   const { data, error } = await supabase.auth.signUp({ email, password: passwort });

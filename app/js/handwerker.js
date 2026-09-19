@@ -133,7 +133,11 @@ document.addEventListener("click", async (e) => {
   const a = knopf.dataset.aktion;
   if (a === "anmelden") {
     try { await anmelden(el("h-email").value.trim(), el("h-passwort").value); }
-    catch (err) { meldung(/Invalid login/i.test(err.message) ? "E-Mail oder Passwort ist falsch." : err.message, true); }
+    catch (err) {
+      meldung(/abort|timeout/i.test(err.message)
+        ? "Der Server hat nicht geantwortet (Zeitüberschreitung)."
+        : /Invalid login/i.test(err.message) ? "E-Mail oder Passwort ist falsch." : err.message, true);
+    }
     return;
   }
   if (a === "abmelden") return abmelden();

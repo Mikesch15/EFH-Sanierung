@@ -172,7 +172,10 @@ export async function aktion(a, knopf, Z) {
   if (a === "projekt-anlegen") {
     const fehlerFeld = el("p-fehler");
     const zeigeFehler = (text) => {
-      if (fehlerFeld) fehlerFeld.innerHTML = '<div class="hinweis fehler" style="margin-bottom:12px"><div><b>Anlegen fehlgeschlagen</b>' + esc(text) + "</div></div>";
+      if (fehlerFeld) {
+        fehlerFeld.innerHTML = '<div class="hinweis fehler" style="margin-bottom:12px"><div><b>Anlegen fehlgeschlagen</b>' +
+          esc(text) + ' <a href="hilfe.html">Diagnose öffnen</a></div></div>';
+      }
       meldung(text, true);
     };
     const name = el("p-name").value.trim();

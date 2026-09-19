@@ -76,6 +76,7 @@ export async function formularAbschicken(form) {
 }
 
 function uebersetzeFehler(text) {
+  if (/abort|timeout/i.test(text)) return "Der Server hat nicht geantwortet (Zeitüberschreitung). Bitte Verbindung prüfen.";
   if (/Invalid login credentials/i.test(text)) return "E-Mail oder Passwort ist falsch.";
   if (/already registered|already exists/i.test(text)) return "Für diese E-Mail-Adresse besteht bereits ein Konto.";
   if (/fetch|network/i.test(text)) return "Keine Verbindung zum Server. Bitte Internetverbindung prüfen.";

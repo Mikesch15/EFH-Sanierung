@@ -1,5 +1,8 @@
 // Datei-Upload, signierte Links, Löschen. Bucket "projektdateien" (privat).
-import { supabase, istVerbindungsfehler, MELDUNG_KEINE_VERBINDUNG } from "./supabase.js";
+import {
+  supabase, istVerbindungsfehler, MELDUNG_KEINE_VERBINDUNG,
+  istZeitueberschreitung, MELDUNG_ZEITUEBERSCHREITUNG,
+} from "./supabase.js";
 import {
   STORAGE_BUCKET, DATEI_MAX_BYTES, DATEI_ERLAUBTE_TYPEN, DATEI_ERLAUBTE_ENDUNGEN,
   SIGNIERTER_LINK_SEKUNDEN,
@@ -40,6 +43,7 @@ export async function hochladen(datei, projektId, bereich) {
     });
     if (error) throw error;
   } catch (e) {
+    if (istZeitueberschreitung(e)) throw new DatenFehler(MELDUNG_ZEITUEBERSCHREITUNG, true);
     if (istVerbindungsfehler(e)) throw new DatenFehler(MELDUNG_KEINE_VERBINDUNG, true);
     throw new DatenFehler("Hochladen fehlgeschlagen: " + (e.message || e));
   }
@@ -52,6 +56,7 @@ export async function signierterLink(pfad) {
     .from(STORAGE_BUCKET)
     .createSignedUrl(pfad, SIGNIERTER_LINK_SEKUNDEN);
   if (error) {
+    if (istZeitueberschreitung(error)) throw new DatenFehler(MELDUNG_ZEITUEBERSCHREITUNG, true);
     throw new DatenFehler(istVerbindungsfehler(error) ? MELDUNG_KEINE_VERBINDUNG : "Datei nicht verfügbar: " + error.message, istVerbindungsfehler(error));
   }
   return data.signedUrl;

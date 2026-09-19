@@ -148,6 +148,16 @@ eine Warteschlange für Offline-Betrieb ergänzt werden kann.
 **Die App ist eine Online-App.** Ohne Verbindung erscheint ein roter Balken
 «Keine Verbindung zum Server»; es wird nichts halb gespeichert.
 
+Kein Aufruf darf unendlich warten: Alle Anfragen an Supabase laufen über ein eigenes
+`fetch` mit Zeitlimit (20 Sekunden, Datei-Uploads 120). Läuft es ab, erscheint
+«Der Server hat nicht geantwortet» und die Oberfläche ist wieder bedienbar – statt
+dauerhaft bei «wird angelegt …» stehen zu bleiben.
+
+Die Auth-Sperre von `supabase-js` (Web Locks) ist bewusst abgeschaltet
+(`auth.lock`). Sie serialisiert Auth-Vorgänge über alle Fenster derselben Adresse;
+hängt ein Fenster (etwa eine alte, defekte Fassung im Hintergrund), warten sonst alle
+weiteren Aufrufe endlos auf die Sperre.
+
 ### Lokal starten
 
 Wegen der ES-Module braucht es einen kleinen Webserver (Doppelklick auf die Datei
