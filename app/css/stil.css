@@ -169,6 +169,10 @@ tfoot td{font-weight:650; background:#F7F9FB; border-top:2px solid var(--linie-s
 .badge.amber{background:var(--amber-bg); color:var(--amber)}
 .badge.demo{background:#F0E6F7; color:#6B2E8F}
 
+/* Auf "später" gestellte Budgetpositionen: sichtbar, aber zurückgenommen. */
+tr.spaeter td{color:var(--grau)}
+tr.spaeter td b{font-weight:600}
+
 /* ---------- Hinweise ---------- */
 .hinweis{border-radius:var(--r-s); padding:11px 13px; font-size:.83rem; display:flex; gap:9px; align-items:flex-start}
 .hinweis.demo{background:#F6EEFB; color:#5A2679; border:1px solid #E2CDEE}

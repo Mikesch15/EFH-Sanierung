@@ -37,7 +37,7 @@ Datenbank-Passwort, Gemini-API-Key.
 projekte                 Objekt, Adresse, Kaufpreis, Gesamtbudget
 └─ kaufnebenkosten       Notariat, Steuern, Grundbuch … je als eigene Position
 └─ projekt_mitglieder    wer darf was (eigentuemer / bearbeiter / leser / handwerker)
-└─ budgetpositionen      Kategorie, Budgetbetrag
+└─ budgetpositionen      Kategorie, Budgetbetrag, «zählt schon» oder «erst später»
    ├─ offerten           Lieferant, Nummer, Status, MWST-Satz, Datei
    │  └─ offert_positionen   Nr., Beschreibung, Menge, Einheit, Einzelpreis
    ├─ belege             Netto, MWST, Brutto, bezahlt, Bezug zu Offerte und Datei
@@ -327,6 +327,22 @@ Datei grösser als 15 MB (dann ist nur das Auslesen nicht möglich, das Speicher
 
 Der Quellcode der Funktion liegt in `supabase/functions/dokument-analysieren/index.ts`.
 
+## Budget: zählt schon oder erst später
+
+Jede Budgetposition trägt die Kennzeichnung `beruecksichtigt`. Damit lässt sich pro
+Position entscheiden, ob ihr Betrag schon in die Rechnung einfliesst oder erst später:
+
+- **Umschalten:** Tab *Budget* → Knopf *Später* in der Zeile (zurück mit *Einrechnen*).
+  Im Formular gibt es dafür den Haken *Erst später berücksichtigen*.
+- **Wirkung:** Der Budgetbetrag zählt nicht mehr ins Total «verplant», nicht in die
+  Budgetspalte des Kostenvergleichs und nicht in die Warnung, dass die Positionen über
+  dem Sanierungsrahmen liegen. Auf der Übersicht erscheint die Kennzahl
+  *Später vorgesehen*, damit der Betrag nicht aus dem Blick gerät.
+- **Was weiterhin zählt:** Offerten und Rechnungen, die einer solchen Kategorie
+  zugeordnet sind. Dieses Geld ist bereits gebunden beziehungsweise ausgegeben, deshalb
+  bleibt es in Offertsumme, Rechnungssumme und im verfügbaren Betrag enthalten.
+- **Bestehende Positionen** zählen wie bisher mit; die Spalte hat den Vorgabewert `true`.
+
 ## Migrationen anwenden
 
 Die Migrationen sind im Supabase-Projekt bereits eingespielt. Für eine zweite Umgebung
@@ -350,7 +366,9 @@ Am besten auf zwei Geräten (oder einem normalen Fenster und einem privaten Fens
 3. **Partnerin hinzufügen.** Sie registriert sich auf ihrem Gerät selbst. Danach auf Ihrem
    Gerät: Übersicht → *Mitglieder* → *+ Mitglied* → ihre E-Mail-Adresse, Rolle
    *Bearbeiter*. Sie lädt neu und sieht dasselbe Projekt.
-4. **Budgetposition** anlegen, bearbeiten, löschen (Tab *Budget*).
+4. **Budgetposition** anlegen, bearbeiten, löschen (Tab *Budget*). Mit *Später* zählt eine
+   Position vorerst nicht mit (siehe «Budget: zählt schon oder erst später»), mit
+   *Einrechnen* wieder.
 5. **Offerte**: Tab *Offerten* → *+ Offerte* → PDF wählen → *Offerte auslesen*.
    Die erkannten Werte erscheinen mit violettem Hinweis «Von der KI ausgelesen – bitte
    prüfen»; Positionen kontrollieren, korrigieren, speichern.

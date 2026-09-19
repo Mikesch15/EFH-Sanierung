@@ -1,5 +1,5 @@
 import { esc, chf, chfKurz, datumCH, zahl, meldung, bestaetigen, heuteISO } from "../format.js";
-import { kpi, statusBadge, listenKarte, summen, offerteTotal, belegBrutto, kategorieName } from "./gemeinsam.js";
+import { kpi, statusBadge, listenKarte, summen, offerteTotal, belegBrutto, kategorieName, budgetZaehlt } from "./gemeinsam.js";
 import {
   projektAnlegen, projektAktualisieren, projekteLaden, mitgliederLaden,
   mitgliedRolleAendern, mitgliedEntfernen,
@@ -52,6 +52,10 @@ export function render(Z) {
     kpi("Offertsumme", chfKurz(s.offerten), Z.offerten.length + " Offerten, ohne abgelehnte", "rand-blau") +
     kpi("Rechnungssumme", chfKurz(s.rechnungen), Z.belege.length + " Belege, inkl. MWST", "rand-amber") +
     kpi("Bezahlt", chfKurz(s.bezahlt), "offen: " + chfKurz(s.offen), "rand-gruen") +
+    (s.spaeter
+      ? kpi("Später vorgesehen", chfKurz(s.spaeter),
+          s.spaeterAnzahl + (s.spaeterAnzahl === 1 ? " Position zählt" : " Positionen zählen") + " noch nicht mit", "")
+      : "") +
     "</div></section>";
 
   const b1 = s.rahmen > 0 ? Math.max(0, Math.min(100, (s.bezahlt / s.rahmen) * 100)) : 0;
@@ -89,6 +93,7 @@ export function render(Z) {
       const breite = Math.min(100, (k.ist / basis) * 100);
       const ueber = k.budget > 0 && k.ist > k.budget;
       h += '<div class="kat-zeile"><div class="kat-kopf"><b>' + esc(k.kategorie) + "</b>" +
+        (budgetZaehlt(k) ? "" : ' <span class="badge">später</span>') +
         '<span class="zahl">' + chfKurz(k.ist) + " / " + chfKurz(k.budget) + "</span></div>" +
         '<div class="mini"><i class="' + (ueber ? "ueber" : "") + '" style="width:' + breite.toFixed(1) + '%"></i></div></div>';
     });

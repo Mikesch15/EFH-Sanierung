@@ -293,12 +293,15 @@ export function budgetLaden(projektId) {
   );
 }
 
-export function budgetAnlegen(projektId, { kategorie, betrag, bemerkung }) {
+export function budgetAnlegen(projektId, { kategorie, betrag, bemerkung, beruecksichtigt }) {
   return schreiben(async () =>
     pruefen(
       await supabase
         .from("budgetpositionen")
-        .insert({ projekt_id: projektId, kategorie, betrag: betrag || 0, bemerkung: bemerkung || "" })
+        .insert({
+          projekt_id: projektId, kategorie, betrag: betrag || 0, bemerkung: bemerkung || "",
+          beruecksichtigt: beruecksichtigt !== false,
+        })
         .select()
         .single()
     )

@@ -10,6 +10,9 @@ export function offerteTotal(o) { return offerteNetto(o) + offerteMwst(o); }
 export function offerteZaehlt(o) { return o.status !== "Abgelehnt"; }
 export function belegBrutto(b) { return zahl(b.brutto); }
 
+/** Zählt der Budgetbetrag dieser Position schon mit, oder ist sie auf "später" gestellt? */
+export function budgetZaehlt(p) { return p.beruecksichtigt !== false; }
+
 export function summen(Z) {
   const gesamtbudget = zahl(Z.projekt?.gesamtbudget);
   const kaufpreis = zahl(Z.projekt?.kaufpreis);
@@ -17,7 +20,10 @@ export function summen(Z) {
   // Kaufpreis und Nebenkosten sind bereits gebunden – was übrig bleibt, ist der
   // Rahmen für die Sanierung.
   const rahmen = gesamtbudget - kaufpreis - kaufnebenkosten;
-  const budgetiert = Z.budget.reduce((s, p) => s + zahl(p.betrag), 0);
+  // Auf "später" gestellte Positionen sind geplant, zählen aber noch nirgends mit.
+  const budgetiert = Z.budget.filter(budgetZaehlt).reduce((s, p) => s + zahl(p.betrag), 0);
+  const spaeter = Z.budget.filter((p) => !budgetZaehlt(p)).reduce((s, p) => s + zahl(p.betrag), 0);
+  const spaeterAnzahl = Z.budget.filter((p) => !budgetZaehlt(p)).length;
   const offerten = Z.offerten.filter(offerteZaehlt).reduce((s, o) => s + offerteTotal(o), 0);
   const rechnungen = Z.belege.reduce((s, b) => s + belegBrutto(b), 0);
   const bezahlt = Z.belege.filter((b) => b.bezahlt).reduce((s, b) => s + belegBrutto(b), 0);
@@ -27,7 +33,8 @@ export function summen(Z) {
     verpflichtet += Math.max(0, offerteTotal(o) - verrechnet);
   });
   return {
-    gesamtbudget, kaufpreis, kaufnebenkosten, rahmen, budgetiert, offerten, rechnungen, bezahlt, verpflichtet,
+    gesamtbudget, kaufpreis, kaufnebenkosten, rahmen, budgetiert, spaeter, spaeterAnzahl,
+    offerten, rechnungen, bezahlt, verpflichtet,
     offen: rechnungen - bezahlt,
     verfuegbar: rahmen - rechnungen - verpflichtet,
   };
