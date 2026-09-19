@@ -75,6 +75,27 @@ Jede Tabelle hat Row Level Security. Sichtbar ist nur, wer in `projekt_mitgliede
 
 Wer ein Projekt anlegt, wird per Trigger automatisch Eigentümer.
 
+### Einladungen per Link (Migration 0009)
+
+Niemand muss sich vorher registrieren. Der Eigentümer wählt *+ Mitglied*, gibt die Rolle
+an und erhält einen Link zum Weiterschicken (WhatsApp, SMS, Mail – die App bietet
+«Verschicken» über das Teilen-Menü des Geräts und «Kopieren» an):
+
+```
+…/app/index.html?einladung=<token>
+```
+
+Wer den Link öffnet, sieht Projektname und Rolle bereits **vor** der Anmeldung, legt ein
+Konto an (oder meldet sich an) und wird beim ersten Start automatisch Mitglied.
+
+Sicherheit: Das Geheimnis ist der Token (256 Bit, steht nur im Link). Die Tabelle
+`einladungen` ist nur für den Eigentümer lesbar; die eingeladene Person arbeitet
+ausschliesslich über zwei Funktionen – `einladung_info(token)` (zeigt nur Projektname,
+Rolle und Gültigkeit, auch ohne Anmeldung) und `einladung_einloesen(token)` (nur für
+Angemeldete, trägt sie als Mitglied ein). Jeder Link gilt 30 Tage und **einmal**; der
+Eigentümer kann ihn jederzeit zurückziehen. Praktisch geprüft: Ein zweites Konto mit
+demselben Link wird abgewiesen und sieht das Projekt nicht.
+
 ### Hilfsfunktionen mit `security definer` (Migration 0005)
 
 - `benutzer_id_zu_email(text) → uuid` – sucht zu einer **exakten** E-Mail-Adresse die

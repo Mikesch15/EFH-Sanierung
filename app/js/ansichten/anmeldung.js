@@ -1,16 +1,31 @@
 import { esc, meldung } from "../format.js";
 import { anmelden, registrieren, passwortZuruecksetzen, speicherIstFluechtig } from "../supabase.js";
 import { neuZeichnen, Z } from "../app.js";
+import { ROLLEN } from "../konfig.js";
 
 let modus = "anmelden"; // anmelden | registrieren | zuruecksetzen
 let hinweis = "";
+let schonUmgeschaltet = false;
 
 export function render() {
+  // Über einen Einladungslink gekommen: zuerst das Konto anlegen lassen.
+  if (Z.einladung && modus === "anmelden" && !schonUmgeschaltet) {
+    schonUmgeschaltet = true;
+    modus = "registrieren";
+  }
   const titel = { anmelden: "Anmelden", registrieren: "Konto erstellen", zuruecksetzen: "Passwort zurücksetzen" }[modus];
   return '<div class="anmelde-buehne"><div class="karte karte-pad anmelde-karte">' +
     '<div class="anmelde-kopf"><b>Tulpenweg 37</b><span>Sanierungs- und Dokumentenverwaltung</span></div>' +
     (hinweis ? '<div class="hinweis info" style="margin-bottom:14px"><div>' + esc(hinweis) + "</div></div>" : "") +
     (Z.authHinweis ? '<div class="hinweis warn" style="margin-bottom:14px"><div>' + esc(Z.authHinweis) + "</div></div>" : "") +
+    (Z.einladung
+      ? '<div class="hinweis info" style="margin-bottom:14px"><div><b>Einladung zu «' + esc(Z.einladung.projekt_name) + "»</b>" +
+        (Z.einladung.gueltig
+          ? "Als " + esc(ROLLEN[Z.einladung.rolle] || Z.einladung.rolle) +
+            ". Legen Sie ein Konto an oder melden Sie sich an – danach sind Sie automatisch dabei."
+          : "Dieser Einladungslink ist nicht mehr gültig. Bitte einen neuen anfordern.") +
+        "</div></div>"
+      : "") +
     (speicherIstFluechtig
       ? '<div class="hinweis warn" style="margin-bottom:14px"><div><b>Websitedaten sind blockiert</b>' +
         "Die Anmeldung gilt nur für diese Sitzung und geht beim Neuladen verloren. " +

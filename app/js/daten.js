@@ -155,6 +155,48 @@ export function mitgliedEntfernen(projektId, benutzerId) {
   );
 }
 
+/* ------------------------------------------------------------- Einladungen */
+export function einladungenLaden(projektId) {
+  return lesen(async () =>
+    pruefen(
+      await supabase
+        .from("einladungen")
+        .select("*")
+        .eq("projekt_id", projektId)
+        .order("erstellt_am", { ascending: false })
+    )
+  );
+}
+
+export function einladungAnlegen(projektId, email, rolle) {
+  return schreiben(async () =>
+    pruefen(
+      await supabase
+        .from("einladungen")
+        .insert({ projekt_id: projektId, email: (email || "").trim(), rolle })
+        .select()
+        .single()
+    )
+  );
+}
+
+export function einladungZuruecknehmen(id) {
+  return schreiben(async () => pruefen(await supabase.from("einladungen").delete().eq("id", id)));
+}
+
+/** Was steckt hinter dem Link? Geht auch ohne Anmeldung. */
+export function einladungInfo(token) {
+  return lesen(async () => {
+    const zeilen = pruefen(await supabase.rpc("einladung_info", { p_token: token }));
+    return Array.isArray(zeilen) ? zeilen[0] || null : zeilen;
+  });
+}
+
+/** Macht die angemeldete Person zum Mitglied. Gibt die Projekt-ID zurück. */
+export function einladungEinloesen(token) {
+  return schreiben(async () => pruefen(await supabase.rpc("einladung_einloesen", { p_token: token })));
+}
+
 /* --------------------------------------------------------- Budgetpositionen */
 export function budgetLaden(projektId) {
   return lesen(async () =>

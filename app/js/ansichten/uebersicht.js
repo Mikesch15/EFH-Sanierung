@@ -2,7 +2,8 @@ import { esc, chf, chfKurz, datumCH, zahl, meldung, bestaetigen, heuteISO } from
 import { kpi, statusBadge, listenKarte, summen, offerteTotal, belegBrutto, kategorieName } from "./gemeinsam.js";
 import {
   projektAnlegen, projektAktualisieren, projekteLaden, mitgliederLaden,
-  mitgliedHinzufuegen, mitgliedRolleAendern, mitgliedEntfernen, DatenFehler,
+  mitgliedRolleAendern, mitgliedEntfernen,
+  einladungenLaden, einladungAnlegen, einladungZuruecknehmen,
 } from "../daten.js";
 import { ROLLEN } from "../konfig.js";
 import * as ImportModul from "../import.js";
@@ -150,8 +151,27 @@ function mitgliederAbschnitt(Z) {
           '</select><button class="btn still klein" type="button" data-aktion="mitglied-entfernen" data-id="' + m.benutzer_id + '">Entfernen</button>'
         : "") + "</div>";
   }).join("");
+  h += einladungenListe(Z);
   h += "</div></section>";
   return h;
+}
+
+/** Offene Einladungen mit Link zum Weiterschicken. */
+function einladungenListe(Z) {
+  if (Z.meineRolle !== "eigentuemer") return "";
+  const offen = (Z.einladungen || []).filter((e) => !e.eingeloest_am);
+  if (!offen.length) return "";
+  return '<div style="margin-top:14px;border-top:1px solid var(--linie);padding-top:12px">' +
+    '<div style="font-size:.78rem;font-weight:600;color:var(--text-2);margin-bottom:8px">Offene Einladungen</div>' +
+    offen.map((e) =>
+      '<div class="mitglied-zeile"><div class="haupt">' +
+      "<b>" + esc(e.email || "ohne E-Mail") + "</b>" +
+      '<span style="font-size:.78rem;color:var(--grau)">' + (ROLLEN[e.rolle] || e.rolle) +
+      " · gültig bis " + datumCH((e.gueltig_bis || "").slice(0, 10)) + "</span></div>" +
+      '<button class="btn zweit klein" type="button" data-aktion="einladung-teilen" data-token="' + esc(e.token) + '">Link</button>' +
+      '<button class="btn still klein" type="button" data-aktion="einladung-zuruecknehmen" data-id="' + e.id + '">Zurückziehen</button>' +
+      "</div>"
+    ).join("") + "</div>";
 }
 
 function datenAbschnitt() {
@@ -256,24 +276,69 @@ export async function aktion(a, knopf, Z) {
 
   if (a === "mitglied-neu") {
     modalOeffnen({
-      titel: "Mitglied hinzufügen",
+      titel: "Person einladen",
       koerper:
-        '<label class="feld"><span>E-Mail-Adresse</span><input id="m-email" type="email" placeholder="partnerin@beispiel.ch"></label>' +
+        '<div class="hinweis info" style="margin-bottom:14px"><div>' +
+        "Sie erhalten einen Einladungslink zum Weiterschicken. Die Person braucht noch kein Konto – " +
+        "sie legt es beim Öffnen des Links an und ist danach automatisch dabei.</div></div>" +
+        '<label class="feld"><span>E-Mail-Adresse (nur als Merkhilfe, optional)</span>' +
+        '<input id="m-email" type="email" placeholder="partnerin@beispiel.ch"></label>' +
         '<label class="feld"><span>Rolle</span><select id="m-rolle">' +
         '<option value="bearbeiter" selected>Bearbeiter – lesen und schreiben</option>' +
         '<option value="leser">Leser – nur lesen</option>' +
-        '<option value="handwerker">Handwerker – nur die zugewiesene Offerte</option></select></label>' +
-        '<div class="hinweis info"><div>Die Person muss sich vorher selbst registrieren (mit derselben E-Mail-Adresse).</div></div>',
+        '<option value="handwerker">Handwerker – nur die zugewiesene Offerte</option></select></label>',
+      knopfText: "Link erzeugen",
       speichern: async () => {
         try {
-          await mitgliedHinzufuegen(Z.projektId, el("m-email").value.trim(), el("m-rolle").value);
-          Z.mitglieder = await mitgliederLaden(Z.projektId);
-          meldung("Mitglied hinzugefügt.");
+          const einladung = await einladungAnlegen(Z.projektId, el("m-email").value, el("m-rolle").value);
+          ZUstand.einladungen = await einladungenLaden(Z.projektId);
           neuZeichnen();
-          return true;
+          linkAnzeigen(einladung.token, einladung.rolle);
+          return false;   // Modal bleibt offen und zeigt den Link
         } catch (err) { meldung(err.message, true); return false; }
       },
     });
+    return;
+  }
+
+  if (a === "einladung-teilen") {
+    const e = (Z.einladungen || []).find((x) => x.token === knopf.dataset.token);
+    linkAnzeigen(knopf.dataset.token, e ? e.rolle : "");
+    return;
+  }
+
+  if (a === "einladung-zuruecknehmen") {
+    if (!bestaetigen("Diese Einladung zurückziehen? Der Link funktioniert danach nicht mehr.")) return;
+    try {
+      await einladungZuruecknehmen(knopf.dataset.id);
+      ZUstand.einladungen = await einladungenLaden(Z.projektId);
+      meldung("Einladung zurückgezogen.");
+      neuZeichnen();
+    } catch (err) { meldung(err.message, true); }
+    return;
+  }
+
+  if (a === "einladung-kopieren") {
+    const adresse = document.getElementById("einladung-link").value;
+    try {
+      await navigator.clipboard.writeText(adresse);
+      meldung("Link kopiert.");
+    } catch (e) {
+      const feld = document.getElementById("einladung-link");
+      feld.select();
+      meldung("Bitte den markierten Link von Hand kopieren.", true);
+    }
+    return;
+  }
+
+  if (a === "einladung-versenden") {
+    const adresse = document.getElementById("einladung-link").value;
+    const text = "Einladung zur Sanierungsverwaltung " + (Z.projekt ? Z.projekt.name : "") + ": " + adresse;
+    if (navigator.share) {
+      try { await navigator.share({ title: "Einladung", text }); return; } catch (e) { /* abgebrochen */ }
+    }
+    window.location.href = "mailto:?subject=" + encodeURIComponent("Einladung zur Sanierungsverwaltung") +
+      "&body=" + encodeURIComponent(text);
     return;
   }
 
@@ -289,6 +354,26 @@ export async function aktion(a, knopf, Z) {
   }
 
   if (a === "import") return importOeffnen(Z, modalOeffnen, neuLaden);
+}
+
+/** Zeigt den fertigen Einladungslink mit Knöpfen zum Teilen und Kopieren. */
+function linkAnzeigen(token, rolle) {
+  const adresse = new URL("index.html?einladung=" + token, window.location.href).href;
+  modalOeffnen({
+    titel: "Einladung verschicken",
+    koerper:
+      '<div class="hinweis info" style="margin-bottom:14px"><div><b>Link ist bereit</b>' +
+      "Schicken Sie ihn der Person" + (rolle ? " (Rolle: " + esc(ROLLEN[rolle] || rolle) + ")" : "") + ". " +
+      "Beim Öffnen kann sie sich ein Konto anlegen und ist danach automatisch im Projekt. " +
+      "Der Link gilt 30 Tage und nur einmal.</div></div>" +
+      '<label class="feld"><span>Einladungslink</span>' +
+      '<input id="einladung-link" readonly value="' + esc(adresse) + '" style="font-size:14px"></label>' +
+      '<div class="btn-reihe">' +
+      '<button class="btn" type="button" data-aktion="einladung-versenden">Link verschicken</button>' +
+      '<button class="btn zweit" type="button" data-aktion="einladung-kopieren">Kopieren</button></div>',
+    knopfText: "Fertig",
+    speichern: () => true,
+  });
 }
 
 function importOeffnen(Z, modalOeffnen, neuLaden) {

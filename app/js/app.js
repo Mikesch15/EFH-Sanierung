@@ -2,6 +2,7 @@ import { supabase, aufAuthAchten, abmelden, gespeicherteSitzungVorhanden } from 
 import {
   DatenFehler, projekteLaden, mitgliederLaden, budgetLaden, offertenLaden,
   belegeLaden, dokumenteLaden, kostenvergleichLaden, projektAbonnieren,
+  einladungenLaden, einladungInfo, einladungEinloesen,
 } from "./daten.js";
 import { esc, meldung } from "./format.js";
 import * as Anmeldung from "./ansichten/anmeldung.js";
@@ -24,6 +25,7 @@ export const Z = {
   // Speicher, authGeklaert wird gesetzt, sobald Supabase geantwortet hat.
   sitzungVermutet: false, authGeklaert: false, authHinweis: "",
   laedt: false, ladeFehler: "",
+  einladungen: [], einladung: null,   // einladung: offener Link, noch nicht eingelöst
 };
 
 const ANSICHTEN = [
@@ -60,6 +62,9 @@ async function neuLaden(teile) {
     );
   };
   holen("mitglieder", mitgliederLaden, "mitglieder");
+  if (braucht("mitglieder")) {
+    auftraege.push(einladungenLaden(projektId).then((d) => { Z.einladungen = d; return null; }, () => null));
+  }
   holen("budget", budgetLaden, "budget");
   holen("offerten", offertenLaden, "offerten");
   holen("belege", belegeLaden, "belege");
@@ -368,9 +373,45 @@ aufAuthAchten(async (ereignis, sitzung) => {
   }
   zeichnen();   // sofort den richtigen Bildschirm zeigen, dann erst laden
   if (ereignis === "SIGNED_IN" || ereignis === "INITIAL_SESSION" || ereignis === "TOKEN_REFRESHED") {
+    if (await einladungVerarbeiten()) return;
     if (!Z.projekte.length) await projekteUndDatenLaden();
   }
 });
+
+const EINLADUNG_SCHLUESSEL = "tw-einladung";
+
+function einladungAusAdresse() {
+  const ausAdresse = new URLSearchParams(location.search).get("einladung");
+  if (ausAdresse) {
+    try { sessionStorage.setItem(EINLADUNG_SCHLUESSEL, ausAdresse); } catch (e) { /* egal */ }
+    return ausAdresse;
+  }
+  try { return sessionStorage.getItem(EINLADUNG_SCHLUESSEL); } catch (e) { return null; }
+}
+
+function einladungVergessen() {
+  try { sessionStorage.removeItem(EINLADUNG_SCHLUESSEL); } catch (e) { /* egal */ }
+  Z.einladung = null;
+}
+
+/** Nach der Anmeldung: Einladung einlösen und ins Projekt springen. */
+async function einladungVerarbeiten() {
+  const token = einladungAusAdresse();
+  if (!token || !Z.session) return false;
+  try {
+    const projektId = await einladungEinloesen(token);
+    einladungVergessen();
+    Z.projekte = await projekteLaden();
+    await projektWechseln(projektId);
+    meldung("Sie sind jetzt Mitglied dieses Projekts.");
+    return true;
+  } catch (e) {
+    einladungVergessen();
+    Z.ladeFehler = e.message || String(e);
+    zeichnen();
+    return true;
+  }
+}
 
 (function start() {
   // Sofort zeichnen, ohne auf eine Antwort vom Server zu warten: Wer lokal ein
@@ -378,6 +419,15 @@ aufAuthAchten(async (ereignis, sitzung) => {
   // Den Rest erledigt aufAuthAchten(), sobald Supabase geantwortet hat.
   Z.sitzungVermutet = gespeicherteSitzungVorhanden();
   zeichnen();
+
+  // Wurde die App über einen Einladungslink geöffnet? Dann gleich zeigen, worum
+  // es geht – noch bevor sich jemand angemeldet hat.
+  const token = einladungAusAdresse();
+  if (token) {
+    einladungInfo(token)
+      .then((info) => { if (info) { Z.einladung = info; zeichnen(); } })
+      .catch(() => { /* Hinweis ist nur Beiwerk */ });
+  }
 
   // Notausgang: Antwortet die Anmeldung gar nicht, nicht ewig "lädt" anzeigen.
   setTimeout(() => {
