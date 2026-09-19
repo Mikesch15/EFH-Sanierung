@@ -207,7 +207,7 @@ es blieben keine Testdaten zurück):
 
 | Prüfung | Ergebnis |
 |---|---|
-| Konto A sieht sein Projekt, wird per Trigger Eigentümer | OK |
+| Konto A legt ein Projekt an (`insert … returning`) und wird per Trigger Eigentümer | OK |
 | Konto B (kein Mitglied) sieht Projekte, Budget, Offerten, Offertpositionen, Belege, Dokumente, Mitgliederliste und Kostenvergleich von A | 0 Zeilen, also nichts |
 | Handwerker sieht nur die ihm zugewiesene Offerte und deren Positionen | OK (1 von 2 Offerten) |
 | Handwerker sieht Projekt, Budget, Belege, Kostenvergleich, Mitgliederliste | 0 Zeilen |
@@ -215,6 +215,10 @@ es blieben keine Testdaten zurück):
 | Handwerker ändert Budgetkategorie oder Zuweisung | wird vom Trigger zurückgesetzt |
 | Handwerker ändert eine fremde Offerte | 0 Zeilen betroffen |
 | Beleg ohne MWST (`null`) und Kostenvergleich inkl. MWST | OK |
+
+Migration 0007 war dafür nötig: Beim Anlegen prüft PostgreSQL wegen `returning` auch die
+Leseregel, und die Mitgliedschaft entsteht erst danach im Trigger. Seither darf zusätzlich
+lesen, wer das Projekt angelegt hat (`erstellt_von = auth.uid()`).
 
 Dateien sind über dieselben Regeln geschützt: Der Bucket ist privat, Zugriff nur über
 signierte Links, und die Storage-Regeln prüfen die Projekt-Zugehörigkeit anhand des Pfads.

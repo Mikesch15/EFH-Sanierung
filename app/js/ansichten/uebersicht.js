@@ -20,6 +20,7 @@ export function renderProjektAnlegen() {
     '<label class="feld"><span>Adresse</span><input id="p-adresse" placeholder="Strasse Nr., PLZ Ort"></label>' +
     '<label class="feld"><span>Kaufpreis (CHF)</span><input id="p-kauf" inputmode="decimal" placeholder="0"></label>' +
     '<label class="feld"><span>Gesamtbudget (CHF)</span><input id="p-gesamt" inputmode="decimal" placeholder="0"></label>' +
+    '<div id="p-fehler"></div>' +
     '<button class="btn breit" type="button" data-aktion="projekt-anlegen">Projekt anlegen</button>' +
     "</div></div></main>";
 }
@@ -169,8 +170,16 @@ export async function aktion(a, knopf, Z) {
   const el = (id) => document.getElementById(id);
 
   if (a === "projekt-anlegen") {
+    const fehlerFeld = el("p-fehler");
+    const zeigeFehler = (text) => {
+      if (fehlerFeld) fehlerFeld.innerHTML = '<div class="hinweis fehler" style="margin-bottom:12px"><div><b>Anlegen fehlgeschlagen</b>' + esc(text) + "</div></div>";
+      meldung(text, true);
+    };
     const name = el("p-name").value.trim();
-    if (!name) { meldung("Bitte einen Projektnamen angeben.", true); return; }
+    if (!name) { zeigeFehler("Bitte einen Projektnamen angeben."); return; }
+    if (fehlerFeld) fehlerFeld.innerHTML = "";
+    knopf.disabled = true;
+    knopf.textContent = "Projekt wird angelegt …";
     try {
       const projekt = await projektAnlegen({
         name, adresse: el("p-adresse").value.trim(),
@@ -179,7 +188,11 @@ export async function aktion(a, knopf, Z) {
       ZUstand.projekte.push(projekt);
       await projektWechseln(projekt.id);
       meldung("Projekt angelegt.");
-    } catch (err) { meldung(err.message, true); }
+    } catch (err) {
+      knopf.disabled = false;
+      knopf.textContent = "Projekt anlegen";
+      zeigeFehler(err.message);
+    }
     return;
   }
 
