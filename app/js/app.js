@@ -80,6 +80,7 @@ function ansichtWechseln(name) {
 /* ---------------------------------------------------------------- Zeichnen */
 function zeichnen() {
   const wrap = el("app");
+  wrap.dataset.gestartet = "ja";   // schaltet die Startfehler-Meldung in index.html ab
   if (!Z.session) {
     el("kopf").hidden = true;
     el("nav-mobil").hidden = true;

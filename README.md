@@ -109,7 +109,21 @@ app/
 ```
 
 Vanilla JavaScript als ES-Module, kein Framework, kein Build-Schritt.
-`@supabase/supabase-js` v2 wird als ESM-Modul von jsdelivr geladen (Version fest gepinnt).
+`@supabase/supabase-js` v2.45.4 liegt fertig gebündelt im Repo unter
+`app/js/vendor/supabase-js.js` – bewusst **kein CDN**, damit die App auch in einem Netz
+startet, das fremde Domains blockiert oder langsam ausliefert. Neu erzeugen, wenn die
+Version steigen soll:
+
+```bash
+npm install @supabase/supabase-js@<version> esbuild
+echo 'export { createClient } from "@supabase/supabase-js";' > einstieg.js
+npx esbuild einstieg.js --bundle --format=esm --platform=browser --target=es2020 \
+  --minify --legal-comments=none --outfile=app/js/vendor/supabase-js.js
+```
+
+Bleibt der Start hängen, zeigt die App nach acht Sekunden einen Hinweis mit den Knöpfen
+*Neu laden* und *Zwischenspeicher leeren* (letzterer entfernt Service Worker und Cache),
+statt eine leere Seite zu zeigen.
 Keine Ansicht greift direkt auf Supabase zu – alles läuft über `daten.js`, und dort
 gehen alle Schreibvorgänge durch eine einzige Stelle (`schreiben()`), die später um
 eine Warteschlange für Offline-Betrieb ergänzt werden kann.
@@ -131,15 +145,17 @@ python3 -m http.server 8000
 
 ### Veröffentlichen (GitHub Pages)
 
-`.github/workflows/pages.yml` veröffentlicht den Ordner `app/` bei jedem Push auf
-`main`. Einmalig in den Repo-Einstellungen unter *Settings → Pages* als Quelle
-**GitHub Actions** auswählen. Die App liegt danach unter
-`https://<benutzername>.github.io/EFH-Sanierung/`.
+Aktuell steht *Settings → Pages* auf **Deploy from a branch**: GitHub veröffentlicht das
+Repo selbst, die App liegt unter
+`https://<benutzername>.github.io/EFH-Sanierung/app/index.html`. Dafür ist nichts weiter
+zu tun, jeder Push wird automatisch veröffentlicht.
 
-Steht unter *Settings → Pages* stattdessen «Deploy from a branch», wird das ganze Repo
-veröffentlicht und die App liegt unter
-`https://<benutzername>.github.io/EFH-Sanierung/app/index.html`. Beides funktioniert,
-auch die Installation auf dem Handy.
+Wer die kürzere Adresse `https://<benutzername>.github.io/EFH-Sanierung/` möchte: unter
+*Settings → Pages* als Source **GitHub Actions** wählen und danach den Workflow
+`.github/workflows/pages.yml` einmal von Hand starten (Actions → Workflow →
+*Run workflow*). Er lädt nur den Ordner `app/` hoch. Solange «Deploy from a branch»
+eingestellt ist, darf dieser Workflow nicht automatisch laufen – er würde fehlschlagen,
+deshalb startet er nur auf Knopfdruck.
 
 Hinweis: Bei einem **privaten** Repo braucht GitHub Pages ein kostenpflichtiges Konto
 (Pro/Team). Alternativen ohne Kosten: Netlify oder Vercel – beide brauchen nur den

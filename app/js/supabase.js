@@ -1,6 +1,9 @@
 // Supabase-Client und Auth-Helfer.
-// @supabase/supabase-js v2, per ESM-Import von jsdelivr, Version fest gepinnt.
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
+// @supabase/supabase-js v2.45.4 liegt als fertiges ES-Modul im Repo
+// (js/vendor/supabase-js.js). Bewusst kein CDN: die App soll auch in einem
+// Netz starten, das fremde Domains blockiert oder langsam ausliefert.
+// Neu erzeugen (siehe README): esbuild-Bundle aus dem npm-Paket.
+import { createClient } from "./vendor/supabase-js.js";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./konfig.js";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {

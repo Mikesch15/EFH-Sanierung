@@ -2,7 +2,7 @@
 // App auf dem Handy installierbar ist und schnell startet.
 // Daten und Dateien werden NIE zwischengespeichert – sie kommen immer frisch
 // von Supabase. Die App bleibt damit eine reine Online-App (Phase 2).
-const VERSION = "tulpenweg-v1";
+const VERSION = "tulpenweg-v2";
 const HUELLE = [
   "./",
   "./index.html",
@@ -18,6 +18,7 @@ const HUELLE = [
   "./js/ki.js",
   "./js/import.js",
   "./js/handwerker.js",
+  "./js/vendor/supabase-js.js",
   "./js/ansichten/gemeinsam.js",
   "./js/ansichten/anmeldung.js",
   "./js/ansichten/uebersicht.js",
@@ -32,7 +33,12 @@ const HUELLE = [
 ];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(HUELLE)).then(() => self.skipWaiting()));
+  // Einzeln ablegen: eine fehlende Datei darf die Installation nicht scheitern lassen.
+  e.waitUntil(
+    caches.open(VERSION)
+      .then((c) => Promise.all(HUELLE.map((pfad) => c.add(pfad).catch(() => {}))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", (e) => {
@@ -48,31 +54,28 @@ self.addEventListener("fetch", (e) => {
   if (anfrage.method !== "GET") return;
   const url = new URL(anfrage.url);
 
-  // Supabase (Daten, Auth, Dateien) immer direkt aus dem Netz.
-  if (url.hostname.endsWith("supabase.co")) return;
+  // Supabase (Daten, Auth, Dateien) und alles Fremde immer direkt aus dem Netz.
+  if (url.origin !== self.location.origin) return;
 
-  // Bibliothek vom CDN: aus dem Cache, sonst holen und merken.
-  if (url.hostname === "cdn.jsdelivr.net") {
-    e.respondWith(
-      caches.match(anfrage).then((treffer) => treffer || fetch(anfrage).then((antwort) => {
-        const kopie = antwort.clone();
-        caches.open(VERSION).then((c) => c.put(anfrage, kopie));
-        return antwort;
-      }))
-    );
-    return;
-  }
-
-  // Eigene Dateien: erst Netz (damit Änderungen ankommen), sonst Cache.
-  if (url.origin === self.location.origin) {
-    e.respondWith(
-      fetch(anfrage)
-        .then((antwort) => {
+  e.respondWith(
+    fetch(anfrage)
+      .then((antwort) => {
+        if (antwort.ok) {
           const kopie = antwort.clone();
-          caches.open(VERSION).then((c) => c.put(anfrage, kopie));
-          return antwort;
-        })
-        .catch(() => caches.match(anfrage).then((treffer) => treffer || caches.match("./index.html")))
-    );
-  }
+          caches.open(VERSION).then((c) => c.put(anfrage, kopie)).catch(() => {});
+        }
+        return antwort;
+      })
+      .catch(async () => {
+        const treffer = await caches.match(anfrage);
+        if (treffer) return treffer;
+        // Nur beim Seitenaufruf auf die Startseite zurückfallen. Für Skripte und
+        // Stylesheets wäre HTML als Antwort fatal – die App bliebe leer.
+        if (anfrage.mode === "navigate") {
+          const start = await caches.match("./index.html");
+          if (start) return start;
+        }
+        return Response.error();
+      })
+  );
 });

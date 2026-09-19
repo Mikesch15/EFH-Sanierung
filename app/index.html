@@ -23,7 +23,13 @@
   </div>
 </header>
 
-<div id="app"></div>
+<div id="app">
+  <noscript>
+    <main><div class="karte karte-pad" style="margin:20px auto;max-width:520px">
+      <div class="hinweis warn"><div><b>JavaScript ist ausgeschaltet</b>Die App braucht JavaScript.</div></div>
+    </div></main>
+  </noscript>
+</div>
 
 <nav class="tabs-mobil" id="nav-mobil" hidden></nav>
 <div id="modal-wrap"></div>
@@ -34,7 +40,53 @@
   <option value="lfm"><option value="h"><option value="Tag"><option value="kg"><option value="Pos">
 </datalist>
 
+<script>
+  // Startprobleme sichtbar machen: Ohne das bliebe die Seite einfach leer,
+  // wenn ein Modul nicht lädt (z.B. blockiertes Netz, alter Zwischenspeicher).
+  window.startFehler = function (text) {
+    var ziel = document.getElementById("app");
+    if (!ziel || ziel.dataset.gestartet === "ja") return;
+    ziel.innerHTML =
+      '<main><div class="karte karte-pad" style="margin:20px auto;max-width:520px">' +
+      '<div class="hinweis fehler"><div><b>Die App konnte nicht starten</b>' +
+      String(text || "") + "</div></div>" +
+      '<div class="btn-reihe" style="margin-top:12px">' +
+      '<button class="btn" type="button" onclick="location.reload()">Neu laden</button>' +
+      '<button class="btn zweit" type="button" onclick="window.appZuruecksetzen()">Zwischenspeicher leeren</button>' +
+      "</div></div></main>";
+  };
+  // Leert Service-Worker-Cache und Registrierung – hilft nach einem fehlerhaften Stand.
+  window.appZuruecksetzen = async function () {
+    try {
+      if (window.caches) { const n = await caches.keys(); await Promise.all(n.map((x) => caches.delete(x))); }
+      if (navigator.serviceWorker) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.unregister()));
+      }
+    } catch (e) { /* egal */ }
+    location.reload();
+  };
+  window.addEventListener("error", function (e) {
+    if (e.target && (e.target.tagName === "SCRIPT" || e.target.tagName === "LINK")) {
+      window.startFehler("Eine Datei der App konnte nicht geladen werden: " + (e.target.src || e.target.href));
+    }
+  }, true);
+  setTimeout(function () {
+    window.startFehler("Der Start dauert ungewöhnlich lange. Meist hilft «Zwischenspeicher leeren».");
+  }, 8000);
+</script>
 <script type="module" src="js/app.js"></script>
+<script type="module">
+  // Läuft nur, wenn Module überhaupt unterstützt werden und app.js geladen hat.
+  window.addEventListener("unhandledrejection", (e) => {
+    if (document.getElementById("app").dataset.gestartet !== "ja") {
+      window.startFehler("Fehler beim Start: " + (e.reason && e.reason.message ? e.reason.message : e.reason));
+    }
+  });
+</script>
+<script nomodule>
+  window.startFehler("Dieser Browser ist zu alt für die App (keine JavaScript-Module).");
+</script>
 <script>
   // Service Worker nur für die App-Hülle – macht die App auf dem Handy installierbar.
   if ("serviceWorker" in navigator && location.protocol !== "file:") {

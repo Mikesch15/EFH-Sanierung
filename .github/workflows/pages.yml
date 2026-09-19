@@ -1,9 +1,13 @@
+# Optionaler Weg: nur den Ordner app/ veröffentlichen, damit die App direkt unter
+# https://<benutzername>.github.io/EFH-Sanierung/ liegt statt unter .../app/index.html.
+#
+# Dieser Workflow läuft NUR auf Knopfdruck (Actions → diesen Workflow → "Run workflow").
+# Voraussetzung: Settings → Pages → Source auf "GitHub Actions" umstellen. Solange dort
+# "Deploy from a branch" eingestellt ist, veröffentlicht GitHub das Repo selbst – dann
+# wird dieser Workflow nicht gebraucht und würde nur fehlschlagen.
 name: App auf GitHub Pages veröffentlichen
 
 on:
-  push:
-    branches: [main]
-    paths: ["app/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
