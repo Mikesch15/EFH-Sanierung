@@ -272,21 +272,42 @@ Deno.serve(async (anfrage) => {
   const base64 = btoa(binaer);
   const mimeTyp = datei.type || (pfad.toLowerCase().endsWith(".pdf") ? "application/pdf" : "image/jpeg");
 
-  const nutzlast = {
-    systemInstruction: { parts: [{ text: art === "beleg" ? ANWEISUNG_BELEG : ANWEISUNG_OFFERTE }] },
-    contents: [{
-      role: "user",
-      parts: [
-        { inlineData: { mimeType: mimeTyp, data: base64 } },
-        { text: art === "beleg" ? "Lies diesen Beleg aus." : "Lies diese Offerte aus." },
-      ],
-    }],
-    generationConfig: {
+  // Zwei Einstellungen, die den Unterschied zwischen "läuft" und "Zeitüberschreitung"
+  // ausmachen:
+  //
+  // thinkingLevel "LOW": Modelle der 3er-Generation denken immer mit und lassen sich
+  // nicht abschalten. Voreingestellt ist MEDIUM – das dauert bei einem dichten
+  // Dokument deutlich länger, als jemand vor dem Bildschirm warten mag. Das Auslesen
+  // einer Positionstabelle ist mechanisches Ablesen, kein mehrstufiges Überlegen;
+  // Google empfiehlt LOW genau dafür.
+  //
+  // maxOutputTokens 65536: Eine Offerte mit vielen Positionen ergibt viel JSON. Ist
+  // der Rahmen zu klein, bricht die Antwort mitten im Satz ab und ist unlesbar.
+  //
+  // Ältere Modelle kennen thinkingConfig nicht und lehnen die Anfrage ab – dann wird
+  // sie unten ohne diese Einstellung wiederholt.
+  function nutzlastBauen(mitDenken: boolean, mitSchema: boolean) {
+    const einstellungen: Record<string, unknown> = {
       temperature: 0,
+      maxOutputTokens: 65536,
       responseMimeType: "application/json",
-      responseSchema: art === "beleg" ? BELEG_SCHEMA : OFFERT_SCHEMA,
-    },
-  };
+    };
+    if (mitSchema) einstellungen.responseSchema = art === "beleg" ? BELEG_SCHEMA : OFFERT_SCHEMA;
+    if (mitDenken) einstellungen.thinkingConfig = { thinkingLevel: "LOW" };
+    return {
+      systemInstruction: { parts: [{ text: art === "beleg" ? ANWEISUNG_BELEG : ANWEISUNG_OFFERTE }] },
+      contents: [{
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: mimeTyp, data: base64 } },
+          { text: art === "beleg" ? "Lies diesen Beleg aus." : "Lies diese Offerte aus." },
+        ],
+      }],
+      generationConfig: einstellungen,
+    };
+  }
+  let mitDenken = true;
+  let mitSchema = true;
 
   const { modelle, fehler: listenFehler } = await modelleErmitteln(schluessel);
   if (!modelle.length) {
@@ -332,7 +353,7 @@ Deno.serve(async (anfrage) => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": schluessel },
-          body: JSON.stringify(nutzlast),
+          body: JSON.stringify(nutzlastBauen(mitDenken, mitSchema)),
           signal: AbortSignal.timeout(grenze),
         },
       );
@@ -370,6 +391,23 @@ Deno.serve(async (anfrage) => {
         i++;                               // Warten hilft beim Kontingent nicht
         continue;
       }
+      if (gemini.status === 400) {
+        // Das Modell kennt eine Einstellung nicht: ohne sie nochmals, statt aufzugeben.
+        const grund = kurzeBegruendung(text).toLowerCase();
+        if (mitDenken && grund.includes("thinking")) {
+          mitDenken = false;
+          protokoll.push(modell + ": ohne Denkstufe erneut");
+          versuche.splice(i + 1, 0, { modell, basis });
+          continue;
+        }
+        if (mitSchema && (grund.includes("schema") || grund.includes("response_schema"))) {
+          mitSchema = false;
+          protokoll.push(modell + ": ohne Antwortschema erneut");
+          versuche.splice(i + 1, 0, { modell, basis });
+          continue;
+        }
+        return antwort({ fehler: "Der KI-Dienst lehnt die Anfrage ab: " + kurzeBegruendung(text) }, 502);
+      }
       if (gemini.status === 500 || gemini.status === 503) {
         // "high demand" – vorübergehend. Gleich nochmals, dann das nächste Modell.
         ueberlastet = true;
@@ -384,6 +422,13 @@ Deno.serve(async (anfrage) => {
     const text = ergebnis?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || "").join("") ?? "";
     if (!text) {
       const grund = ergebnis?.candidates?.[0]?.finishReason ?? "unbekannt";
+      if (grund === "MAX_TOKENS") {
+        return antwort({
+          fehler: "Das Dokument enthält zu viele Positionen für eine Erkennung am Stück – " +
+            "die Antwort wurde abgeschnitten. Bitte die Offerte seitenweise hochladen oder " +
+            "die Positionen von Hand erfassen.",
+        }, 502);
+      }
       return antwort({ fehler: "Das Dokument konnte nicht ausgelesen werden (" + grund + ")." }, 502);
     }
     let werte: Record<string, unknown>;

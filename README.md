@@ -339,6 +339,21 @@ Gibt der Zugang kein Modell frei, steht die Begründung von Google wörtlich in 
 meist ist dann die «Generative Language API» im zugehörigen Google-Cloud-Projekt nicht
 aktiviert oder der Schlüssel eingeschränkt.
 
+**Zwei Einstellungen entscheiden über Erfolg oder Zeitüberschreitung** (übernommen aus
+einem laufenden Projekt derselben Person, in dem die Erkennung seit Längerem zuverlässig
+arbeitet):
+
+- `thinkingConfig: { thinkingLevel: "LOW" }` – Modelle der 3er-Generation denken immer
+  mit und lassen sich nicht abschalten; voreingestellt ist MEDIUM. Bei einem dichten
+  Dokument dauert das erheblich länger. Eine Positionstabelle auszulesen ist mechanisches
+  Ablesen, kein mehrstufiges Überlegen – Google empfiehlt LOW genau dafür.
+- `maxOutputTokens: 65536` – eine Offerte mit vielen Positionen ergibt viel JSON. Ist der
+  Rahmen zu klein, bricht die Antwort mitten im Satz ab (`finishReason: MAX_TOKENS`); die
+  App sagt dann, dass das Dokument seitenweise hochgeladen werden soll.
+
+Lehnt ein älteres Modell eine dieser Einstellungen ab (400), wird die Anfrage ohne sie
+wiederholt, statt aufzugeben.
+
 **Wenn der Dienst abweist,** gibt die Funktion nicht sofort auf. Sie probiert bis zu vier
 freigegebene Modelle, jedes bis zu zweimal mit ein paar Sekunden Abstand:
 
