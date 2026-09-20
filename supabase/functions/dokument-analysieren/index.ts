@@ -26,13 +26,19 @@ const BASIS = "https://generativelanguage.googleapis.com/v1beta";
 // Antwortet v1beta mit 404, ist derselbe Name unter v1 oft erreichbar.
 const BASIS_V1 = "https://generativelanguage.googleapis.com/v1";
 
-/** Je höher, desto lieber: schnell, aktuell, kann Dokumente lesen. */
+/**
+ * Je höher, desto lieber: aktuell zuerst, dann schnell.
+ *
+ * Die Versionsnummer wird gelesen, nicht aufgezählt. Fest eingetragene Nummern
+ * ("2.5 ist das neueste") veralten und lassen genau die Modelle zuletzt
+ * versuchen, die als einzige noch bedient werden.
+ */
 function modellRang(name: string): number {
   let rang = 0;
-  if (name.includes("flash")) rang += 10;
-  if (name.includes("pro")) rang += 4;
-  if (name.includes("2.5")) rang += 6;
-  else if (name.includes("2.0")) rang += 3;
+  const version = /(\d+)\.(\d+)/.exec(name);
+  if (version) rang += Number(version[1]) * 20 + Number(version[2]);
+  if (name.includes("flash")) rang += 8;        // schnell und günstig
+  if (name.includes("pro")) rang += 3;
   if (name.includes("latest")) rang += 2;
   if (name.includes("lite")) rang -= 3;
   if (name.includes("preview") || name.includes("exp")) rang -= 5;
@@ -120,6 +126,15 @@ async function modelleErmitteln(schluessel: string): Promise<{ modelle: string[]
   const liste = wunsch ? [wunsch, ...namen.filter((n) => n !== wunsch)] : namen;
   if (liste.length) zwischenspeicher = { modelle: liste, zeit: Date.now() };
   return { modelle: liste };
+}
+
+/** Die Begründung des Dienstes, ohne das Drumherum. */
+function kurzeBegruendung(text: string): string {
+  try {
+    return String(JSON.parse(text)?.error?.message ?? "").slice(0, 200);
+  } catch {
+    return text.slice(0, 200);
+  }
 }
 
 /** Aus einer 429-Antwort das Wesentliche ziehen: welches Kontingent, wie lange warten. */
@@ -284,6 +299,7 @@ Deno.serve(async (anfrage) => {
   }
 
   let letzterFehler = "";
+  let ersteAblehnung = "";
   let kontingentDetails = "";
   let ueberlastet = false;
   // Jedes Modell bis zu zweimal: Ein "gerade überlastet" ist oft nach ein paar
@@ -296,10 +312,18 @@ Deno.serve(async (anfrage) => {
   for (const modell of kandidaten) versuche.push({ modell, basis: BASIS }, { modell, basis: BASIS });
   const protokoll: string[] = [];
 
+  // Die App wartet höchstens 160 Sekunden. Danach nützt ein weiterer Versuch
+  // niemandem mehr – lieber mit einer brauchbaren Meldung aufhören.
+  const schluss = Date.now() + 125000;
+
   for (let i = 0; i < versuche.length; i++) {
     const { modell, basis } = versuche[i];
+    if (Date.now() > schluss) { protokoll.push("Zeit abgelaufen"); break; }
     const zweiterAnlauf = i > 0 && versuche[i - 1].modell === modell && versuche[i - 1].basis === basis;
     if (zweiterAnlauf) await new Promise((weiter) => setTimeout(weiter, 2500));
+    // Der erste Versuch bekommt Zeit zum Lesen; Wiederholungen sollen nur zeigen,
+    // ob die Überlastung vorbei ist.
+    const grenze = Math.max(20000, Math.min(zweiterAnlauf ? 45000 : 90000, schluss - Date.now()));
 
     let gemini: Response;
     try {
@@ -309,7 +333,7 @@ Deno.serve(async (anfrage) => {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": schluessel },
           body: JSON.stringify(nutzlast),
-          signal: AbortSignal.timeout(60000),
+          signal: AbortSignal.timeout(grenze),
         },
       );
     } catch (e) {
@@ -321,6 +345,7 @@ Deno.serve(async (anfrage) => {
     if (gemini.status === 404) {
       const text = await gemini.text();
       protokoll.push(modell + ": 404" + (basis === BASIS_V1 ? " (v1)" : ""));
+      if (!ersteAblehnung) ersteAblehnung = kurzeBegruendung(text);
       letzterFehler = "Modell " + modell + " abgelehnt: " + text.slice(0, 200);
       i++;                                 // Wiederholen ändert an einem 404 nichts
       if (basis === BASIS) {
@@ -393,6 +418,7 @@ Deno.serve(async (anfrage) => {
   }
   return antwort({
     fehler: (letzterFehler || "Kein passendes Modell verfügbar.") +
-      " Versucht: " + protokoll.join(", "),
+      " Versucht: " + protokoll.join(", ") +
+      (ersteAblehnung ? ". Begründung des Dienstes: " + ersteAblehnung : ""),
   }, 502);
 });
