@@ -237,6 +237,61 @@ export function nebenkostenLoeschen(id) {
   return schreiben(async () => pruefen(await supabase.from("kaufnebenkosten").delete().eq("id", id)));
 }
 
+/* ------------------------------------------------- Arbeiten und Pendenzen */
+// Der Bauablauf: Arbeiten mit Zeitraum, Pendenzen und Mängel mit Frist und Foto.
+export function arbeitenLaden(projektId) {
+  return lesen(async () =>
+    pruefen(
+      await supabase
+        .from("arbeiten")
+        .select("*")
+        .eq("projekt_id", projektId)
+        .order("von", { nullsFirst: false })
+        .order("erstellt_am")
+    )
+  );
+}
+
+function arbeitFelder(daten) {
+  return {
+    art: daten.art === "pendenz" ? "pendenz" : "arbeit",
+    titel: daten.titel || "",
+    beschreibung: daten.beschreibung || "",
+    firma: daten.firma || "",
+    ort: daten.ort || "",
+    status: daten.status || "Offen",
+    budgetposition_id: daten.budgetposition_id || null,
+    von: daten.von || null,
+    bis: daten.bis || null,
+    erledigt_am: daten.erledigt_am || null,
+    datei_pfad: daten.datei_pfad || null,
+    datei_name: daten.datei_name || null,
+  };
+}
+
+export function arbeitAnlegen(projektId, daten) {
+  return schreiben(async () =>
+    pruefen(
+      await supabase
+        .from("arbeiten")
+        .insert({ projekt_id: projektId, ...arbeitFelder(daten) })
+        .select()
+        .single()
+    )
+  );
+}
+
+export function arbeitAktualisieren(id, daten, geladenAm) {
+  return schreiben(async () => {
+    await konfliktPruefen("arbeiten", id, geladenAm);
+    return pruefen(await supabase.from("arbeiten").update(daten).eq("id", id).select().single());
+  });
+}
+
+export function arbeitLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("arbeiten").delete().eq("id", id)));
+}
+
 /* ---------------------------------------------------------- Anschaffungen */
 // Umzug, Möbel, Maschinen: ausserhalb des Sanierungsbudgets, meist über einen
 // eigenen Kredit. Fliesst bewusst in keine Budgetzahl ein.
@@ -579,6 +634,7 @@ export function projektAbonnieren(projektId, aufAenderung) {
     .on("postgres_changes", { event: "*", schema: "public", table: "kaufnebenkosten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("nebenkosten"))
     .on("postgres_changes", { event: "*", schema: "public", table: "foerdergelder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("foerdergelder"))
     .on("postgres_changes", { event: "*", schema: "public", table: "anschaffungen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("anschaffungen"))
+    .on("postgres_changes", { event: "*", schema: "public", table: "arbeiten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("arbeiten"))
     .on("postgres_changes", { event: "*", schema: "public", table: "projekt_mitglieder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("mitglieder"))
     .subscribe();
   return () => supabase.removeChannel(kanal);

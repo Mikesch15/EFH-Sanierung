@@ -17,6 +17,7 @@ dieses auch nicht.
 | Handwerker-Zugang für einzelne Offerten | fertig, siehe `app/handwerker.html` |
 | Register für Fördergelder | fertig, siehe «Fördergelder» |
 | Anschaffungen ausserhalb des Budgets (Kredit) | fertig, siehe «Anschaffungen» |
+| Zeitplan der Arbeiten, Pendenzen und Mängel | fertig, siehe «Arbeiten» |
 | Echte Dokumentenanalyse (Gemini) | fertig in der App, siehe «KI-Auswertung»; im Prototyp weiterhin simuliert |
 
 ## Supabase-Projekt
@@ -45,6 +46,7 @@ projekte                 Objekt, Adresse, Kaufpreis, Gesamtbudget, Kreditrahmen
    │  └─ offert_positionen   Nr., Beschreibung, Menge, Einheit, Einzelpreis
    ├─ belege             Netto, MWST, Brutto, bezahlt, Bezug zu Offerte und Datei
    ├─ foerdergelder      Beiträge von Bund, Kanton, Gemeinde, Werken – mit Stand und Frist
+   ├─ arbeiten           Zeitplan der Gewerke sowie Pendenzen und Mängel (mit Foto)
    └─ dokumente          Kaufvertrag, Pläne, Bewilligungen, Garantien
 ```
 
@@ -138,8 +140,9 @@ app/
   js/ki.js              KI-Auswertung: hochladen und Edge Function rufen (eine Funktion zum Austauschen)
   js/import.js          Übernahme der Prototyp-Sicherung
   js/app.js             Start, Navigation, Modal, Realtime
+  js/vorschau.js        Vorschaubilder: signierte Adressen gebündelt holen und merken
   js/ansichten/*.js     Anmeldung, Übersicht, Budget, Fördergelder, Anschaffungen,
-                        Offerten, Belege, Dokumente
+                        Offerten, Belege, Arbeiten, Dokumente
   js/paket/*.js         daraus gebaute Auslieferung (nicht von Hand ändern)
 ```
 
@@ -434,6 +437,27 @@ Bilder **in einer einzigen Anfrage** geholt und zwischengespeichert, damit nicht
 Neuzeichnen (etwa durch eine Änderung auf dem anderen Gerät) alle Bilder neu anfragt.
 Geladen wird erst, wenn die Kacheln stehen, und mit `loading="lazy"`.
 
+## Arbeiten: Zeitplan, Pendenzen und Mängel
+
+Der Tab *Arbeiten* beantwortet die zwei Fragen der Bauphase getrennt:
+
+**Zeitplan** – wann kommt welches Gewerk. Je Eintrag: Arbeit, Gewerk (Budgetkategorie),
+Raum, Firma, Zeitraum von–bis und der Stand *Offen → In Arbeit → Erledigt*. Ein Klick auf
+*Gestartet* beziehungsweise *Fertig* schaltet weiter, ohne das Formular zu öffnen.
+
+**Pendenzen & Mängel** – was noch fehlt oder nachgebessert werden muss. Dasselbe, aber mit
+Frist statt Zeitraum und mit **Foto**: Die Dateiauswahl öffnet am Handy direkt die Kamera
+(`capture="environment"`). Erledigte Punkte rutschen nach unten und werden blass, das
+Erledigt-Datum wird automatisch gesetzt.
+
+Ein verstrichener Termin ist rot als *überfällig* gekennzeichnet – in der Liste und in der
+Zusammenfassung. Auf der Übersicht steht der Abschnitt *Baustelle*: was in Arbeit ist, was
+diese Woche ansteht und wie viele Pendenzen offen sind. Er erscheint nur, wenn überhaupt
+etwas erfasst ist.
+
+Beides liegt in einer Tabelle (`arbeiten`, Spalte `art`): Die Felder sind fast dieselben,
+und so lässt sich «was ist überfällig» über beides hinweg beantworten.
+
 ## Migrationen anwenden
 
 Die Migrationen sind im Supabase-Projekt bereits eingespielt. Für eine zweite Umgebung
@@ -476,14 +500,18 @@ Am besten auf zwei Geräten (oder einem normalen Fenster und einem privaten Fens
 9. **Drei Dokumente auf einmal** hochladen (Tab *Dokumente* → *+ Dateien*, Mehrfachauswahl).
    Bilder landen dabei im eigenen Abschnitt *Fotos* mit Vorschau, alles andere in der
    Dokumenttabelle.
-10. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
+10. **Arbeiten planen**: Tab *Arbeiten* → *+ Arbeit* (Gewerk, Firma, Zeitraum), dann mit
+    *Gestartet* und *Fertig* weiterschalten. Unter *+ Pendenz* einen Punkt mit Foto
+    erfassen – die Kamera öffnet direkt. Auf der Übersicht erscheint der Abschnitt
+    *Baustelle*.
+11. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
    Werten passen. Der Kostenvergleich kommt aus der View `v_kostenvergleich`.
-11. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür
+12. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür
     nötigen Tabellen stehen seit Migration 0012 in der Veröffentlichung
     `supabase_realtime` – vorher war sie leer, und es wurde erst beim Tabwechsel
     aktualisiert); beim Zurückkehren
    in den Tab wird zusätzlich neu geladen.
-12. **Prototyp-Sicherung importieren**: im Prototyp *Daten exportieren*, dann in der App
+13. **Prototyp-Sicherung importieren**: im Prototyp *Daten exportieren*, dann in der App
     Übersicht → *Sicherung importieren*. Der erste Klick auf *Importieren* zeigt nur, was
     eingefügt würde; erst der zweite führt den Import aus. Derselbe Export wird pro Projekt
     nur einmal importiert.

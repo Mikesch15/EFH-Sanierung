@@ -1,69 +1,106 @@
 var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __esm = (fn, res, err) => function __init() {
+  if (err) throw err[0];
+  try {
+    return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+  } catch (e) {
+    throw err = [e], e;
+  }
+};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
+// app/js/konfig.js
+var SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, STORAGE_BUCKET, DATEI_MAX_BYTES, DATEI_ERLAUBTE_TYPEN, DATEI_ERLAUBTE_ENDUNGEN, MWST_SATZ_VORGABE, STATUS_LISTE, DOKUMENT_TYPEN, STANDARD_KATEGORIEN, NEBENKOSTEN_ARTEN, FOERDER_STATUS, FOERDER_STATUS_SICHER, FOERDER_STELLEN, ANSCHAFFUNG_ARTEN, FINANZIERUNGEN, ARBEIT_STATUS, ROLLEN, SIGNIERTER_LINK_SEKUNDEN, VORSCHAU_LINK_SEKUNDEN;
+var init_konfig = __esm({
+  "app/js/konfig.js"() {
+    SUPABASE_URL = "https://evozevkzwcvpbnvcmmfp.supabase.co";
+    SUPABASE_PUBLISHABLE_KEY = "sb_publishable_us-LmqO0xw7nYgraQ7KCNw_dukOK3K-";
+    STORAGE_BUCKET = "projektdateien";
+    DATEI_MAX_BYTES = 25 * 1024 * 1024;
+    DATEI_ERLAUBTE_TYPEN = ["application/pdf", "image/jpeg", "image/png", "image/heic", "image/webp"];
+    DATEI_ERLAUBTE_ENDUNGEN = [".pdf", ".jpg", ".jpeg", ".png", ".heic", ".webp"];
+    MWST_SATZ_VORGABE = 8.1;
+    STATUS_LISTE = ["Entwurf", "Erfasst", "Verglichen", "Beauftragt", "Abgelehnt"];
+    DOKUMENT_TYPEN = [
+      "Kaufvertrag",
+      "Reservationsvereinbarung",
+      "Grundriss",
+      "Plan",
+      "Baubewilligung",
+      "Handwerkerunterlagen",
+      "Garantie",
+      "Foto",
+      "Versicherungsunterlagen",
+      "Sonstiges"
+    ];
+    STANDARD_KATEGORIEN = [
+      "Rückbau / Entsorgung",
+      "Elektro",
+      "Wasser / Sanitär",
+      "Maurerarbeiten / Wanddurchbrüche",
+      "Wände / Decken",
+      "Böden",
+      "Küche",
+      "Badezimmer EG",
+      "Badezimmer OG",
+      "Fassade",
+      "Heizung",
+      "Fenster",
+      "Sonstiges",
+      "Reserve"
+    ];
+    NEBENKOSTEN_ARTEN = [
+      "Notariat",
+      "Handänderungssteuer",
+      "Grundbuchgebühren",
+      "Schätzung / Gutachten",
+      "Bankspesen",
+      "Gebäudeversicherung",
+      "Umzug",
+      "Sonstiges"
+    ];
+    FOERDER_STATUS = ["Geplant", "Beantragt", "Zugesichert", "Ausbezahlt", "Abgelehnt"];
+    FOERDER_STATUS_SICHER = ["Zugesichert", "Ausbezahlt"];
+    FOERDER_STELLEN = [
+      "Das Gebäudeprogramm",
+      "Kanton",
+      "Gemeinde",
+      "Bund",
+      "Elektrizitätswerk",
+      "Gasversorgung",
+      "Pronovo (Einmalvergütung)",
+      "Stiftung Klimaschutz",
+      "Sonstige"
+    ];
+    ANSCHAFFUNG_ARTEN = [
+      "Umzug",
+      "Möbel",
+      "Haushaltgeräte",
+      "Maschinen / Werkzeug",
+      "Garten",
+      "Reinigung",
+      "Vorhänge / Storen",
+      "Sonstiges"
+    ];
+    FINANZIERUNGEN = ["Kredit", "Eigenmittel"];
+    ARBEIT_STATUS = ["Offen", "In Arbeit", "Erledigt"];
+    ROLLEN = {
+      eigentuemer: "Eigentümer",
+      bearbeiter: "Bearbeiter",
+      leser: "Leser",
+      handwerker: "Handwerker"
+    };
+    SIGNIERTER_LINK_SEKUNDEN = 120;
+    VORSCHAU_LINK_SEKUNDEN = 600;
+  }
+});
+
 // app/js/supabase.js
 import { createClient } from "../vendor/supabase-js.js";
-
-// app/js/konfig.js
-var SUPABASE_URL = "https://evozevkzwcvpbnvcmmfp.supabase.co";
-var SUPABASE_PUBLISHABLE_KEY = "sb_publishable_us-LmqO0xw7nYgraQ7KCNw_dukOK3K-";
-var STORAGE_BUCKET = "projektdateien";
-var DATEI_MAX_BYTES = 25 * 1024 * 1024;
-var DATEI_ERLAUBTE_TYPEN = ["application/pdf", "image/jpeg", "image/png", "image/heic", "image/webp"];
-var DATEI_ERLAUBTE_ENDUNGEN = [".pdf", ".jpg", ".jpeg", ".png", ".heic", ".webp"];
-var MWST_SATZ_VORGABE = 8.1;
-var STATUS_LISTE = ["Entwurf", "Erfasst", "Verglichen", "Beauftragt", "Abgelehnt"];
-var DOKUMENT_TYPEN = [
-  "Kaufvertrag",
-  "Reservationsvereinbarung",
-  "Grundriss",
-  "Plan",
-  "Baubewilligung",
-  "Handwerkerunterlagen",
-  "Garantie",
-  "Foto",
-  "Versicherungsunterlagen",
-  "Sonstiges"
-];
-var STANDARD_KATEGORIEN = [
-  "Rückbau / Entsorgung",
-  "Elektro",
-  "Wasser / Sanitär",
-  "Maurerarbeiten / Wanddurchbrüche",
-  "Wände / Decken",
-  "Böden",
-  "Küche",
-  "Badezimmer EG",
-  "Badezimmer OG",
-  "Fassade",
-  "Heizung",
-  "Fenster",
-  "Sonstiges",
-  "Reserve"
-];
-var NEBENKOSTEN_ARTEN = [
-  "Notariat",
-  "Handänderungssteuer",
-  "Grundbuchgebühren",
-  "Schätzung / Gutachten",
-  "Bankspesen",
-  "Gebäudeversicherung",
-  "Umzug",
-  "Sonstiges"
-];
-var ROLLEN = {
-  eigentuemer: "Eigentümer",
-  bearbeiter: "Bearbeiter",
-  leser: "Leser",
-  handwerker: "Handwerker"
-};
-var SIGNIERTER_LINK_SEKUNDEN = 120;
-
-// app/js/supabase.js
-var merker = /* @__PURE__ */ new Map();
 function sichererSpeicher() {
   let echt = null;
   try {
@@ -105,27 +142,13 @@ function sichererSpeicher() {
     removeItem: (k) => merker.delete(k)
   };
 }
-var speicherIstFluechtig = (() => {
-  try {
-    window.localStorage.setItem("tw-probe", "1");
-    window.localStorage.removeItem("tw-probe");
-    return false;
-  } catch (e) {
-    return true;
-  }
-})();
-var ZEITLIMIT_MS = 12e3;
-var ZEITLIMIT_UPLOAD_MS = 12e4;
-var ZEITLIMIT_FUNKTION_MS = 15e4;
-function fetchMitZeitlimit(eingabe3, optionen) {
-  const adresse = typeof eingabe3 === "string" ? eingabe3 : eingabe3 && eingabe3.url || "";
+function fetchMitZeitlimit(eingabe7, optionen) {
+  const adresse = typeof eingabe7 === "string" ? eingabe7 : eingabe7 && eingabe7.url || "";
   const grenze = adresse.includes("/storage/v1/object") ? ZEITLIMIT_UPLOAD_MS : adresse.includes("/functions/v1/") ? ZEITLIMIT_FUNKTION_MS : ZEITLIMIT_MS;
   const abbruch = new AbortController();
   const uhr = setTimeout(() => abbruch.abort(), grenze);
-  return fetch(eingabe3, Object.assign({}, optionen, { signal: abbruch.signal })).finally(() => clearTimeout(uhr));
+  return fetch(eingabe7, Object.assign({}, optionen, { signal: abbruch.signal })).finally(() => clearTimeout(uhr));
 }
-var authSpeicher = sichererSpeicher();
-var sperrKette = Promise.resolve();
 function eigeneSperre(name, dauer, fn) {
   const vorher = sperrKette;
   const ergebnis = (async () => {
@@ -144,32 +167,12 @@ function gespeicherteSitzungVorhanden() {
     return false;
   }
 }
-var supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  global: { fetch: fetchMitZeitlimit },
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: authSpeicher,
-    // supabase-js serialisiert Auth-Vorgänge normalerweise über die Web-Locks-
-    // Schnittstelle. Die gilt fensterübergreifend: Hängt ein anderes Fenster
-    // derselben Adresse, warten hier alle Aufrufe endlos.
-    //
-    // Ganz ohne Serialisierung ist es aber auch nicht richtig – zwei gleichzeitige
-    // Token-Erneuerungen entwerten sich gegenseitig, und die Anmeldung geht
-    // verloren. Deshalb eine eigene Warteschlange, die nur in diesem Fenster gilt
-    // und zusätzlich nach 10 Sekunden weitermacht, statt zu blockieren.
-    lock: eigeneSperre
-  }
-});
 function istZeitueberschreitung(fehler) {
   if (!fehler) return false;
   const name = fehler.name || "";
   const text2 = String(fehler.message || fehler);
   return name === "AbortError" || /abort|timeout|Zeitüberschreitung/i.test(text2);
 }
-var MELDUNG_ZEITUEBERSCHREITUNG = "Der Server hat nicht geantwortet (Zeitüberschreitung). Bitte Verbindung prüfen und erneut versuchen.";
-var AUTH_ZEITLIMIT_MS = 15e3;
 function authMitZeitlimit(versprechen) {
   let uhr;
   const wecker = new Promise((_, ablehnen) => {
@@ -206,17 +209,104 @@ function istVerbindungsfehler(fehler) {
   const text2 = String(fehler.message || fehler);
   return /fetch|network|failed to fetch|NetworkError|Load failed/i.test(text2);
 }
-var MELDUNG_KEINE_VERBINDUNG = "Keine Verbindung zum Server. Bitte Internetverbindung prüfen und erneut versuchen.";
+var merker, speicherIstFluechtig, ZEITLIMIT_MS, ZEITLIMIT_UPLOAD_MS, ZEITLIMIT_FUNKTION_MS, authSpeicher, sperrKette, supabase, MELDUNG_ZEITUEBERSCHREITUNG, AUTH_ZEITLIMIT_MS, MELDUNG_KEINE_VERBINDUNG;
+var init_supabase = __esm({
+  "app/js/supabase.js"() {
+    init_konfig();
+    merker = /* @__PURE__ */ new Map();
+    speicherIstFluechtig = (() => {
+      try {
+        window.localStorage.setItem("tw-probe", "1");
+        window.localStorage.removeItem("tw-probe");
+        return false;
+      } catch (e) {
+        return true;
+      }
+    })();
+    ZEITLIMIT_MS = 12e3;
+    ZEITLIMIT_UPLOAD_MS = 12e4;
+    ZEITLIMIT_FUNKTION_MS = 15e4;
+    authSpeicher = sichererSpeicher();
+    sperrKette = Promise.resolve();
+    supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      global: { fetch: fetchMitZeitlimit },
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: authSpeicher,
+        // supabase-js serialisiert Auth-Vorgänge normalerweise über die Web-Locks-
+        // Schnittstelle. Die gilt fensterübergreifend: Hängt ein anderes Fenster
+        // derselben Adresse, warten hier alle Aufrufe endlos.
+        //
+        // Ganz ohne Serialisierung ist es aber auch nicht richtig – zwei gleichzeitige
+        // Token-Erneuerungen entwerten sich gegenseitig, und die Anmeldung geht
+        // verloren. Deshalb eine eigene Warteschlange, die nur in diesem Fenster gilt
+        // und zusätzlich nach 10 Sekunden weitermacht, statt zu blockieren.
+        lock: eigeneSperre
+      }
+    });
+    MELDUNG_ZEITUEBERSCHREITUNG = "Der Server hat nicht geantwortet (Zeitüberschreitung). Bitte Verbindung prüfen und erneut versuchen.";
+    AUTH_ZEITLIMIT_MS = 15e3;
+    MELDUNG_KEINE_VERBINDUNG = "Keine Verbindung zum Server. Bitte Internetverbindung prüfen und erneut versuchen.";
+  }
+});
 
 // app/js/daten.js
-var DatenFehler = class extends Error {
-  constructor(text2, keineVerbindung) {
-    super(text2);
-    this.keineVerbindung = !!keineVerbindung;
-  }
-};
-var VORGANG_ZEITLIMIT_MS = 15e3;
-var UPLOAD_ZEITLIMIT_MS = 13e4;
+var daten_exports = {};
+__export(daten_exports, {
+  ANALYSE_ZEITLIMIT_MS: () => ANALYSE_ZEITLIMIT_MS,
+  DatenFehler: () => DatenFehler,
+  UPLOAD_ZEITLIMIT_MS: () => UPLOAD_ZEITLIMIT_MS,
+  anschaffungAktualisieren: () => anschaffungAktualisieren,
+  anschaffungAnlegen: () => anschaffungAnlegen,
+  anschaffungLoeschen: () => anschaffungLoeschen,
+  anschaffungenLaden: () => anschaffungenLaden,
+  arbeitAktualisieren: () => arbeitAktualisieren,
+  arbeitAnlegen: () => arbeitAnlegen,
+  arbeitLoeschen: () => arbeitLoeschen,
+  arbeitenLaden: () => arbeitenLaden,
+  belegLoeschen: () => belegLoeschen,
+  belegSpeichern: () => belegSpeichern,
+  belegeLaden: () => belegeLaden,
+  budgetAktualisieren: () => budgetAktualisieren,
+  budgetAnlegen: () => budgetAnlegen,
+  budgetLaden: () => budgetLaden,
+  budgetLoeschen: () => budgetLoeschen,
+  dokumentAktualisieren: () => dokumentAktualisieren,
+  dokumentAnalysieren: () => dokumentAnalysieren,
+  dokumentLoeschen: () => dokumentLoeschen,
+  dokumenteAnlegen: () => dokumenteAnlegen,
+  dokumenteLaden: () => dokumenteLaden,
+  eigeneHandwerkerOfferte: () => eigeneHandwerkerOfferte,
+  einladungAnlegen: () => einladungAnlegen,
+  einladungEinloesen: () => einladungEinloesen,
+  einladungInfo: () => einladungInfo,
+  einladungZuruecknehmen: () => einladungZuruecknehmen,
+  einladungenLaden: () => einladungenLaden,
+  foerdergeldAktualisieren: () => foerdergeldAktualisieren,
+  foerdergeldAnlegen: () => foerdergeldAnlegen,
+  foerdergeldLoeschen: () => foerdergeldLoeschen,
+  foerdergelderLaden: () => foerdergelderLaden,
+  konfliktPruefen: () => konfliktPruefen,
+  kostenvergleichLaden: () => kostenvergleichLaden,
+  mitZeitlimit: () => mitZeitlimit,
+  mitgliedEntfernen: () => mitgliedEntfernen,
+  mitgliedHinzufuegen: () => mitgliedHinzufuegen,
+  mitgliedRolleAendern: () => mitgliedRolleAendern,
+  mitgliederLaden: () => mitgliederLaden,
+  nebenkostenAktualisieren: () => nebenkostenAktualisieren,
+  nebenkostenAnlegen: () => nebenkostenAnlegen,
+  nebenkostenLaden: () => nebenkostenLaden,
+  nebenkostenLoeschen: () => nebenkostenLoeschen,
+  offerteLoeschen: () => offerteLoeschen,
+  offerteSpeichern: () => offerteSpeichern,
+  offertenLaden: () => offertenLaden,
+  projektAbonnieren: () => projektAbonnieren,
+  projektAktualisieren: () => projektAktualisieren,
+  projektAnlegen: () => projektAnlegen,
+  projekteLaden: () => projekteLaden
+});
 function mitZeitlimit(versprechen, grenze = VORGANG_ZEITLIMIT_MS) {
   let uhr;
   const wecker = new Promise((_, ablehnen) => {
@@ -238,8 +328,6 @@ async function schreiben(fn, grenze) {
     throw new DatenFehler(e.message || String(e));
   }
 }
-var lesen = schreiben;
-var ANALYSE_ZEITLIMIT_MS = 16e4;
 async function dokumentAnalysieren(pfad, art) {
   let antwort;
   try {
@@ -315,6 +403,21 @@ function mitgliederLaden(projektId) {
     )
   );
 }
+function mitgliedHinzufuegen(projektId, email, rolle) {
+  return schreiben(async () => {
+    const benutzerId = pruefen(await supabase.rpc("benutzer_id_zu_email", { p_email: email }));
+    if (!benutzerId) {
+      const fehler = new DatenFehler(
+        "Diese Person hat noch kein Konto. Sie muss sich zuerst selbst registrieren, danach kann sie hinzugefügt werden."
+      );
+      fehler.unbekannt = true;
+      throw fehler;
+    }
+    return pruefen(
+      await supabase.from("projekt_mitglieder").insert({ projekt_id: projektId, benutzer_id: benutzerId, rolle, email: email.trim() }).select().single()
+    );
+  });
+}
 function mitgliedRolleAendern(projektId, benutzerId, rolle) {
   return schreiben(
     async () => pruefen(
@@ -358,6 +461,117 @@ function nebenkostenAktualisieren(id, daten, geladenAm) {
 }
 function nebenkostenLoeschen(id) {
   return schreiben(async () => pruefen(await supabase.from("kaufnebenkosten").delete().eq("id", id)));
+}
+function arbeitenLaden(projektId) {
+  return lesen(
+    async () => pruefen(
+      await supabase.from("arbeiten").select("*").eq("projekt_id", projektId).order("von", { nullsFirst: false }).order("erstellt_am")
+    )
+  );
+}
+function arbeitFelder(daten) {
+  return {
+    art: daten.art === "pendenz" ? "pendenz" : "arbeit",
+    titel: daten.titel || "",
+    beschreibung: daten.beschreibung || "",
+    firma: daten.firma || "",
+    ort: daten.ort || "",
+    status: daten.status || "Offen",
+    budgetposition_id: daten.budgetposition_id || null,
+    von: daten.von || null,
+    bis: daten.bis || null,
+    erledigt_am: daten.erledigt_am || null,
+    datei_pfad: daten.datei_pfad || null,
+    datei_name: daten.datei_name || null
+  };
+}
+function arbeitAnlegen(projektId, daten) {
+  return schreiben(
+    async () => pruefen(
+      await supabase.from("arbeiten").insert({ projekt_id: projektId, ...arbeitFelder(daten) }).select().single()
+    )
+  );
+}
+function arbeitAktualisieren(id, daten, geladenAm) {
+  return schreiben(async () => {
+    await konfliktPruefen("arbeiten", id, geladenAm);
+    return pruefen(await supabase.from("arbeiten").update(daten).eq("id", id).select().single());
+  });
+}
+function arbeitLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("arbeiten").delete().eq("id", id)));
+}
+function anschaffungenLaden(projektId) {
+  return lesen(
+    async () => pruefen(
+      await supabase.from("anschaffungen").select("*").eq("projekt_id", projektId).order("sortierung").order("erstellt_am")
+    )
+  );
+}
+function anschaffungAnlegen(projektId, daten) {
+  return schreiben(
+    async () => pruefen(
+      await supabase.from("anschaffungen").insert({
+        projekt_id: projektId,
+        bezeichnung: daten.bezeichnung || "",
+        kategorie: daten.kategorie || "",
+        betrag: daten.betrag || 0,
+        datum: daten.datum || null,
+        bezahlt: !!daten.bezahlt,
+        finanzierung: daten.finanzierung === "Eigenmittel" ? "Eigenmittel" : "Kredit",
+        bemerkung: daten.bemerkung || ""
+      }).select().single()
+    )
+  );
+}
+function anschaffungAktualisieren(id, daten, geladenAm) {
+  return schreiben(async () => {
+    await konfliktPruefen("anschaffungen", id, geladenAm);
+    return pruefen(await supabase.from("anschaffungen").update(daten).eq("id", id).select().single());
+  });
+}
+function anschaffungLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("anschaffungen").delete().eq("id", id)));
+}
+function foerdergelderLaden(projektId) {
+  return lesen(
+    async () => pruefen(
+      await supabase.from("foerdergelder").select("*").eq("projekt_id", projektId).order("sortierung").order("erstellt_am")
+    )
+  );
+}
+function foerderFelder(daten) {
+  return {
+    bezeichnung: daten.bezeichnung || "",
+    stelle: daten.stelle || "",
+    gesuchsnummer: daten.gesuchsnummer || "",
+    betrag: daten.betrag || 0,
+    status: daten.status || "Geplant",
+    budgetposition_id: daten.budgetposition_id || null,
+    frist: daten.frist || null,
+    eingereicht_am: daten.eingereicht_am || null,
+    entscheid_am: daten.entscheid_am || null,
+    auszahlung_am: daten.auszahlung_am || null,
+    bemerkung: daten.bemerkung || "",
+    datei_pfad: daten.datei_pfad || null,
+    datei_name: daten.datei_name || null
+  };
+}
+function foerdergeldAnlegen(projektId, daten) {
+  return schreiben(
+    async () => pruefen(
+      await supabase.from("foerdergelder").insert({ projekt_id: projektId, ...foerderFelder(daten) }).select().single()
+    )
+  );
+}
+function foerdergeldAktualisieren(id, daten, geladenAm) {
+  return schreiben(async () => {
+    await konfliktPruefen("foerdergelder", id, geladenAm);
+    return pruefen(await supabase.from("foerdergelder").update(daten).eq("id", id).select().single());
+  });
+}
+function foerdergeldLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("foerdergelder").delete().eq("id", id)));
 }
 function einladungenLaden(projektId) {
   return lesen(
@@ -456,6 +670,13 @@ function offerteSpeichern(projektId, offerte, geladenAm) {
 function offerteLoeschen(id) {
   return schreiben(async () => pruefen(await supabase.from("offerten").delete().eq("id", id)));
 }
+function eigeneHandwerkerOfferte(offerteId) {
+  return lesen(
+    async () => pruefen(
+      await supabase.from("offerten").select("*, offert_positionen(*)").eq("id", offerteId).single()
+    )
+  );
+}
 function belegeLaden(projektId) {
   return lesen(
     async () => pruefen(
@@ -522,9 +743,25 @@ function kostenvergleichLaden(projektId) {
   );
 }
 function projektAbonnieren(projektId, aufAenderung) {
-  const kanal = supabase.channel("projekt-" + projektId).on("postgres_changes", { event: "*", schema: "public", table: "budgetpositionen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("budget")).on("postgres_changes", { event: "*", schema: "public", table: "offerten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "offert_positionen" }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "belege", filter: "projekt_id=eq." + projektId }, () => aufAenderung("belege")).on("postgres_changes", { event: "*", schema: "public", table: "dokumente", filter: "projekt_id=eq." + projektId }, () => aufAenderung("dokumente")).on("postgres_changes", { event: "*", schema: "public", table: "projekt_mitglieder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("mitglieder")).subscribe();
+  const kanal = supabase.channel("projekt-" + projektId).on("postgres_changes", { event: "*", schema: "public", table: "budgetpositionen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("budget")).on("postgres_changes", { event: "*", schema: "public", table: "offerten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "offert_positionen" }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "belege", filter: "projekt_id=eq." + projektId }, () => aufAenderung("belege")).on("postgres_changes", { event: "*", schema: "public", table: "dokumente", filter: "projekt_id=eq." + projektId }, () => aufAenderung("dokumente")).on("postgres_changes", { event: "*", schema: "public", table: "kaufnebenkosten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("nebenkosten")).on("postgres_changes", { event: "*", schema: "public", table: "foerdergelder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("foerdergelder")).on("postgres_changes", { event: "*", schema: "public", table: "anschaffungen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("anschaffungen")).on("postgres_changes", { event: "*", schema: "public", table: "arbeiten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("arbeiten")).on("postgres_changes", { event: "*", schema: "public", table: "projekt_mitglieder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("mitglieder")).subscribe();
   return () => supabase.removeChannel(kanal);
 }
+var DatenFehler, VORGANG_ZEITLIMIT_MS, UPLOAD_ZEITLIMIT_MS, lesen, ANALYSE_ZEITLIMIT_MS;
+var init_daten = __esm({
+  "app/js/daten.js"() {
+    init_supabase();
+    DatenFehler = class extends Error {
+      constructor(text2, keineVerbindung) {
+        super(text2);
+        this.keineVerbindung = !!keineVerbindung;
+      }
+    };
+    VORGANG_ZEITLIMIT_MS = 15e3;
+    UPLOAD_ZEITLIMIT_MS = 13e4;
+    lesen = schreiben;
+    ANALYSE_ZEITLIMIT_MS = 16e4;
+  }
+});
 
 // app/js/format.js
 function esc(s) {
@@ -579,11 +816,12 @@ function meldung(text2, fehler) {
 function bestaetigen(text2) {
   return window.confirm(text2);
 }
+var init_format = __esm({
+  "app/js/format.js"() {
+  }
+});
 
 // app/js/ansichten/anmeldung.js
-var modus = "anmelden";
-var hinweis = "";
-var schonUmgeschaltet = false;
 function render() {
   if (Z.einladung && modus === "anmelden" && !schonUmgeschaltet) {
     schonUmgeschaltet = true;
@@ -649,14 +887,17 @@ function uebersetzeFehler(text2) {
   if (/fetch|network/i.test(text2)) return "Keine Verbindung zum Server. Bitte Internetverbindung prüfen.";
   return text2;
 }
-
-// app/js/ansichten/uebersicht.js
-var uebersicht_exports = {};
-__export(uebersicht_exports, {
-  aenderung: () => aenderung,
-  aktion: () => aktion2,
-  render: () => render2,
-  renderProjektAnlegen: () => renderProjektAnlegen
+var modus, hinweis, schonUmgeschaltet;
+var init_anmeldung = __esm({
+  "app/js/ansichten/anmeldung.js"() {
+    init_format();
+    init_supabase();
+    init_app();
+    init_konfig();
+    modus = "anmelden";
+    hinweis = "";
+    schonUmgeschaltet = false;
+  }
 });
 
 // app/js/ansichten/gemeinsam.js
@@ -681,6 +922,12 @@ function belegBrutto(b) {
 function budgetZaehlt(p) {
   return p.beruecksichtigt !== false;
 }
+function foerderIstSicher(f) {
+  return FOERDER_STATUS_SICHER.includes(f.status);
+}
+function foerderIstOffen(f) {
+  return f.status === "Geplant" || f.status === "Beantragt";
+}
 function summen(Z2) {
   const gesamtbudget = zahl(Z2.projekt?.gesamtbudget);
   const kaufpreis = zahl(Z2.projekt?.kaufpreis);
@@ -697,6 +944,15 @@ function summen(Z2) {
     const verrechnet = Z2.belege.filter((b) => b.offerte_id === o.id).reduce((s, b) => s + belegBrutto(b), 0);
     verpflichtet += Math.max(0, offerteTotal(o) - verrechnet);
   });
+  const foerder = Z2.foerdergelder || [];
+  const foerderGesichert = foerder.filter(foerderIstSicher).reduce((s, f) => s + zahl(f.betrag), 0);
+  const foerderErwartet = foerder.filter(foerderIstOffen).reduce((s, f) => s + zahl(f.betrag), 0);
+  const foerderAusbezahlt = foerder.filter((f) => f.status === "Ausbezahlt").reduce((s, f) => s + zahl(f.betrag), 0);
+  const anschaffungen = Z2.anschaffungen || [];
+  const anschaffungenSumme = anschaffungen.reduce((s, a) => s + zahl(a.betrag), 0);
+  const anschaffungenBezahlt = anschaffungen.filter((a) => a.bezahlt).reduce((s, a) => s + zahl(a.betrag), 0);
+  const kreditVerwendet = anschaffungen.filter((a) => a.finanzierung !== "Eigenmittel").reduce((s, a) => s + zahl(a.betrag), 0);
+  const kreditRahmen = zahl(Z2.projekt?.kredit_rahmen);
   return {
     gesamtbudget,
     kaufpreis,
@@ -705,12 +961,20 @@ function summen(Z2) {
     budgetiert,
     spaeter,
     spaeterAnzahl,
+    anschaffungenSumme,
+    anschaffungenBezahlt,
+    kreditVerwendet,
+    kreditRahmen,
+    kreditFrei: kreditRahmen - kreditVerwendet,
     offerten,
     rechnungen,
     bezahlt,
     verpflichtet,
+    foerderGesichert,
+    foerderErwartet,
+    foerderAusbezahlt,
     offen: rechnungen - bezahlt,
-    verfuegbar: rahmen - rechnungen - verpflichtet
+    verfuegbar: rahmen - rechnungen - verpflichtet + foerderGesichert
   };
 }
 function kpi(label, wert, zusatz, klasse) {
@@ -746,6 +1010,12 @@ function ladeSchritte(schritte, aktiv) {
     (t, i) => "<li" + (i < aktiv ? ' class="fertig"' : "") + ">" + esc(t) + "</li>"
   ).join("") + "</ul>";
 }
+var init_gemeinsam = __esm({
+  "app/js/ansichten/gemeinsam.js"() {
+    init_format();
+    init_konfig();
+  }
+});
 
 // app/js/import.js
 function paketAusDatei(text2) {
@@ -870,17 +1140,448 @@ async function importDurchfuehren(projektId, erstellt, daten) {
     dokumente: daten.dokumente.length
   };
 }
+var init_import = __esm({
+  "app/js/import.js"() {
+    init_format();
+    init_daten();
+  }
+});
+
+// app/js/dateien.js
+function endung(name) {
+  const i = name.lastIndexOf(".");
+  return i === -1 ? "" : name.slice(i).toLowerCase();
+}
+function dateiPruefen(datei) {
+  if (datei.size > DATEI_MAX_BYTES) {
+    return "Datei ist zu gross (" + (datei.size / 1024 / 1024).toFixed(1) + " MB). Erlaubt sind höchstens 25 MB.";
+  }
+  const typOk = datei.type ? DATEI_ERLAUBTE_TYPEN.includes(datei.type) : false;
+  const endungOk = DATEI_ERLAUBTE_ENDUNGEN.includes(endung(datei.name));
+  if (!typOk && !endungOk) {
+    return "Dateityp nicht erlaubt. Nur PDF, JPG, PNG, HEIC oder WEBP.";
+  }
+  return null;
+}
+async function hochladen(datei, projektId, bereich) {
+  const fehler = dateiPruefen(datei);
+  if (fehler) {
+    const e = new DatenFehler(fehler);
+    e.ungueltig = true;
+    throw e;
+  }
+  const uuid = crypto.randomUUID();
+  const pfad = projektId + "/" + bereich + "/" + uuid + endung(datei.name);
+  try {
+    const { error } = await mitZeitlimit(
+      supabase.storage.from(STORAGE_BUCKET).upload(pfad, datei, {
+        contentType: datei.type || void 0,
+        upsert: false
+      }),
+      UPLOAD_ZEITLIMIT_MS
+    );
+    if (error) throw error;
+  } catch (e) {
+    if (istZeitueberschreitung(e)) throw new DatenFehler(MELDUNG_ZEITUEBERSCHREITUNG, true);
+    if (istVerbindungsfehler(e)) throw new DatenFehler(MELDUNG_KEINE_VERBINDUNG, true);
+    throw new DatenFehler("Hochladen fehlgeschlagen: " + (e.message || e));
+  }
+  return { datei_pfad: pfad, datei_name: datei.name };
+}
+async function signierterLink(pfad) {
+  if (!pfad) return null;
+  let data, error;
+  try {
+    ({ data, error } = await mitZeitlimit(
+      supabase.storage.from(STORAGE_BUCKET).createSignedUrl(pfad, SIGNIERTER_LINK_SEKUNDEN)
+    ));
+  } catch (e) {
+    throw e instanceof DatenFehler ? e : new DatenFehler("Datei nicht verfügbar: " + (e.message || e));
+  }
+  if (error) {
+    if (istZeitueberschreitung(error)) throw new DatenFehler(MELDUNG_ZEITUEBERSCHREITUNG, true);
+    throw new DatenFehler(istVerbindungsfehler(error) ? MELDUNG_KEINE_VERBINDUNG : "Datei nicht verfügbar: " + error.message, istVerbindungsfehler(error));
+  }
+  return data.signedUrl;
+}
+async function vorschauLinks(pfade) {
+  if (!pfade.length) return {};
+  let data, error;
+  try {
+    ({ data, error } = await mitZeitlimit(
+      supabase.storage.from(STORAGE_BUCKET).createSignedUrls(pfade, VORSCHAU_LINK_SEKUNDEN)
+    ));
+  } catch (e) {
+    throw e instanceof DatenFehler ? e : new DatenFehler("Vorschau nicht verfügbar: " + (e.message || e));
+  }
+  if (error) throw new DatenFehler("Vorschau nicht verfügbar: " + error.message, istVerbindungsfehler(error));
+  const karte = {};
+  (data || []).forEach((eintrag) => {
+    if (eintrag && eintrag.signedUrl && !eintrag.error) karte[eintrag.path] = eintrag.signedUrl;
+  });
+  return karte;
+}
+async function loeschen(pfad) {
+  if (!pfad) return;
+  let error = null;
+  try {
+    ({ error } = await supabase.storage.from(STORAGE_BUCKET).remove([pfad]));
+  } catch (e) {
+    console.warn("Datei konnte nicht gelöscht werden:", pfad, e.message);
+    return;
+  }
+  if (error && !istVerbindungsfehler(error)) {
+    console.warn("Datei konnte nicht gelöscht werden:", pfad, error.message);
+  }
+}
+var init_dateien = __esm({
+  "app/js/dateien.js"() {
+    init_supabase();
+    init_konfig();
+    init_daten();
+  }
+});
+
+// app/js/vorschau.js
+function istBild(mimeTyp, dateiname) {
+  if (mimeTyp) return mimeTyp.startsWith("image/");
+  return BILD_ENDUNG.test(dateiname || "");
+}
+function istAnzeigbar(mimeTyp, dateiname) {
+  if (mimeTyp) return ANZEIGBAR_TYP.test(mimeTyp);
+  return ANZEIGBAR_ENDUNG.test(dateiname || "");
+}
+function ausSpeicher(pfad) {
+  const eintrag = speicher.get(pfad);
+  if (!eintrag || Date.now() - eintrag.zeit > GUELTIG_MS) return null;
+  return eintrag.url;
+}
+function bildMarkierung(pfad, name) {
+  const gespeichert = ausSpeicher(pfad);
+  return '<img alt="' + esc(name || "") + '" loading="lazy" data-vorschau="' + esc(pfad) + '"' + (gespeichert ? ' src="' + esc(gespeichert) + '"' : "") + ">";
+}
+function ersatz(bild, text2) {
+  const halter = bild.parentElement;
+  if (!halter) return;
+  bild.remove();
+  halter.innerHTML = '<span class="foto-ersatz">' + esc(text2) + "</span>";
+}
+async function nachladen() {
+  if (laeuft) return;
+  document.querySelectorAll("img[data-vorschau]").forEach((bild) => {
+    if (bild.dataset.wacht) return;
+    bild.dataset.wacht = "1";
+    bild.addEventListener("error", () => ersatz(bild, "Vorschau nicht geladen"));
+  });
+  const offen = Array.from(document.querySelectorAll("img[data-vorschau]")).filter((bild) => !bild.getAttribute("src"));
+  const pfade = [...new Set(offen.map((bild) => bild.dataset.vorschau))];
+  if (!pfade.length) return;
+  laeuft = true;
+  try {
+    const karte = await vorschauLinks(pfade);
+    Object.entries(karte).forEach(([pfad, url]) => speicher.set(pfad, { url, zeit: Date.now() }));
+    offen.forEach((bild) => {
+      const url = karte[bild.dataset.vorschau];
+      if (url) bild.setAttribute("src", url);
+      else ersatz(bild, "kein Zugriff");
+    });
+  } catch (e) {
+    offen.forEach((bild) => ersatz(bild, "Vorschau nicht geladen"));
+  } finally {
+    laeuft = false;
+  }
+}
+function nachladenBald() {
+  setTimeout(nachladen, 0);
+}
+var BILD_ENDUNG, ANZEIGBAR_TYP, ANZEIGBAR_ENDUNG, speicher, GUELTIG_MS, laeuft;
+var init_vorschau = __esm({
+  "app/js/vorschau.js"() {
+    init_format();
+    init_dateien();
+    BILD_ENDUNG = /\.(jpe?g|png|webp|gif|heic|heif)$/i;
+    ANZEIGBAR_TYP = /^image\/(jpeg|png|webp|gif)$/i;
+    ANZEIGBAR_ENDUNG = /\.(jpe?g|png|webp|gif)$/i;
+    speicher = /* @__PURE__ */ new Map();
+    GUELTIG_MS = 8 * 60 * 1e3;
+    laeuft = false;
+  }
+});
+
+// app/js/ansichten/arbeiten.js
+var arbeiten_exports = {};
+__export(arbeiten_exports, {
+  aktion: () => aktion2,
+  eingabe: () => eingabe,
+  istDieseWoche: () => istDieseWoche,
+  istOffen: () => istOffen,
+  istUeberfaellig: () => istUeberfaellig,
+  render: () => render2
+});
+function istOffen(a) {
+  return a.status !== "Erledigt";
+}
+function istUeberfaellig(a) {
+  if (!istOffen(a)) return false;
+  const ende = a.bis || a.von;
+  return !!ende && ende < heuteISO();
+}
+function istDieseWoche(a) {
+  if (!istOffen(a)) return false;
+  const heute = heuteISO();
+  const inSieben = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+  const start2 = a.von || a.bis;
+  const ende = a.bis || a.von;
+  if (!start2 && !ende) return false;
+  return (start2 || "") <= inSieben && (ende || "9999-12-31") >= heute;
+}
+function statusBadge2(a) {
+  const farbe = { "Offen": "", "In Arbeit": "blau", "Erledigt": "gruen" };
+  return '<span class="badge ' + (farbe[a.status] || "") + '">' + esc(a.status) + "</span>" + (istUeberfaellig(a) ? ' <span class="badge rot">überfällig</span>' : "");
+}
+function zeitraum(a) {
+  if (a.von && a.bis) return a.von === a.bis ? datumCH(a.von) : datumCH(a.von) + " – " + datumCH(a.bis);
+  if (a.von) return "ab " + datumCH(a.von);
+  if (a.bis) return "bis " + datumCH(a.bis);
+  return "ohne Termin";
+}
+function sortiert(liste) {
+  return liste.slice().sort((a, b) => {
+    if (istOffen(a) !== istOffen(b)) return istOffen(a) ? -1 : 1;
+    const ta = a.von || a.bis || "9999-12-31";
+    const tb = b.von || b.bis || "9999-12-31";
+    return ta < tb ? -1 : ta > tb ? 1 : 0;
+  });
+}
+function naechsterStand(a) {
+  if (a.status === "Erledigt") return { status: "Offen", text: "Wieder öffnen" };
+  if (a.art === "pendenz") return { status: "Erledigt", text: "Erledigt" };
+  return a.status === "Offen" ? { status: "In Arbeit", text: "Gestartet" } : { status: "Erledigt", text: "Fertig" };
+}
+function render2(Z2) {
+  const alle = Z2.arbeiten || [];
+  const arbeiten = sortiert(alle.filter((a) => a.art !== "pendenz"));
+  const pendenzen = sortiert(alle.filter((a) => a.art === "pendenz"));
+  let h = '<nav class="sprungleiste"><a href="#abschnitt-zeitplan">Zeitplan</a><a href="#abschnitt-pendenzen">Pendenzen &amp; Mängel</a></nav>';
+  h += zeitplanAbschnitt(Z2, arbeiten) + pendenzAbschnitt(Z2, pendenzen);
+  nachladenBald();
+  return h;
+}
+function zeitplanAbschnitt(Z2, liste) {
+  const bearbeitbar = kannBearbeiten();
+  const laufend = liste.filter((a) => a.status === "In Arbeit").length;
+  const ueberfaellig = liste.filter(istUeberfaellig).length;
+  let h = '<section class="abschnitt" id="abschnitt-zeitplan"><div class="abschnitt-kopf"><div><h2>Zeitplan</h2><p>' + (liste.length ? liste.filter(istOffen).length + " offen · " + laufend + " in Arbeit" + (ueberfaellig ? " · " + ueberfaellig + " überfällig" : "") : "Wann kommt welcher Handwerker") + "</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="arbeit-neu">+ Arbeit</button>' : "") + "</div>";
+  if (!liste.length) {
+    h += leerZustand(
+      "Noch keine Arbeiten geplant",
+      "Halten Sie fest, wann welches Gewerk kommt: Rückbau, Elektro, Sanitär, Böden. Danach steht auf der Übersicht, was diese Woche läuft.",
+      bearbeitbar ? '<button class="btn" type="button" data-aktion="arbeit-neu">Erste Arbeit planen</button>' : ""
+    );
+    return h + "</section>";
+  }
+  h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Arbeit</th><th>Gewerk</th><th>Firma</th><th>Termin</th><th>Stand</th><th></th></tr></thead><tbody>';
+  liste.forEach((a) => {
+    const weiter = naechsterStand(a);
+    h += "<tr" + (istOffen(a) ? "" : ' class="spaeter"') + "><td><b>" + esc(a.titel || "Ohne Bezeichnung") + "</b>" + (a.ort ? '<div style="font-size:.76rem;color:var(--grau)">' + esc(a.ort) + "</div>" : "") + (a.beschreibung ? '<div style="font-size:.76rem;color:var(--grau);white-space:normal;max-width:260px">' + esc(a.beschreibung) + "</div>" : "") + "</td><td>" + esc(kategorieName(Z2.budget, a.budgetposition_id)) + "</td><td>" + esc(a.firma || "–") + "</td><td>" + esc(zeitraum(a)) + "</td><td>" + statusBadge2(a) + "</td><td>" + (bearbeitbar ? '<div class="zeile-aktion"><button class="btn still klein" type="button" data-aktion="arbeit-stand" data-id="' + a.id + '">' + weiter.text + '</button><button class="btn still klein" type="button" data-aktion="arbeit-bearbeiten" data-id="' + a.id + '">Bearbeiten</button><button class="btn still klein" type="button" data-aktion="arbeit-loeschen" data-id="' + a.id + '">Löschen</button></div>' : "") + "</td></tr>";
+  });
+  return h + "</tbody></table></div></div></section>";
+}
+function pendenzAbschnitt(Z2, liste) {
+  const bearbeitbar = kannBearbeiten();
+  const offen = liste.filter(istOffen);
+  const ueberfaellig = offen.filter(istUeberfaellig).length;
+  let h = '<section class="abschnitt" id="abschnitt-pendenzen"><div class="abschnitt-kopf"><div><h2>Pendenzen &amp; Mängel</h2><p>' + (liste.length ? offen.length + " offen" + (ueberfaellig ? " · " + ueberfaellig + " überfällig" : "") + " · " + (liste.length - offen.length) + " erledigt" : "Was noch fehlt oder nachgebessert werden muss") + "</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="pendenz-neu">+ Pendenz</button>' : "") + "</div>";
+  if (!liste.length) {
+    h += leerZustand(
+      "Keine offenen Punkte",
+      "Was bei einem Rundgang auffällt, gehört hierhin: mit Foto, Raum, zuständiger Firma und Frist. Für den Baualltag und später für die Abnahme.",
+      bearbeitbar ? '<button class="btn" type="button" data-aktion="pendenz-neu">Ersten Punkt erfassen</button>' : ""
+    );
+    return h + "</section>";
+  }
+  h += '<div class="karte"><ul class="pendenz-liste">';
+  liste.forEach((a) => {
+    const weiter = naechsterStand(a);
+    const bild = a.datei_pfad && istAnzeigbar(null, a.datei_name || a.datei_pfad);
+    h += '<li class="pendenz' + (istOffen(a) ? "" : " erledigt") + '">' + (a.datei_pfad ? '<button class="pendenz-bild" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(a.datei_pfad) + '" title="Foto öffnen">' + (bild ? bildMarkierung(a.datei_pfad, a.titel) : '<span class="foto-ersatz">Datei</span>') + "</button>" : '<span class="pendenz-bild leer"></span>') + '<div class="pendenz-text"><b>' + esc(a.titel || "Ohne Bezeichnung") + "</b>" + (a.beschreibung ? "<div>" + esc(a.beschreibung) + "</div>" : "") + '<div class="pendenz-fuss">' + (a.ort ? esc(a.ort) + " · " : "") + esc(kategorieName(Z2.budget, a.budgetposition_id)) + (a.firma ? " · " + esc(a.firma) : "") + (a.bis ? " · Frist " + datumCH(a.bis) : "") + (a.erledigt_am && !istOffen(a) ? " · erledigt " + datumCH(a.erledigt_am) : "") + " " + statusBadge2(a) + "</div></div>" + (bearbeitbar ? '<div class="pendenz-aktion"><button class="btn still klein" type="button" data-aktion="arbeit-stand" data-id="' + a.id + '">' + weiter.text + '</button><button class="btn still klein" type="button" data-aktion="arbeit-bearbeiten" data-id="' + a.id + '">Bearbeiten</button><button class="btn still klein" type="button" data-aktion="arbeit-loeschen" data-id="' + a.id + '">Löschen</button></div>' : "") + "</li>";
+  });
+  return h + "</ul></div></section>";
+}
+function formular(Z2, a, art) {
+  dateiWartend = null;
+  entwurf = a ? JSON.parse(JSON.stringify(a)) : {
+    id: null,
+    art,
+    titel: "",
+    beschreibung: "",
+    firma: "",
+    ort: "",
+    status: "Offen",
+    budgetposition_id: null,
+    von: art === "arbeit" ? heuteISO() : "",
+    bis: "",
+    erledigt_am: null,
+    datei_pfad: null,
+    datei_name: null
+  };
+  modalOeffnen({
+    titel: (entwurf.id ? "Bearbeiten: " : "Neu: ") + (entwurf.art === "pendenz" ? "Pendenz / Mangel" : "Arbeit"),
+    koerper: koerper(Z2),
+    speichern: () => speichern(Z2)
+  });
+}
+function koerper(Z2) {
+  const a = entwurf;
+  const pendenz = a.art === "pendenz";
+  let h = '<label class="feld"><span>' + (pendenz ? "Was fehlt oder ist mangelhaft" : "Arbeit") + '</span><input data-feld="titel" value="' + esc(a.titel) + '" placeholder="' + (pendenz ? "z.B. Steckdose Küche fehlt" : "z.B. Elektroinstallation EG") + '"></label><div class="feld-paar"><label class="feld"><span>Gewerk / Kategorie</span><select data-feld="budgetposition_id">' + kategorieOptionen(Z2.budget, a.budgetposition_id) + '</select></label><label class="feld"><span>Raum / Ort</span><input data-feld="ort" value="' + esc(a.ort) + '" placeholder="z.B. Küche"></label></div><label class="feld"><span>Firma</span><input data-feld="firma" value="' + esc(a.firma) + '" placeholder="z.B. Meier Elektro AG"></label>';
+  h += '<div class="feld-paar">' + (pendenz ? '<label class="feld"><span>Frist</span><input type="date" data-feld="bis" value="' + esc(a.bis || "") + '"></label>' : '<label class="feld"><span>Beginn</span><input type="date" data-feld="von" value="' + esc(a.von || "") + '"></label><label class="feld"><span>Ende</span><input type="date" data-feld="bis" value="' + esc(a.bis || "") + '"></label>') + '<label class="feld"><span>Stand</span><select data-feld="status">' + ARBEIT_STATUS.map((s) => "<option" + (s === a.status ? " selected" : "") + ">" + s + "</option>").join("") + "</select></label></div>";
+  h += '<label class="feld"><span>Bemerkung</span><textarea data-feld="beschreibung" placeholder="optional">' + esc(a.beschreibung || "") + "</textarea></label>";
+  if (pendenz) h += fotoBlock();
+  return h;
+}
+function fotoBlock() {
+  const a = entwurf;
+  if (a.datei_pfad) {
+    return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Foto: ' + esc(a.datei_name || "") + '</b><div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(a.datei_pfad) + '">Foto öffnen</button><button class="btn still klein" type="button" data-aktion="pendenz-foto-weg">Foto entfernen</button></div></div></div>';
+  }
+  return '<div class="datei-feld" style="margin-bottom:14px"><p>Foto aufnehmen oder wählen (optional)</p><input type="file" id="p-foto" accept="image/*" capture="environment"></div>';
+}
+async function speichern(Z2) {
+  const a = entwurf;
+  if (!a.titel.trim()) {
+    meldung("Bitte eine Bezeichnung angeben.", true);
+    return false;
+  }
+  const daten = {
+    art: a.art,
+    titel: a.titel.trim(),
+    beschreibung: (a.beschreibung || "").trim(),
+    firma: (a.firma || "").trim(),
+    ort: (a.ort || "").trim(),
+    status: a.status,
+    budgetposition_id: a.budgetposition_id || null,
+    von: a.von || null,
+    bis: a.bis || null,
+    // Beim Erledigen das Datum festhalten, beim Wiederöffnen entfernen.
+    erledigt_am: a.status === "Erledigt" ? a.erledigt_am || heuteISO() : null,
+    datei_pfad: a.datei_pfad,
+    datei_name: a.datei_name
+  };
+  const feld = document.getElementById("p-foto");
+  if (!dateiWartend && feld && feld.files && feld.files[0]) dateiWartend = feld.files[0];
+  try {
+    if (dateiWartend) {
+      const info = await hochladen(dateiWartend, Z2.projektId, "arbeiten");
+      daten.datei_pfad = info.datei_pfad;
+      daten.datei_name = info.datei_name;
+    }
+    if (a.id) await arbeitAktualisieren(a.id, daten, a.geaendert_am);
+    else await arbeitAnlegen(Z2.projektId, daten);
+    meldung(a.id ? "Gespeichert." : a.art === "pendenz" ? "Pendenz erfasst." : "Arbeit geplant.");
+    dateiWartend = null;
+    await neuLaden(["arbeiten"]);
+    return true;
+  } catch (err) {
+    meldung(err.message, true);
+    return false;
+  }
+}
+function eingabe(e) {
+  if (!document.querySelector(".modal") || !entwurf) return;
+  const feld = e.target.closest("[data-feld]");
+  if (!feld) return;
+  const name = feld.dataset.feld;
+  if (name === "budgetposition_id") {
+    entwurf.budgetposition_id = feld.value || null;
+    return;
+  }
+  entwurf[name] = feld.value;
+}
+function aktion2(a, knopf, Z2) {
+  if (a === "arbeit-neu") return formular(Z2, null, "arbeit");
+  if (a === "pendenz-neu") return formular(Z2, null, "pendenz");
+  if (a === "arbeit-bearbeiten") {
+    const eintrag = (Z2.arbeiten || []).find((x) => x.id === knopf.dataset.id);
+    return formular(Z2, eintrag, eintrag ? eintrag.art : "arbeit");
+  }
+  if (a === "arbeit-stand") {
+    const eintrag = (Z2.arbeiten || []).find((x) => x.id === knopf.dataset.id);
+    if (!eintrag) return;
+    const weiter = naechsterStand(eintrag);
+    knopf.disabled = true;
+    arbeitAktualisieren(eintrag.id, {
+      status: weiter.status,
+      erledigt_am: weiter.status === "Erledigt" ? heuteISO() : null
+    }, eintrag.geaendert_am).then(() => neuLaden(["arbeiten"])).catch((err) => {
+      knopf.disabled = false;
+      meldung(err.message, true);
+    });
+    return;
+  }
+  if (a === "arbeit-loeschen") {
+    const eintrag = (Z2.arbeiten || []).find((x) => x.id === knopf.dataset.id);
+    if (eintrag && bestaetigen('"' + (eintrag.titel || "") + '" löschen?')) {
+      (async () => {
+        try {
+          if (eintrag.datei_pfad) await loeschen(eintrag.datei_pfad);
+          await arbeitLoeschen(eintrag.id);
+          meldung("Gelöscht.");
+          await neuLaden(["arbeiten"]);
+        } catch (err) {
+          meldung(err.message, true);
+        }
+      })();
+    }
+    return;
+  }
+  if (a === "pendenz-foto-weg") {
+    if (entwurf.datei_pfad) loeschen(entwurf.datei_pfad).catch(() => {
+    });
+    entwurf.datei_pfad = null;
+    entwurf.datei_name = null;
+    dateiWartend = null;
+    const koerperEl = document.querySelector(".modal-koerper");
+    if (koerperEl) koerperEl.innerHTML = koerper(Z2);
+    return;
+  }
+  if (a === "datei-oeffnen" && knopf.dataset.pfad) {
+    signierterLink(knopf.dataset.pfad).then((url) => {
+      if (url) window.open(url, "_blank");
+    }).catch((e) => meldung(e.message, true));
+  }
+}
+var entwurf, dateiWartend;
+var init_arbeiten = __esm({
+  "app/js/ansichten/arbeiten.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_dateien();
+    init_vorschau();
+    init_app();
+    init_konfig();
+    entwurf = null;
+    dateiWartend = null;
+  }
+});
 
 // app/js/ansichten/uebersicht.js
-var importDaten = null;
+var uebersicht_exports = {};
+__export(uebersicht_exports, {
+  aenderung: () => aenderung,
+  aktion: () => aktion3,
+  render: () => render3,
+  renderProjektAnlegen: () => renderProjektAnlegen
+});
 function renderProjektAnlegen() {
   return '<main><div style="max-width:480px;margin:40px auto;padding:0 14px"><div class="karte karte-pad"><h2>Projekt einrichten</h2><p style="margin:6px 0 16px;font-size:.87rem;color:var(--text-2)">Objekt, Adresse, Kaufpreis und Gesamtbudget sind noch nicht erfasst.</p><label class="feld"><span>Objekt / Projektname</span><input id="p-name" placeholder="z.B. Einfamilienhaus Tulpenweg 37"></label><label class="feld"><span>Adresse</span><input id="p-adresse" placeholder="Strasse Nr., PLZ Ort"></label><label class="feld"><span>Kaufpreis (CHF)</span><input id="p-kauf" inputmode="decimal" placeholder="0"></label><p style="margin:-4px 0 12px;font-size:.78rem;color:var(--grau)">Kaufnebenkosten (Notariat, Handänderungssteuer, Grundbuch …) erfassen Sie danach einzeln in der Übersicht.</p><label class="feld"><span>Gesamtbudget (CHF)</span><input id="p-gesamt" inputmode="decimal" placeholder="0"></label><div id="p-fehler"></div><button class="btn breit" type="button" data-aktion="projekt-anlegen">Projekt anlegen</button></div></div></main>';
 }
-function render2(Z2) {
+function render3(Z2) {
   const s = summen(Z2);
   let h = "";
   const anteilRahmen = s.rahmen > 0 ? Math.min(100, s.rechnungen / s.rahmen * 100) : 0;
-  h += '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Übersicht</h2><p>' + esc([Z2.projekt.name, Z2.projekt.adresse].filter(Boolean).join(" · ") || "Projekt ohne Namen") + " · Stand " + datumCH(heuteISO()) + '</p></div><button class="btn still klein" type="button" data-aktion="eckdaten">Eckdaten</button></div><div class="kpi-raster"><div class="kpi gross"><div class="label">Verfügbar für die Sanierung</div><div class="wert zahl">' + chfKurz(s.verfuegbar) + '</div><div class="zusatz">Sanierungsrahmen ' + chfKurz(s.rahmen) + " abzüglich Rechnungen und beauftragter Offerten</div></div>" + kpi("Gesamtbudget", chfKurz(s.gesamtbudget), "inkl. Kaufpreis und Nebenkosten", "") + kpi(
+  h += '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Übersicht</h2><p>' + esc([Z2.projekt.name, Z2.projekt.adresse].filter(Boolean).join(" · ") || "Projekt ohne Namen") + " · Stand " + datumCH(heuteISO()) + '</p></div><button class="btn still klein" type="button" data-aktion="eckdaten">Eckdaten</button></div><div class="kpi-raster"><div class="kpi gross"><div class="label">Verfügbar für die Sanierung</div><div class="wert zahl">' + chfKurz(s.verfuegbar) + '</div><div class="zusatz">Sanierungsrahmen ' + chfKurz(s.rahmen) + " abzüglich Rechnungen und beauftragter Offerten" + (s.foerderGesichert ? ", zuzüglich gesicherter Fördergelder " + chfKurz(s.foerderGesichert) : "") + "</div></div>" + kpi("Gesamtbudget", chfKurz(s.gesamtbudget), "inkl. Kaufpreis und Nebenkosten", "") + kpi(
     "Kaufpreis",
     chfKurz(s.kaufpreis),
     s.kaufnebenkosten ? "zzgl. Nebenkosten " + chfKurz(s.kaufnebenkosten) : "ohne Nebenkosten",
@@ -890,7 +1591,17 @@ function render2(Z2) {
     chfKurz(s.kaufnebenkosten),
     (Z2.nebenkosten || []).length + " Positionen, siehe unten",
     ""
-  ) + kpi("Sanierungsrahmen", chfKurz(s.rahmen), "Gesamtbudget − Kaufpreis − Nebenkosten", "rand-blau") + kpi("Offertsumme", chfKurz(s.offerten), Z2.offerten.length + " Offerten, ohne abgelehnte", "rand-blau") + kpi("Rechnungssumme", chfKurz(s.rechnungen), Z2.belege.length + " Belege, inkl. MWST", "rand-amber") + kpi("Bezahlt", chfKurz(s.bezahlt), "offen: " + chfKurz(s.offen), "rand-gruen") + (s.spaeter ? kpi(
+  ) + kpi("Sanierungsrahmen", chfKurz(s.rahmen), "Gesamtbudget − Kaufpreis − Nebenkosten", "rand-blau") + kpi("Offertsumme", chfKurz(s.offerten), Z2.offerten.length + " Offerten, ohne abgelehnte", "rand-blau") + kpi("Rechnungssumme", chfKurz(s.rechnungen), Z2.belege.length + " Belege, inkl. MWST", "rand-amber") + kpi("Bezahlt", chfKurz(s.bezahlt), "offen: " + chfKurz(s.offen), "rand-gruen") + (s.foerderGesichert || s.foerderErwartet ? kpi(
+    "Fördergelder gesichert",
+    chfKurz(s.foerderGesichert),
+    s.foerderErwartet ? "erwartet: " + chfKurz(s.foerderErwartet) : "zugesichert oder ausbezahlt",
+    "rand-gruen"
+  ) : "") + (s.anschaffungenSumme ? kpi(
+    "Anschaffungen",
+    chfKurz(s.anschaffungenSumme),
+    s.kreditVerwendet ? "ausserhalb des Budgets · Kredit " + chfKurz(s.kreditVerwendet) : "ausserhalb des Sanierungsbudgets",
+    ""
+  ) : "") + (s.spaeter ? kpi(
     "Später vorgesehen",
     chfKurz(s.spaeter),
     s.spaeterAnzahl + (s.spaeterAnzahl === 1 ? " Position zählt" : " Positionen zählen") + " noch nicht mit",
@@ -900,6 +1611,7 @@ function render2(Z2) {
   const b2 = s.rahmen > 0 ? Math.max(0, Math.min(100 - b1, (s.rechnungen - s.bezahlt) / s.rahmen * 100)) : 0;
   const b3 = s.rahmen > 0 ? Math.max(0, Math.min(100 - b1 - b2, s.verpflichtet / s.rahmen * 100)) : 0;
   h += '<section class="abschnitt"><div class="karte karte-pad"><div class="abschnitt-kopf" style="margin-left:0;margin-right:0"><div><h3>Sanierungsbudget</h3><p>' + Math.round(anteilRahmen) + ' % des Rahmens sind verrechnet</p></div><div class="zahl" style="font-weight:650">' + chfKurz(s.rechnungen) + " / " + chfKurz(s.rahmen) + '</div></div><div class="balken"><i class="b-bezahlt" style="width:' + b1.toFixed(2) + '%"></i><i class="b-offen" style="width:' + b2.toFixed(2) + '%"></i><i class="b-verpflichtet" style="width:' + b3.toFixed(2) + '%"></i></div><div class="legende"><span><i class="punkt" style="background:var(--blau-700)"></i>bezahlt ' + chfKurz(s.bezahlt) + '</span><span><i class="punkt" style="background:#8FB6D4"></i>Rechnungen offen ' + chfKurz(s.offen) + '</span><span><i class="punkt" style="background:#D3DFEA"></i>beauftragt, noch ohne Rechnung ' + chfKurz(s.verpflichtet) + "</span></div>" + (s.budgetiert > s.rahmen ? '<div class="hinweis warn" style="margin-top:12px"><div>Die Budgetpositionen ergeben ' + chf(s.budgetiert) + " und liegen damit über dem Sanierungsrahmen von " + chf(s.rahmen) + ".</div></div>" : "") + "</div></section>";
+  h += baustelle(Z2);
   const kats = (Z2.kostenvergleich || []).filter((k) => k.budget > 0 || k.ist > 0).slice(0, 8);
   h += '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Kosten nach Kategorien</h2><p>Ist-Kosten im Vergleich zum Budget</p></div><button class="btn still klein" type="button" data-ansicht="budget">Alle</button></div><div class="karte karte-pad">';
   if (!kats.length) {
@@ -1025,7 +1737,7 @@ function aenderung(e, Z2) {
     });
   }
 }
-async function aktion2(a, knopf, Z2) {
+async function aktion3(a, knopf, Z2) {
   const el2 = (id) => document.getElementById(id);
   if (a === "projekt-anlegen") {
     const fehlerFeld = el2("p-fehler");
@@ -1242,18 +1954,373 @@ function importOeffnen(Z2, modalOeffnen2, neuLaden2) {
     }
   });
 }
+function baustelle(Z2) {
+  const alle = Z2.arbeiten || [];
+  if (!alle.length) return "";
+  const arbeiten = alle.filter((a) => a.art !== "pendenz");
+  const pendenzen = alle.filter((a) => a.art === "pendenz");
+  const dieseWoche = arbeiten.filter(istDieseWoche);
+  const laufend = arbeiten.filter((a) => a.status === "In Arbeit");
+  const offenePendenzen = pendenzen.filter(istOffen);
+  const ueberfaellig = alle.filter(istUeberfaellig);
+  let h = '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Baustelle</h2><p>Was läuft und was noch offen ist</p></div><button class="btn still klein" type="button" data-ansicht="arbeiten">Alle</button></div><div class="karte karte-pad">';
+  if (ueberfaellig.length) {
+    h += '<div class="hinweis warn" style="margin-bottom:12px"><div><b>' + ueberfaellig.length + (ueberfaellig.length === 1 ? " Termin ist verstrichen" : " Termine sind verstrichen") + "</b>" + ueberfaellig.slice(0, 3).map((a) => esc(a.titel)).join(" · ") + (ueberfaellig.length > 3 ? " …" : "") + "</div></div>";
+  }
+  h += '<ul class="liste">';
+  if (laufend.length) {
+    h += '<li><div class="haupt"><div class="titel">In Arbeit</div><div class="unter">' + esc(laufend.map((a) => a.titel).join(" · ")) + '</div></div><div class="betrag">' + laufend.length + "</div></li>";
+  }
+  h += '<li><div class="haupt"><div class="titel">Diese Woche</div><div class="unter">' + (dieseWoche.length ? esc(dieseWoche.map((a) => a.titel + (a.firma ? " (" + a.firma + ")" : "")).join(" · ")) : "nichts eingeplant") + '</div></div><div class="betrag">' + dieseWoche.length + "</div></li>";
+  h += '<li><div class="haupt"><div class="titel">Offene Pendenzen</div><div class="unter">' + (offenePendenzen.length ? esc(offenePendenzen.slice(0, 3).map((a) => a.titel).join(" · ")) + (offenePendenzen.length > 3 ? " …" : "") : "keine") + '</div></div><div class="betrag">' + offenePendenzen.length + "</div></li>";
+  return h + "</ul></div></section>";
+}
+var importDaten;
+var init_uebersicht = __esm({
+  "app/js/ansichten/uebersicht.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_konfig();
+    init_import();
+    init_arbeiten();
+    init_app();
+    importDaten = null;
+  }
+});
+
+// app/js/ansichten/foerdergelder.js
+function statusBadge3(status) {
+  const farbe = { Geplant: "", Beantragt: "blau", Zugesichert: "gruen", Ausbezahlt: "gruen", Abgelehnt: "rot" };
+  return '<span class="badge ' + (farbe[status] || "") + '">' + esc(status || "Geplant") + "</span>";
+}
+function fristVersaeumt(f) {
+  return !!f.frist && f.status === "Geplant" && f.frist < heuteISO();
+}
+function datumSpalte(f) {
+  if (f.status === "Ausbezahlt" && f.auszahlung_am) return "ausbezahlt " + datumCH(f.auszahlung_am);
+  if (f.status === "Zugesichert" && f.entscheid_am) return "zugesichert " + datumCH(f.entscheid_am);
+  if (f.status === "Abgelehnt" && f.entscheid_am) return "abgelehnt " + datumCH(f.entscheid_am);
+  if (f.status === "Beantragt" && f.eingereicht_am) return "eingereicht " + datumCH(f.eingereicht_am);
+  if (f.frist) return "Frist " + datumCH(f.frist);
+  return "–";
+}
+function render4(Z2) {
+  const liste = Z2.foerdergelder || [];
+  const bearbeitbar = kannBearbeiten();
+  const gesichert = liste.filter(foerderIstSicher).reduce((s, f) => s + zahl(f.betrag), 0);
+  const erwartet = liste.filter(foerderIstOffen).reduce((s, f) => s + zahl(f.betrag), 0);
+  let h = '<section class="abschnitt" id="abschnitt-foerderung"><div class="abschnitt-kopf"><div><h2>Fördergelder</h2><p>' + (liste.length ? "gesichert " + chfKurz(gesichert) + (erwartet ? " · erwartet " + chfKurz(erwartet) : "") : "Beiträge von Bund, Kanton, Gemeinde und Werken") + "</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="foerder-neu">+ Fördergeld</button>' : "") + "</div>";
+  if (!liste.length) {
+    h += leerZustand(
+      "Noch keine Fördergelder erfasst",
+      "Gesuche für Wärmepumpe, Dämmung, Fenster oder Solaranlage hier festhalten – mit Frist, Stand und Betrag. Achtung: Viele Programme verlangen das Gesuch vor Baubeginn.",
+      bearbeitbar ? '<button class="btn" type="button" data-aktion="foerder-neu">Erstes Fördergeld erfassen</button>' : ""
+    );
+    return h + "</section>";
+  }
+  const offeneFristen = liste.filter(fristVersaeumt);
+  if (offeneFristen.length) {
+    h += '<div class="hinweis warn" style="margin-bottom:12px"><div><b>Frist verstrichen</b>' + offeneFristen.map((f) => esc(f.bezeichnung || f.stelle || "Fördergeld") + " (" + datumCH(f.frist) + ")").join(" · ") + " – noch nicht eingereicht.</div></div>";
+  }
+  h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Förderung</th><th>Stelle</th><th>Kategorie</th><th>Stand</th><th>Datum</th><th class="num">Betrag</th><th></th></tr></thead><tbody>';
+  liste.forEach((f) => {
+    const sicher = foerderIstSicher(f);
+    h += "<tr><td><b>" + esc(f.bezeichnung || "Ohne Bezeichnung") + "</b>" + (f.datei_pfad ? ' <span class="badge">Datei</span>' : "") + (f.gesuchsnummer ? '<div style="font-size:.76rem;color:var(--grau)">Gesuch ' + esc(f.gesuchsnummer) + "</div>" : "") + "</td><td>" + esc(f.stelle || "–") + "</td><td>" + esc(kategorieName(Z2.budget, f.budgetposition_id)) + "</td><td>" + statusBadge3(f.status) + (fristVersaeumt(f) ? ' <span class="badge rot">Frist</span>' : "") + "</td><td>" + esc(datumSpalte(f)) + '</td><td class="num"' + (sicher ? "" : ' style="color:var(--grau)"') + "><b>" + chf(f.betrag) + '</b></td><td><div class="zeile-aktion">' + (f.datei_pfad ? '<button class="btn still klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(f.datei_pfad) + '">Datei</button>' : "") + '<button class="btn still klein" type="button" data-aktion="foerder-bearbeiten" data-id="' + f.id + '">' + (bearbeitbar ? "Bearbeiten" : "Ansehen") + "</button>" + (bearbeitbar ? '<button class="btn still klein" type="button" data-aktion="foerder-loeschen" data-id="' + f.id + '">Löschen</button>' : "") + "</div></td></tr>";
+  });
+  h += '</tbody><tfoot><tr><td colspan="5">Gesichert (zugesichert oder ausbezahlt)</td><td class="num">' + chf(gesichert) + "</td><td></td></tr>" + (erwartet ? '<tr><td colspan="5" style="color:var(--grau)">Erwartet (geplant oder eingereicht)</td><td class="num" style="color:var(--grau)">' + chf(erwartet) + "</td><td></td></tr>" : "") + '</tfoot></table></div><div class="karte-pad" style="border-top:1px solid var(--linie);font-size:.8rem;color:var(--grau)">Nur gesicherte Beiträge erhöhen den verfügbaren Betrag. Erwartete Beiträge sind hier ausgewiesen, zählen aber erst mit der Zusicherung.</div></div>';
+  return h + "</section>";
+}
+function formular2(Z2, f) {
+  dateiWartend2 = null;
+  entwurf2 = f ? JSON.parse(JSON.stringify(f)) : {
+    id: null,
+    bezeichnung: "",
+    stelle: "",
+    gesuchsnummer: "",
+    betrag: 0,
+    status: "Geplant",
+    budgetposition_id: null,
+    frist: "",
+    eingereicht_am: "",
+    entscheid_am: "",
+    auszahlung_am: "",
+    bemerkung: "",
+    datei_pfad: null,
+    datei_name: null
+  };
+  modalOeffnen({
+    titel: entwurf2.id ? "Fördergeld bearbeiten" : "Neues Fördergeld",
+    koerper: koerper2(Z2),
+    speichern: () => speichern2(Z2)
+  });
+}
+function koerper2(Z2) {
+  const f = entwurf2;
+  return '<label class="feld"><span>Förderung / Massnahme</span><input data-feld="bezeichnung" value="' + esc(f.bezeichnung) + '" placeholder="z.B. Ersatz Ölheizung durch Wärmepumpe"></label><div class="feld-paar"><label class="feld"><span>Fördergeber</span><input list="foerder-stellen" data-feld="stelle" value="' + esc(f.stelle) + '" placeholder="z.B. Das Gebäudeprogramm"><datalist id="foerder-stellen">' + FOERDER_STELLEN.map((s) => '<option value="' + esc(s) + '">').join("") + '</datalist></label><label class="feld"><span>Gesuchsnummer</span><input data-feld="gesuchsnummer" value="' + esc(f.gesuchsnummer) + '" placeholder="optional"></label></div><div class="feld-paar"><label class="feld"><span>Betrag (CHF)</span><input inputmode="decimal" data-feld="betrag" value="' + zahl(f.betrag) + '" placeholder="8000"></label><label class="feld"><span>Stand</span><select data-feld="status">' + FOERDER_STATUS.map((s) => "<option" + (s === f.status ? " selected" : "") + ">" + s + "</option>").join("") + '</select></label></div><p style="margin:-6px 0 12px;font-size:.78rem;color:var(--grau)">Bis zur Zusicherung ist das der erwartete Beitrag, danach der verfügte. Erst ab «Zugesichert» zählt er zum verfügbaren Geld.</p><label class="feld"><span>Budgetkategorie</span><select data-feld="budgetposition_id">' + kategorieOptionen(Z2.budget, f.budgetposition_id) + '</select></label><div class="feld-paar"><label class="feld"><span>Eingabefrist</span><input type="date" data-feld="frist" value="' + esc(f.frist || "") + '"></label><label class="feld"><span>Eingereicht am</span><input type="date" data-feld="eingereicht_am" value="' + esc(f.eingereicht_am || "") + '"></label></div><div class="feld-paar"><label class="feld"><span>Entscheid am</span><input type="date" data-feld="entscheid_am" value="' + esc(f.entscheid_am || "") + '"></label><label class="feld"><span>Ausbezahlt am</span><input type="date" data-feld="auszahlung_am" value="' + esc(f.auszahlung_am || "") + '"></label></div>' + dateiBlock() + '<label class="feld"><span>Bemerkung</span><textarea data-feld="bemerkung" placeholder="optional">' + esc(f.bemerkung || "") + "</textarea></label>";
+}
+function dateiBlock() {
+  const f = entwurf2;
+  if (f.datei_pfad) {
+    return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Datei: ' + esc(f.datei_name || "") + '</b><div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(f.datei_pfad) + '">Datei öffnen</button><button class="btn still klein" type="button" data-aktion="foerder-datei-entfernen">Datei entfernen</button></div></div></div>';
+  }
+  return '<div class="datei-feld" style="margin-bottom:14px"><p>Zusicherung, Verfügung oder Gesuch anhängen (optional)</p><input type="file" id="foerder-datei" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"></div>';
+}
+function datumNachziehen() {
+  const f = entwurf2;
+  if (f.status === "Beantragt" && !f.eingereicht_am) f.eingereicht_am = heuteISO();
+  if ((f.status === "Zugesichert" || f.status === "Abgelehnt") && !f.entscheid_am) f.entscheid_am = heuteISO();
+  if (f.status === "Ausbezahlt" && !f.auszahlung_am) f.auszahlung_am = heuteISO();
+}
+async function speichern2(Z2) {
+  const f = entwurf2;
+  if (!f.bezeichnung.trim() && !f.stelle.trim()) {
+    meldung("Bitte mindestens eine Bezeichnung oder den Fördergeber angeben.", true);
+    return false;
+  }
+  const daten = {
+    bezeichnung: f.bezeichnung.trim(),
+    stelle: f.stelle.trim(),
+    gesuchsnummer: f.gesuchsnummer.trim(),
+    betrag: zahl(f.betrag),
+    status: f.status,
+    budgetposition_id: f.budgetposition_id || null,
+    frist: f.frist || null,
+    eingereicht_am: f.eingereicht_am || null,
+    entscheid_am: f.entscheid_am || null,
+    auszahlung_am: f.auszahlung_am || null,
+    bemerkung: f.bemerkung.trim(),
+    datei_pfad: f.datei_pfad,
+    datei_name: f.datei_name
+  };
+  const feld = document.getElementById("foerder-datei");
+  if (!dateiWartend2 && feld && feld.files && feld.files[0]) dateiWartend2 = feld.files[0];
+  try {
+    if (dateiWartend2) {
+      const info = await hochladen(dateiWartend2, Z2.projektId, "foerdergelder");
+      daten.datei_pfad = info.datei_pfad;
+      daten.datei_name = info.datei_name;
+    }
+    if (f.id) await foerdergeldAktualisieren(f.id, daten, f.geaendert_am);
+    else await foerdergeldAnlegen(Z2.projektId, daten);
+    meldung(f.id ? "Fördergeld aktualisiert." : "Fördergeld erfasst.");
+    dateiWartend2 = null;
+    await neuLaden(["foerdergelder"]);
+    return true;
+  } catch (err) {
+    meldung(err.message, true);
+    return false;
+  }
+}
+function eingabe2(e, Z2) {
+  if (!document.querySelector(".modal") || !entwurf2) return;
+  const feld = e.target.closest("[data-feld]");
+  if (!feld) return;
+  const name = feld.dataset.feld;
+  if (name === "budgetposition_id") {
+    entwurf2.budgetposition_id = feld.value || null;
+    return;
+  }
+  entwurf2[name] = feld.value;
+  if (name === "status") {
+    datumNachziehen();
+    const koerperEl = document.querySelector(".modal-koerper");
+    if (koerperEl) koerperEl.innerHTML = koerper2(Z2);
+  }
+}
+function aktion4(a, knopf, Z2) {
+  if (a === "foerder-neu") return formular2(Z2, null);
+  if (a === "foerder-bearbeiten") return formular2(Z2, (Z2.foerdergelder || []).find((f) => f.id === knopf.dataset.id));
+  if (a === "foerder-loeschen") {
+    const f = (Z2.foerdergelder || []).find((x) => x.id === knopf.dataset.id);
+    if (f && bestaetigen("Fördergeld " + (f.bezeichnung || f.stelle || "") + " löschen?")) {
+      (async () => {
+        try {
+          if (f.datei_pfad) await loeschen(f.datei_pfad);
+          await foerdergeldLoeschen(f.id);
+          meldung("Fördergeld gelöscht.");
+          await neuLaden(["foerdergelder"]);
+        } catch (err) {
+          meldung(err.message, true);
+        }
+      })();
+    }
+    return;
+  }
+  if (a === "foerder-datei-entfernen") {
+    if (entwurf2.datei_pfad) loeschen(entwurf2.datei_pfad).catch(() => {
+    });
+    entwurf2.datei_pfad = null;
+    entwurf2.datei_name = null;
+    dateiWartend2 = null;
+    const koerperEl = document.querySelector(".modal-koerper");
+    if (koerperEl) koerperEl.innerHTML = koerper2(Z2);
+    return;
+  }
+  if (a === "datei-oeffnen" && knopf.dataset.pfad) {
+    signierterLink(knopf.dataset.pfad).then((url) => {
+      if (url) window.open(url, "_blank");
+    }).catch((e) => meldung(e.message, true));
+  }
+}
+var entwurf2, dateiWartend2;
+var init_foerdergelder = __esm({
+  "app/js/ansichten/foerdergelder.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_dateien();
+    init_app();
+    init_konfig();
+    entwurf2 = null;
+    dateiWartend2 = null;
+  }
+});
+
+// app/js/ansichten/anschaffungen.js
+function render5(Z2) {
+  const liste = Z2.anschaffungen || [];
+  const s = summen(Z2);
+  const bearbeitbar = kannBearbeiten();
+  let h = '<section class="abschnitt" id="abschnitt-anschaffungen"><div class="abschnitt-kopf"><div><h2>Anschaffungen</h2><p>Umzug, Einrichtung, Maschinen – ausserhalb des Sanierungsbudgets</p></div>' + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="ansch-neu">+ Anschaffung</button>' : "") + "</div>";
+  if (!liste.length) {
+    h += leerZustand(
+      "Noch keine Anschaffungen erfasst",
+      "Hier gehören Kosten hin, die nicht zur Sanierung zählen: Umzug, Möbel, Haushaltgeräte, Maschinen und Werkzeug. Sie verändern den Sanierungsrahmen nicht.",
+      bearbeitbar ? '<button class="btn" type="button" data-aktion="ansch-neu">Erste Anschaffung erfassen</button>' : ""
+    );
+    return h + "</section>";
+  }
+  h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Anschaffung</th><th>Art</th><th>Datum</th><th>Finanzierung</th><th>Zahlung</th><th class="num">Betrag</th><th></th></tr></thead><tbody>';
+  liste.forEach((a) => {
+    h += "<tr><td><b>" + esc(a.bezeichnung || "Ohne Bezeichnung") + "</b>" + (a.bemerkung ? '<div style="font-size:.76rem;color:var(--grau);white-space:normal;max-width:260px">' + esc(a.bemerkung) + "</div>" : "") + "</td><td>" + esc(a.kategorie || "–") + "</td><td>" + (a.datum ? datumCH(a.datum) : "–") + "</td><td>" + (a.finanzierung === "Eigenmittel" ? '<span class="badge">Eigenmittel</span>' : '<span class="badge blau">Kredit</span>') + "</td><td>" + (a.bezahlt ? '<span class="badge gruen">bezahlt</span>' : '<span class="badge amber">offen</span>') + '</td><td class="num"><b>' + chf(a.betrag) + '</b></td><td><div class="zeile-aktion"><button class="btn still klein" type="button" data-aktion="ansch-bearbeiten" data-id="' + a.id + '">' + (bearbeitbar ? "Bearbeiten" : "Ansehen") + "</button>" + (bearbeitbar ? '<button class="btn still klein" type="button" data-aktion="ansch-loeschen" data-id="' + a.id + '">Löschen</button>' : "") + "</div></td></tr>";
+  });
+  h += '</tbody><tfoot><tr><td colspan="5">Total Anschaffungen · davon bezahlt ' + chf(s.anschaffungenBezahlt) + '</td><td class="num">' + chf(s.anschaffungenSumme) + "</td><td></td></tr></tfoot></table></div>";
+  if (s.kreditRahmen || s.kreditVerwendet) {
+    const anteil = s.kreditRahmen > 0 ? Math.max(0, Math.min(100, s.kreditVerwendet / s.kreditRahmen * 100)) : 0;
+    h += '<div class="karte-pad" style="border-top:1px solid var(--linie)"><div class="abschnitt-kopf" style="margin:0 0 9px"><div><h3>Kredit</h3><p>' + (s.kreditRahmen ? "über Kredit finanziert " + chfKurz(s.kreditVerwendet) + " von " + chfKurz(s.kreditRahmen) : "über Kredit finanziert " + chfKurz(s.kreditVerwendet) + " · kein Kreditrahmen erfasst") + "</p></div>" + (kannBearbeiten() ? '<button class="btn still klein" type="button" data-aktion="kredit-rahmen">Kreditrahmen</button>' : "") + "</div>" + (s.kreditRahmen ? '<div class="balken"><i class="b-bezahlt" style="width:' + anteil.toFixed(2) + '%"></i></div><div class="legende"><span><i class="punkt" style="background:var(--blau-700)"></i>verwendet ' + chfKurz(s.kreditVerwendet) + '</span><span><i class="punkt" style="background:#D3DFEA"></i>frei ' + chfKurz(s.kreditFrei) + "</span></div>" + (s.kreditFrei < 0 ? '<div class="hinweis warn" style="margin-top:12px"><div>Die Anschaffungen übersteigen den Kreditrahmen um ' + chf(-s.kreditFrei) + ".</div></div>" : "") : "") + "</div>";
+  } else if (kannBearbeiten()) {
+    h += '<div class="karte-pad" style="border-top:1px solid var(--linie);font-size:.8rem;color:var(--grau)">Wurde dafür ein Kredit aufgenommen? <button class="btn still klein" type="button" data-aktion="kredit-rahmen">Kreditrahmen erfassen</button></div>';
+  }
+  h += '<div class="karte-pad" style="border-top:1px solid var(--linie);font-size:.8rem;color:var(--grau)">Diese Beträge zählen nicht zum Sanierungsbudget: Sie verändern weder den Sanierungsrahmen noch den verfügbaren Betrag noch den Kostenvergleich.</div></div>';
+  return h + "</section>";
+}
+function formular3(Z2, a) {
+  entwurf3 = a ? JSON.parse(JSON.stringify(a)) : {
+    id: null,
+    bezeichnung: "",
+    kategorie: "",
+    betrag: 0,
+    datum: heuteISO(),
+    bezahlt: false,
+    finanzierung: "Kredit",
+    bemerkung: ""
+  };
+  modalOeffnen({
+    titel: entwurf3.id ? "Anschaffung bearbeiten" : "Neue Anschaffung",
+    koerper: koerper3(),
+    speichern: () => speichern3(Z2)
+  });
+}
+function koerper3() {
+  const a = entwurf3;
+  return '<label class="feld"><span>Anschaffung</span><input data-feld="bezeichnung" value="' + esc(a.bezeichnung) + '" placeholder="z.B. Waschmaschine"></label><div class="feld-paar"><label class="feld"><span>Art</span><input list="ansch-arten" data-feld="kategorie" value="' + esc(a.kategorie) + '" placeholder="z.B. Haushaltgeräte"><datalist id="ansch-arten">' + ANSCHAFFUNG_ARTEN.map((x) => '<option value="' + esc(x) + '">').join("") + '</datalist></label><label class="feld"><span>Betrag (CHF)</span><input inputmode="decimal" data-feld="betrag" value="' + zahl(a.betrag) + '" placeholder="1200"></label></div><div class="feld-paar"><label class="feld"><span>Datum</span><input type="date" data-feld="datum" value="' + esc(a.datum || "") + '"></label><label class="feld"><span>Finanzierung</span><select data-feld="finanzierung">' + FINANZIERUNGEN.map((x) => "<option" + (x === a.finanzierung ? " selected" : "") + ">" + x + "</option>").join("") + '</select></label></div><label class="check"><input type="checkbox" data-feld="bezahlt"' + (a.bezahlt ? " checked" : "") + '> Bereits bezahlt</label><label class="feld"><span>Bemerkung</span><textarea data-feld="bemerkung" placeholder="optional">' + esc(a.bemerkung || "") + '</textarea></label><div class="hinweis info"><div>Diese Kosten bleiben ausserhalb des Sanierungsbudgets und verändern den verfügbaren Betrag nicht.</div></div>';
+}
+async function speichern3(Z2) {
+  const a = entwurf3;
+  if (!a.bezeichnung.trim()) {
+    meldung("Bitte eine Bezeichnung angeben.", true);
+    return false;
+  }
+  const daten = {
+    bezeichnung: a.bezeichnung.trim(),
+    kategorie: a.kategorie.trim(),
+    betrag: zahl(a.betrag),
+    datum: a.datum || null,
+    bezahlt: !!a.bezahlt,
+    finanzierung: a.finanzierung === "Eigenmittel" ? "Eigenmittel" : "Kredit",
+    bemerkung: a.bemerkung.trim()
+  };
+  try {
+    if (a.id) await anschaffungAktualisieren(a.id, daten, a.geaendert_am);
+    else await anschaffungAnlegen(Z2.projektId, daten);
+    meldung(a.id ? "Anschaffung aktualisiert." : "Anschaffung erfasst.");
+    await neuLaden(["anschaffungen"]);
+    return true;
+  } catch (err) {
+    meldung(err.message, true);
+    return false;
+  }
+}
+function eingabe3(e) {
+  if (!document.querySelector(".modal") || !entwurf3) return;
+  const feld = e.target.closest("[data-feld]");
+  if (!feld) return;
+  entwurf3[feld.dataset.feld] = feld.type === "checkbox" ? feld.checked : feld.value;
+}
+function aktion5(a, knopf, Z2) {
+  if (a === "ansch-neu") return formular3(Z2, null);
+  if (a === "ansch-bearbeiten") return formular3(Z2, (Z2.anschaffungen || []).find((x) => x.id === knopf.dataset.id));
+  if (a === "ansch-loeschen") {
+    const x = (Z2.anschaffungen || []).find((y) => y.id === knopf.dataset.id);
+    if (x && bestaetigen('Anschaffung "' + (x.bezeichnung || "") + '" löschen?')) {
+      anschaffungLoeschen(x.id).then(() => {
+        meldung("Anschaffung gelöscht.");
+        return neuLaden(["anschaffungen"]);
+      }).catch((err) => meldung(err.message, true));
+    }
+    return;
+  }
+  if (a === "kredit-rahmen") return kreditFormular(Z2);
+}
+function kreditFormular(Z2) {
+  const p = Z2.projekt;
+  modalOeffnen({
+    titel: "Kredit für Anschaffungen",
+    koerper: '<label class="feld"><span>Aufgenommener Kredit (CHF)</span><input id="k-rahmen" inputmode="decimal" value="' + (zahl(p.kredit_rahmen) || "") + '" placeholder="30000"></label><div class="hinweis info"><div>Der Kredit gehört nicht zum Gesamtbudget der Liegenschaft. Er dient nur dazu, den Anschaffungen einen Rahmen zu geben – 0 blendet ihn wieder aus.</div></div>',
+    speichern: async () => {
+      try {
+        const { projektAktualisieren: projektAktualisieren2 } = await Promise.resolve().then(() => (init_daten(), daten_exports));
+        const { Z: ZUstand, neuZeichnen: neuZeichnen2 } = await Promise.resolve().then(() => (init_app(), app_exports));
+        const neu = await projektAktualisieren2(p.id, { kredit_rahmen: zahl(document.getElementById("k-rahmen").value) }, p.geaendert_am);
+        Object.assign(ZUstand.projekt, neu);
+        const ix = ZUstand.projekte.findIndex((x) => x.id === neu.id);
+        if (ix !== -1) ZUstand.projekte[ix] = neu;
+        meldung("Kreditrahmen gespeichert.");
+        neuZeichnen2();
+        return true;
+      } catch (err) {
+        meldung(err.message, true);
+        return false;
+      }
+    }
+  });
+}
+var entwurf3;
+var init_anschaffungen = __esm({
+  "app/js/ansichten/anschaffungen.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_app();
+    init_konfig();
+    entwurf3 = null;
+  }
+});
 
 // app/js/ansichten/budget.js
 var budget_exports = {};
 __export(budget_exports, {
-  aktion: () => aktion3,
-  render: () => render3
+  aktion: () => aktion6,
+  eingabe: () => eingabe4,
+  render: () => render6
 });
-function render3(Z2) {
+function render6(Z2) {
   const s = summen(Z2);
   const budgetiert = s.budgetiert;
   const bearbeitbar = kannBearbeiten();
-  let h = '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Budget</h2><p>Sanierungsrahmen ' + chfKurz(s.rahmen) + " · verplant " + chfKurz(budgetiert) + (s.spaeter ? " · später " + chfKurz(s.spaeter) : "") + "</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="budget-neu">+ Position</button>' : "") + "</div>";
+  let h = '<nav class="sprungleiste"><a href="#abschnitt-budget">Budget</a><a href="#abschnitt-vergleich">Kostenvergleich</a><a href="#abschnitt-foerderung">Fördergelder</a><a href="#abschnitt-anschaffungen">Anschaffungen</a></nav>';
+  h += '<section class="abschnitt" id="abschnitt-budget"><div class="abschnitt-kopf"><div><h2>Budget</h2><p>Sanierungsrahmen ' + chfKurz(s.rahmen) + " · verplant " + chfKurz(budgetiert) + (s.spaeter ? " · später " + chfKurz(s.spaeter) : "") + "</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="budget-neu">+ Position</button>' : "") + "</div>";
   if (!Z2.budget.length) {
     h += leerZustand(
       "Noch keine Budgetpositionen",
@@ -1274,7 +2341,7 @@ function render3(Z2) {
   }
   h += "</section>";
   const liste = (Z2.kostenvergleich || []).filter((k) => k.budget > 0 || k.offerte > 0 || k.rechnung > 0);
-  h += '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Kostenvergleich</h2><p>Budget gegen Offerten und Rechnungen, über alle Kategorien</p></div></div>';
+  h += '<section class="abschnitt" id="abschnitt-vergleich"><div class="abschnitt-kopf"><div><h2>Kostenvergleich</h2><p>Budget gegen Offerten und Rechnungen, über alle Kategorien</p></div></div>';
   if (!liste.length) {
     h += leerZustand("Noch nichts zu vergleichen", "Sobald Budget, Offerten oder Rechnungen erfasst sind, erscheint hier die Gegenüberstellung.", "");
   } else {
@@ -1293,14 +2360,15 @@ function render3(Z2) {
     });
     h += '</tbody><tfoot><tr><td>Total</td><td class="num">' + chf(tB) + '</td><td class="num">' + chf(tO) + '</td><td class="num">' + chf(tR) + '</td><td class="num">' + chf(tZ) + '</td><td class="num ' + (tD < 0 ? "neg" : "pos") + '">' + (tD >= 0 ? "+" : "") + chf(tD) + '</td></tr></tfoot></table></div><div class="karte-pad" style="border-top:1px solid var(--linie);font-size:.8rem;color:var(--grau)">Als Ist-Kosten gilt die Rechnungssumme. Solange keine Rechnung erfasst ist, wird die Offertsumme verwendet. Alle Beträge inklusive MWST.' + (tB !== liste.reduce((a, k) => a + k.budget, 0) ? " Positionen mit «später» sind im Total der Budgetspalte nicht enthalten." : "") + "</div></div>";
   }
-  return h + "</section>";
+  h += "</section>";
+  return h + render4(Z2) + render5(Z2);
 }
-function formular(Z2, p) {
+function formular4(Z2, p) {
   const optionen = STANDARD_KATEGORIEN.concat(Z2.budget.map((x) => x.kategorie).filter((k) => !STANDARD_KATEGORIEN.includes(k)));
-  const koerper3 = '<label class="feld"><span>Kategorie</span><input id="f-kategorie" list="kat-liste" value="' + esc(p ? p.kategorie : "") + '" placeholder="z.B. Elektro" required><datalist id="kat-liste">' + optionen.map((k) => '<option value="' + esc(k) + '">').join("") + '</datalist></label><label class="feld"><span>Budgetbetrag (CHF, inkl. MWST)</span><input id="f-betrag" inputmode="decimal" value="' + (p ? zahl(p.betrag) : "") + '" placeholder="18000"></label><label class="feld"><span>Bemerkung</span><textarea id="f-bemerkung" placeholder="optional">' + esc(p ? p.bemerkung : "") + '</textarea></label><div class="check"><input type="checkbox" id="f-spaeter"' + (p && p.beruecksichtigt === false ? " checked" : "") + '><label for="f-spaeter" style="margin:0">Erst später berücksichtigen</label></div><p style="margin:-6px 0 4px;font-size:.78rem;color:var(--grau)">Angehakt zählt der Budgetbetrag nirgends mit – die Position bleibt aber erfasst und lässt sich jederzeit wieder einrechnen. Bereits erfasste Offerten und Rechnungen dieser Kategorie zählen weiterhin, denn dieses Geld ist ausgegeben.</p>';
+  const koerper6 = '<label class="feld"><span>Kategorie</span><input id="f-kategorie" list="kat-liste" value="' + esc(p ? p.kategorie : "") + '" placeholder="z.B. Elektro" required><datalist id="kat-liste">' + optionen.map((k) => '<option value="' + esc(k) + '">').join("") + '</datalist></label><label class="feld"><span>Budgetbetrag (CHF, inkl. MWST)</span><input id="f-betrag" inputmode="decimal" value="' + (p ? zahl(p.betrag) : "") + '" placeholder="18000"></label><label class="feld"><span>Bemerkung</span><textarea id="f-bemerkung" placeholder="optional">' + esc(p ? p.bemerkung : "") + '</textarea></label><div class="check"><input type="checkbox" id="f-spaeter"' + (p && p.beruecksichtigt === false ? " checked" : "") + '><label for="f-spaeter" style="margin:0">Erst später berücksichtigen</label></div><p style="margin:-6px 0 4px;font-size:.78rem;color:var(--grau)">Angehakt zählt der Budgetbetrag nirgends mit – die Position bleibt aber erfasst und lässt sich jederzeit wieder einrechnen. Bereits erfasste Offerten und Rechnungen dieser Kategorie zählen weiterhin, denn dieses Geld ist ausgegeben.</p>';
   modalOeffnen({
     titel: p ? "Budgetposition bearbeiten" : "Neue Budgetposition",
-    koerper: koerper3,
+    koerper: koerper6,
     speichern: async () => {
       const kategorie = document.getElementById("f-kategorie").value.trim();
       if (!kategorie) {
@@ -1326,9 +2394,15 @@ function formular(Z2, p) {
     }
   });
 }
-function aktion3(a, knopf, Z2) {
-  if (a === "budget-neu") return formular(Z2, null);
-  if (a === "budget-bearbeiten") return formular(Z2, Z2.budget.find((p) => p.id === knopf.dataset.id));
+function eingabe4(e, Z2) {
+  eingabe2(e, Z2);
+  eingabe3(e, Z2);
+}
+function aktion6(a, knopf, Z2) {
+  if (a.startsWith("foerder-") || a === "datei-oeffnen") return aktion4(a, knopf, Z2);
+  if (a.startsWith("ansch-") || a === "kredit-rahmen") return aktion5(a, knopf, Z2);
+  if (a === "budget-neu") return formular4(Z2, null);
+  if (a === "budget-bearbeiten") return formular4(Z2, Z2.budget.find((p) => p.id === knopf.dataset.id));
   if (a === "budget-umschalten") {
     const p = Z2.budget.find((x) => x.id === knopf.dataset.id);
     if (!p) return;
@@ -1353,100 +2427,28 @@ function aktion3(a, knopf, Z2) {
     }
   }
 }
-
-// app/js/ansichten/offerten.js
-var offerten_exports = {};
-__export(offerten_exports, {
-  aenderung: () => aenderung2,
-  aktion: () => aktion4,
-  eingabe: () => eingabe,
-  render: () => render4
+var init_budget = __esm({
+  "app/js/ansichten/budget.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_app();
+    init_konfig();
+    init_foerdergelder();
+    init_anschaffungen();
+  }
 });
 
-// app/js/dateien.js
-function endung(name) {
-  const i = name.lastIndexOf(".");
-  return i === -1 ? "" : name.slice(i).toLowerCase();
-}
-function dateiPruefen(datei) {
-  if (datei.size > DATEI_MAX_BYTES) {
-    return "Datei ist zu gross (" + (datei.size / 1024 / 1024).toFixed(1) + " MB). Erlaubt sind höchstens 25 MB.";
-  }
-  const typOk = datei.type ? DATEI_ERLAUBTE_TYPEN.includes(datei.type) : false;
-  const endungOk = DATEI_ERLAUBTE_ENDUNGEN.includes(endung(datei.name));
-  if (!typOk && !endungOk) {
-    return "Dateityp nicht erlaubt. Nur PDF, JPG, PNG, HEIC oder WEBP.";
-  }
-  return null;
-}
-async function hochladen(datei, projektId, bereich) {
-  const fehler = dateiPruefen(datei);
-  if (fehler) {
-    const e = new DatenFehler(fehler);
-    e.ungueltig = true;
-    throw e;
-  }
-  const uuid = crypto.randomUUID();
-  const pfad = projektId + "/" + bereich + "/" + uuid + endung(datei.name);
-  try {
-    const { error } = await mitZeitlimit(
-      supabase.storage.from(STORAGE_BUCKET).upload(pfad, datei, {
-        contentType: datei.type || void 0,
-        upsert: false
-      }),
-      UPLOAD_ZEITLIMIT_MS
-    );
-    if (error) throw error;
-  } catch (e) {
-    if (istZeitueberschreitung(e)) throw new DatenFehler(MELDUNG_ZEITUEBERSCHREITUNG, true);
-    if (istVerbindungsfehler(e)) throw new DatenFehler(MELDUNG_KEINE_VERBINDUNG, true);
-    throw new DatenFehler("Hochladen fehlgeschlagen: " + (e.message || e));
-  }
-  return { datei_pfad: pfad, datei_name: datei.name };
-}
-async function signierterLink(pfad) {
-  if (!pfad) return null;
-  let data, error;
-  try {
-    ({ data, error } = await mitZeitlimit(
-      supabase.storage.from(STORAGE_BUCKET).createSignedUrl(pfad, SIGNIERTER_LINK_SEKUNDEN)
-    ));
-  } catch (e) {
-    throw e instanceof DatenFehler ? e : new DatenFehler("Datei nicht verfügbar: " + (e.message || e));
-  }
-  if (error) {
-    if (istZeitueberschreitung(error)) throw new DatenFehler(MELDUNG_ZEITUEBERSCHREITUNG, true);
-    throw new DatenFehler(istVerbindungsfehler(error) ? MELDUNG_KEINE_VERBINDUNG : "Datei nicht verfügbar: " + error.message, istVerbindungsfehler(error));
-  }
-  return data.signedUrl;
-}
-async function loeschen(pfad) {
-  if (!pfad) return;
-  let error = null;
-  try {
-    ({ error } = await supabase.storage.from(STORAGE_BUCKET).remove([pfad]));
-  } catch (e) {
-    console.warn("Datei konnte nicht gelöscht werden:", pfad, e.message);
-    return;
-  }
-  if (error && !istVerbindungsfehler(error)) {
-    console.warn("Datei konnte nicht gelöscht werden:", pfad, error.message);
-  }
-}
-
 // app/js/ki.js
-var ANALYSE_MAX_BYTES = 15 * 1024 * 1024;
-var ANALYSE_SCHRITTE = {
-  offerte: ["Datei wird hochgeladen", "Dokument wird gelesen", "Positionen werden übernommen"],
-  beleg: ["Datei wird hochgeladen", "Dokument wird gelesen", "Werte werden übernommen"]
-};
 function analyseFehlerText(e) {
   const code = e && e.code;
   if (code === "kein_schluessel") {
     return "Die KI-Auswertung ist auf dem Server noch nicht freigeschaltet (es fehlt der Zugang zum KI-Dienst). Das Dokument kann weiterhin von Hand erfasst werden.";
   }
   if (code === "schluessel_ungueltig") return "Der KI-Dienst lehnt den hinterlegten Zugang ab. Bitte den Schlüssel prüfen.";
-  if (code === "kontingent") return "Das Kontingent des KI-Dienstes ist erschöpft. Bitte später erneut versuchen.";
+  if (code === "kontingent" || code === "kein_modell" || code === "ueberlastet") {
+    return e && e.message || "Die Analyse ist fehlgeschlagen.";
+  }
   return "Auslesen fehlgeschlagen: " + (e && e.message || e);
 }
 function zahl2(wert) {
@@ -1530,12 +2532,28 @@ async function analysiereDokument(quelle, art, aufSchritt) {
   melden(2);
   return { ...werte, datei_pfad: pfad, datei_name: name, modell: antwort.modell || "" };
 }
+var ANALYSE_MAX_BYTES, ANALYSE_SCHRITTE;
+var init_ki = __esm({
+  "app/js/ki.js"() {
+    init_daten();
+    init_dateien();
+    ANALYSE_MAX_BYTES = 15 * 1024 * 1024;
+    ANALYSE_SCHRITTE = {
+      offerte: ["Datei wird hochgeladen", "Dokument wird gelesen", "Positionen werden übernommen"],
+      beleg: ["Datei wird hochgeladen", "Dokument wird gelesen", "Werte werden übernommen"]
+    };
+  }
+});
 
 // app/js/ansichten/offerten.js
-var entwurf = null;
-var dateiWartend = null;
-var letzterHinweis = "";
-function render4(Z2) {
+var offerten_exports = {};
+__export(offerten_exports, {
+  aenderung: () => aenderung2,
+  aktion: () => aktion7,
+  eingabe: () => eingabe5,
+  render: () => render7
+});
+function render7(Z2) {
   const bearbeitbar = kannBearbeiten();
   const summe = Z2.offerten.filter((o) => o.status !== "Abgelehnt").reduce((s, o) => s + offerteNetto(o) + offerteMwst(o), 0);
   let h = '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Offerten</h2><p>' + Z2.offerten.length + " erfasst · Summe " + chf(summe) + " (ohne abgelehnte)</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="offerte-neu">+ Offerte</button>' : "") + "</div>";
@@ -1557,15 +2575,15 @@ function neuePosition() {
   return { nr: "", beschreibung: "", menge: 1, einheit: "pauschal", einzelpreis: 0 };
 }
 function entwurfNetto() {
-  return (entwurf.offert_positionen || []).reduce((s, p) => s + zahl(p.menge) * zahl(p.einzelpreis), 0);
+  return (entwurf4.offert_positionen || []).reduce((s, p) => s + zahl(p.menge) * zahl(p.einzelpreis), 0);
 }
 function entwurfMwst() {
-  return entwurf.mwst_satz == null ? 0 : entwurfNetto() * (zahl(entwurf.mwst_satz) / 100);
+  return entwurf4.mwst_satz == null ? 0 : entwurfNetto() * (zahl(entwurf4.mwst_satz) / 100);
 }
-function formular2(Z2, o) {
-  dateiWartend = null;
+function formular5(Z2, o) {
+  dateiWartend3 = null;
   letzterHinweis = "";
-  entwurf = o ? JSON.parse(JSON.stringify(o)) : {
+  entwurf4 = o ? JSON.parse(JSON.stringify(o)) : {
     id: null,
     budgetposition_id: null,
     lieferant: "",
@@ -1580,15 +2598,15 @@ function formular2(Z2, o) {
     handwerker_id: null,
     offert_positionen: [neuePosition()]
   };
-  if (!entwurf.offert_positionen || !entwurf.offert_positionen.length) entwurf.offert_positionen = [neuePosition()];
+  if (!entwurf4.offert_positionen || !entwurf4.offert_positionen.length) entwurf4.offert_positionen = [neuePosition()];
   modalOeffnen({
-    titel: entwurf.id ? "Offerte bearbeiten" : "Neue Offerte",
-    koerper: koerper(Z2),
-    speichern: () => speichern(Z2)
+    titel: entwurf4.id ? "Offerte bearbeiten" : "Neue Offerte",
+    koerper: koerper4(Z2),
+    speichern: () => speichern4(Z2)
   });
 }
-function koerper(Z2) {
-  const o = entwurf;
+function koerper4(Z2) {
+  const o = entwurf4;
   let h = '<div id="o-analyse">' + analyseBlock() + "</div>";
   if (o.ki_erkannt) {
     h += '<div class="hinweis demo" style="margin-bottom:14px"><div><b>Von der KI ausgelesen – bitte prüfen</b>Automatisch erkannte Werte können falsch sein. Beträge, Mengen und das Datum bitte mit der Offerte vergleichen.' + (letzterHinweis ? "<br>Hinweis der Auswertung: " + esc(letzterHinweis) : "") + "</div></div>";
@@ -1604,12 +2622,12 @@ function koerper(Z2) {
   return h;
 }
 function analyseBlock() {
-  const o = entwurf;
+  const o = entwurf4;
   if (o.datei_pfad) {
     return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Datei: ' + esc(o.datei_name || "") + '</b><div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(o.datei_pfad) + '">Datei öffnen</button><button class="btn zweit klein" type="button" data-aktion="o-analysieren">Offerte auslesen</button><button class="btn still klein" type="button" data-aktion="o-datei-entfernen">Datei entfernen</button></div></div></div>';
   }
-  if (dateiWartend) {
-    return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Gewählte Datei: ' + esc(dateiWartend.name) + '</b>Wird beim Speichern hochgeladen.<div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="o-analysieren">Offerte auslesen</button><button class="btn still klein" type="button" data-aktion="o-datei-entfernen">Datei entfernen</button></div></div></div>';
+  if (dateiWartend3) {
+    return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Gewählte Datei: ' + esc(dateiWartend3.name) + '</b>Wird beim Speichern hochgeladen.<div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="o-analysieren">Offerte auslesen</button><button class="btn still klein" type="button" data-aktion="o-datei-entfernen">Datei entfernen</button></div></div></div>';
   }
   return '<div class="datei-feld" style="margin-bottom:14px"><p>Offerte als PDF, JPG oder PNG hochladen</p><input type="file" id="o-datei" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><div class="btn-reihe" style="margin-top:11px;justify-content:center"><button class="btn klein" type="button" data-aktion="o-analysieren">Offerte auslesen</button></div><p style="margin:9px 0 0;font-size:.76rem">Beim Auslesen wird die Datei gespeichert und einmalig an den KI-Dienst (Google Gemini) übermittelt. Ohne Klick auf diesen Knopf passiert das nicht.</p></div>';
 }
@@ -1617,17 +2635,17 @@ function positionHtml(p, i) {
   return '<div class="pos-zeile" data-zeile="' + i + '"><div class="pos-grid"><div class="pos-mini"><label class="feld"><span>Nr.</span><input class="p-nr" data-pos="' + i + '" data-feld="nr" value="' + esc(p.nr) + '"></label><label class="feld" style="grid-column:span 2"><span>Beschreibung</span><input data-pos="' + i + '" data-feld="beschreibung" value="' + esc(p.beschreibung) + '" placeholder="Leistung"></label></div><label class="feld"><span>Menge</span><input inputmode="decimal" data-pos="' + i + '" data-feld="menge" value="' + esc(p.menge) + '"></label><label class="feld"><span>Einheit</span><input list="einheit-liste" data-pos="' + i + '" data-feld="einheit" value="' + esc(p.einheit) + '"></label><label class="feld"><span>Einzelpreis CHF</span><input inputmode="decimal" data-pos="' + i + '" data-feld="einzelpreis" value="' + esc(p.einzelpreis) + '"></label><label class="feld"><span>Entfernen</span><button class="btn gefahr klein" type="button" data-aktion="o-pos-weg" data-pos="' + i + '">✕</button></label></div><div class="pos-fuss"><span style="color:var(--grau)">Zeilentotal</span><b class="zahl" data-zeilen-total="' + i + '">' + chf(zahl(p.menge) * zahl(p.einzelpreis)) + "</b></div></div>";
 }
 function summeHtml() {
-  const o = entwurf;
+  const o = entwurf4;
   const netto = entwurfNetto(), mwst = entwurfMwst();
   const ohneMwst = o.mwst_satz == null;
   return '<div class="check"><input type="checkbox" id="o-ohne-mwst"' + (ohneMwst ? " checked" : "") + '> <label for="o-ohne-mwst" style="margin:0">Ohne MWST führen</label></div><div class="summe-zeile"><span>Zwischentotal (netto)</span><b class="zahl" id="o-netto">' + chf(netto) + '</b></div><div class="summe-zeile"><span>MWST <input inputmode="decimal" data-feld="mwst_satz" value="' + (ohneMwst ? "" : esc(o.mwst_satz)) + '" ' + (ohneMwst ? "disabled" : "") + ' style="width:74px;display:inline-block;min-height:34px;padding:4px 7px;text-align:right"> %</span><b class="zahl" id="o-mwst">' + chf(mwst) + '</b></div><div class="summe-zeile total"><span>Total inkl. MWST</span><b class="zahl" id="o-total">' + chf(netto + mwst) + "</b></div>";
 }
 function neuZeichnenKoerper(Z2) {
   const koerperEl = document.querySelector(".modal-koerper");
-  if (koerperEl) koerperEl.innerHTML = koerper(Z2);
+  if (koerperEl) koerperEl.innerHTML = koerper4(Z2);
 }
 function summeAktualisieren() {
-  if (!entwurf) return;
+  if (!entwurf4) return;
   const netto = entwurfNetto(), mwst = entwurfMwst();
   const setze = (id, wert) => {
     const x = document.getElementById(id);
@@ -1636,15 +2654,15 @@ function summeAktualisieren() {
   setze("o-netto", chf(netto));
   setze("o-mwst", chf(mwst));
   setze("o-total", chf(netto + mwst));
-  entwurf.offert_positionen.forEach((p, i) => {
+  entwurf4.offert_positionen.forEach((p, i) => {
     const ziel = document.querySelector('[data-zeilen-total="' + i + '"]');
     if (ziel) ziel.textContent = chf(zahl(p.menge) * zahl(p.einzelpreis));
   });
 }
 async function analysieren(Z2) {
   const dateiFeld = document.getElementById("o-datei");
-  if (dateiFeld && dateiFeld.files && dateiFeld.files[0]) dateiWartend = dateiFeld.files[0];
-  if (!dateiWartend && !entwurf.datei_pfad) {
+  if (dateiFeld && dateiFeld.files && dateiFeld.files[0]) dateiWartend3 = dateiFeld.files[0];
+  if (!dateiWartend3 && !entwurf4.datei_pfad) {
     meldung("Bitte zuerst eine Datei auswählen.", true);
     return;
   }
@@ -1654,7 +2672,7 @@ async function analysieren(Z2) {
   let ergebnis;
   try {
     ergebnis = await analysiereDokument(
-      { datei: dateiWartend, pfad: entwurf.datei_pfad, name: entwurf.datei_name, projektId: Z2.projektId, bereich: "offerten" },
+      { datei: dateiWartend3, pfad: entwurf4.datei_pfad, name: entwurf4.datei_name, projektId: Z2.projektId, bereich: "offerten" },
       "offerte",
       (i) => {
         const liste = block.querySelector(".lade-schritte");
@@ -1666,25 +2684,25 @@ async function analysieren(Z2) {
     meldung(analyseFehlerText(e), true);
     return;
   }
-  if (!document.querySelector(".modal") || !entwurf) return;
-  entwurf.datei_pfad = ergebnis.datei_pfad;
-  entwurf.datei_name = ergebnis.datei_name;
-  dateiWartend = null;
+  if (!document.querySelector(".modal") || !entwurf4) return;
+  entwurf4.datei_pfad = ergebnis.datei_pfad;
+  entwurf4.datei_name = ergebnis.datei_name;
+  dateiWartend3 = null;
   letzterHinweis = ergebnis.hinweis || "";
-  entwurf.ki_erkannt = true;
-  if (ergebnis.lieferant) entwurf.lieferant = ergebnis.lieferant;
-  if (ergebnis.nummer) entwurf.nummer = ergebnis.nummer;
-  if (ergebnis.datum) entwurf.datum = ergebnis.datum;
-  entwurf.mwst_satz = ergebnis.mwstSatz;
-  entwurf.status = entwurf.status === "Entwurf" ? "Erfasst" : entwurf.status;
-  if (ergebnis.positionen.length) entwurf.offert_positionen = ergebnis.positionen;
+  entwurf4.ki_erkannt = true;
+  if (ergebnis.lieferant) entwurf4.lieferant = ergebnis.lieferant;
+  if (ergebnis.nummer) entwurf4.nummer = ergebnis.nummer;
+  if (ergebnis.datum) entwurf4.datum = ergebnis.datum;
+  entwurf4.mwst_satz = ergebnis.mwstSatz;
+  entwurf4.status = entwurf4.status === "Entwurf" ? "Erfasst" : entwurf4.status;
+  if (ergebnis.positionen.length) entwurf4.offert_positionen = ergebnis.positionen;
   neuZeichnenKoerper(Z2);
   meldung(
     ergebnis.positionen.length ? "Offerte ausgelesen (" + ergebnis.positionen.length + " Positionen) – bitte prüfen." : "Es konnten keine Positionen erkannt werden. Bitte von Hand erfassen."
   );
 }
-async function speichern(Z2) {
-  const o = entwurf;
+async function speichern4(Z2) {
+  const o = entwurf4;
   if (!o.lieferant.trim() && !o.nummer.trim()) {
     meldung("Bitte mindestens Lieferant oder Offertnummer angeben.", true);
     return false;
@@ -1692,16 +2710,16 @@ async function speichern(Z2) {
   o.offert_positionen = o.offert_positionen.filter((p) => p.beschreibung.trim() || zahl(p.einzelpreis) !== 0);
   if (!o.offert_positionen.length) o.offert_positionen = [neuePosition()];
   const dateiFeld = document.getElementById("o-datei");
-  if (!dateiWartend && dateiFeld && dateiFeld.files && dateiFeld.files[0]) dateiWartend = dateiFeld.files[0];
+  if (!dateiWartend3 && dateiFeld && dateiFeld.files && dateiFeld.files[0]) dateiWartend3 = dateiFeld.files[0];
   try {
-    if (dateiWartend) {
-      const info = await hochladen(dateiWartend, Z2.projektId, "offerten");
+    if (dateiWartend3) {
+      const info = await hochladen(dateiWartend3, Z2.projektId, "offerten");
       o.datei_pfad = info.datei_pfad;
       o.datei_name = info.datei_name;
     }
     await offerteSpeichern(Z2.projektId, { ...o, positionen: o.offert_positionen }, o.geaendert_am);
     meldung(o.id ? "Offerte aktualisiert." : "Offerte gespeichert.");
-    dateiWartend = null;
+    dateiWartend3 = null;
     await neuLaden(["offerten"]);
     return true;
   } catch (err) {
@@ -1709,38 +2727,38 @@ async function speichern(Z2) {
     return false;
   }
 }
-function eingabe(e, Z2) {
-  if (!document.querySelector(".modal") || !entwurf) return;
+function eingabe5(e, Z2) {
+  if (!document.querySelector(".modal") || !entwurf4) return;
   const feld = e.target.closest("[data-feld]");
   if (!feld) return;
   const name = feld.dataset.feld;
   if (feld.dataset.pos !== void 0) {
-    const p = entwurf.offert_positionen[+feld.dataset.pos];
+    const p = entwurf4.offert_positionen[+feld.dataset.pos];
     if (!p) return;
     p[name] = feld.value;
     summeAktualisieren();
     return;
   }
   if (name === "handwerker_id") {
-    entwurf.handwerker_id = feld.value || null;
+    entwurf4.handwerker_id = feld.value || null;
     return;
   }
   if (name === "budgetposition_id") {
-    entwurf.budgetposition_id = feld.value || null;
+    entwurf4.budgetposition_id = feld.value || null;
     return;
   }
-  entwurf[name] = feld.value;
+  entwurf4[name] = feld.value;
   if (name === "mwst_satz") summeAktualisieren();
 }
 function aenderung2(e, Z2) {
-  if (e.target.id === "o-ohne-mwst" && entwurf) {
-    entwurf.mwst_satz = e.target.checked ? null : 8.1;
+  if (e.target.id === "o-ohne-mwst" && entwurf4) {
+    entwurf4.mwst_satz = e.target.checked ? null : 8.1;
     neuZeichnenKoerper(Z2);
   }
 }
-function aktion4(a, knopf, Z2) {
-  if (a === "offerte-neu") return formular2(Z2, null);
-  if (a === "offerte-bearbeiten") return formular2(Z2, Z2.offerten.find((o) => o.id === knopf.dataset.id));
+function aktion7(a, knopf, Z2) {
+  if (a === "offerte-neu") return formular5(Z2, null);
+  if (a === "offerte-bearbeiten") return formular5(Z2, Z2.offerten.find((o) => o.id === knopf.dataset.id));
   if (a === "offerte-loeschen") {
     const o = Z2.offerten.find((x) => x.id === knopf.dataset.id);
     if (o && bestaetigen("Offerte " + (o.nummer || o.lieferant || "") + " löschen?")) {
@@ -1759,25 +2777,25 @@ function aktion4(a, knopf, Z2) {
   }
   if (a === "o-analysieren") return analysieren(Z2);
   if (a === "o-pos-neu") {
-    entwurf.offert_positionen.push(neuePosition());
-    entwurf.offert_positionen[entwurf.offert_positionen.length - 1].nr = String(entwurf.offert_positionen.length);
-    document.getElementById("o-positionen").innerHTML = entwurf.offert_positionen.map(positionHtml).join("");
+    entwurf4.offert_positionen.push(neuePosition());
+    entwurf4.offert_positionen[entwurf4.offert_positionen.length - 1].nr = String(entwurf4.offert_positionen.length);
+    document.getElementById("o-positionen").innerHTML = entwurf4.offert_positionen.map(positionHtml).join("");
     summeAktualisieren();
     return;
   }
   if (a === "o-pos-weg") {
-    entwurf.offert_positionen.splice(+knopf.dataset.pos, 1);
-    if (!entwurf.offert_positionen.length) entwurf.offert_positionen.push(neuePosition());
-    document.getElementById("o-positionen").innerHTML = entwurf.offert_positionen.map(positionHtml).join("");
+    entwurf4.offert_positionen.splice(+knopf.dataset.pos, 1);
+    if (!entwurf4.offert_positionen.length) entwurf4.offert_positionen.push(neuePosition());
+    document.getElementById("o-positionen").innerHTML = entwurf4.offert_positionen.map(positionHtml).join("");
     summeAktualisieren();
     return;
   }
   if (a === "o-datei-entfernen") {
-    if (entwurf.datei_pfad) loeschen(entwurf.datei_pfad).catch(() => {
+    if (entwurf4.datei_pfad) loeschen(entwurf4.datei_pfad).catch(() => {
     });
-    entwurf.datei_pfad = null;
-    entwurf.datei_name = null;
-    dateiWartend = null;
+    entwurf4.datei_pfad = null;
+    entwurf4.datei_name = null;
+    dateiWartend3 = null;
     document.getElementById("o-analyse").innerHTML = analyseBlock();
     return;
   }
@@ -1787,20 +2805,31 @@ function aktion4(a, knopf, Z2) {
     }).catch((e) => meldung(e.message, true));
   }
 }
+var entwurf4, dateiWartend3, letzterHinweis;
+var init_offerten = __esm({
+  "app/js/ansichten/offerten.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_dateien();
+    init_ki();
+    init_app();
+    init_konfig();
+    entwurf4 = null;
+    dateiWartend3 = null;
+    letzterHinweis = "";
+  }
+});
 
 // app/js/ansichten/belege.js
 var belege_exports = {};
 __export(belege_exports, {
   aenderung: () => aenderung3,
-  aktion: () => aktion5,
-  eingabe: () => eingabe2,
-  render: () => render5
+  aktion: () => aktion8,
+  eingabe: () => eingabe6,
+  render: () => render8
 });
-var entwurf2 = null;
-var dateiWartend2 = null;
-var letzterHinweis2 = "";
-var mwstManuell = false;
-function render5(Z2) {
+function render8(Z2) {
   const bearbeitbar = kannBearbeiten();
   const rechnungen = Z2.belege.reduce((s, b) => s + zahl(b.brutto), 0);
   const bezahlt = Z2.belege.filter((b) => b.bezahlt).reduce((s, b) => s + zahl(b.brutto), 0);
@@ -1821,11 +2850,11 @@ function render5(Z2) {
   h += '</tbody><tfoot><tr><td colspan="7">Total</td><td class="num">' + chf(rechnungen) + '</td><td colspan="2"></td></tr></tfoot>';
   return h + "</table></div></div></section>";
 }
-function formular3(Z2, b) {
-  dateiWartend2 = null;
+function formular6(Z2, b) {
+  dateiWartend4 = null;
   letzterHinweis2 = "";
   mwstManuell = false;
-  entwurf2 = b ? JSON.parse(JSON.stringify(b)) : {
+  entwurf5 = b ? JSON.parse(JSON.stringify(b)) : {
     id: null,
     budgetposition_id: null,
     offerte_id: null,
@@ -1842,10 +2871,10 @@ function formular3(Z2, b) {
     datei_name: null,
     ki_erkannt: false
   };
-  modalOeffnen({ titel: entwurf2.id ? "Beleg bearbeiten" : "Neuer Beleg", koerper: koerper2(Z2), speichern: () => speichern2(Z2) });
+  modalOeffnen({ titel: entwurf5.id ? "Beleg bearbeiten" : "Neuer Beleg", koerper: koerper5(Z2), speichern: () => speichern5(Z2) });
 }
-function koerper2(Z2) {
-  const b = entwurf2;
+function koerper5(Z2) {
+  const b = entwurf5;
   const ohneMwst = b.mwst == null;
   let h = '<div id="b-analyse">' + analyseBlock2() + "</div>";
   if (b.ki_erkannt) {
@@ -1855,17 +2884,17 @@ function koerper2(Z2) {
   return h;
 }
 function analyseBlock2() {
-  const b = entwurf2;
+  const b = entwurf5;
   if (b.datei_pfad) {
     return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Datei: ' + esc(b.datei_name || "") + '</b><div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(b.datei_pfad) + '">Datei öffnen</button><button class="btn zweit klein" type="button" data-aktion="b-analysieren">Beleg auslesen</button><button class="btn still klein" type="button" data-aktion="b-datei-entfernen">Datei entfernen</button></div></div></div>';
   }
-  if (dateiWartend2) {
-    return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Gewählte Datei: ' + esc(dateiWartend2.name) + '</b>Wird beim Speichern hochgeladen.<div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="b-analysieren">Beleg auslesen</button><button class="btn still klein" type="button" data-aktion="b-datei-entfernen">Datei entfernen</button></div></div></div>';
+  if (dateiWartend4) {
+    return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Gewählte Datei: ' + esc(dateiWartend4.name) + '</b>Wird beim Speichern hochgeladen.<div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="b-analysieren">Beleg auslesen</button><button class="btn still klein" type="button" data-aktion="b-datei-entfernen">Datei entfernen</button></div></div></div>';
   }
   return '<div class="datei-feld" style="margin-bottom:14px"><p>Rechnung oder Quittung als PDF, JPG oder PNG hochladen</p><input type="file" id="b-datei" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><div class="btn-reihe" style="margin-top:11px;justify-content:center"><button class="btn klein" type="button" data-aktion="b-analysieren">Beleg auslesen</button></div><p style="margin:9px 0 0;font-size:.76rem">Beim Auslesen wird die Datei gespeichert und einmalig an den KI-Dienst (Google Gemini) übermittelt. Ohne Klick auf diesen Knopf passiert das nicht.</p></div>';
 }
 function betraegeAbgleichen(zuletzt) {
-  const b = entwurf2;
+  const b = entwurf5;
   if (b.mwst == null) {
     b.netto = zahl(b.brutto);
     return;
@@ -1887,8 +2916,8 @@ function betraegeAbgleichen(zuletzt) {
 }
 async function analysieren2(Z2) {
   const feld = document.getElementById("b-datei");
-  if (feld && feld.files && feld.files[0]) dateiWartend2 = feld.files[0];
-  if (!dateiWartend2 && !entwurf2.datei_pfad) {
+  if (feld && feld.files && feld.files[0]) dateiWartend4 = feld.files[0];
+  if (!dateiWartend4 && !entwurf5.datei_pfad) {
     meldung("Bitte zuerst eine Datei auswählen.", true);
     return;
   }
@@ -1898,7 +2927,7 @@ async function analysieren2(Z2) {
   let e;
   try {
     e = await analysiereDokument(
-      { datei: dateiWartend2, pfad: entwurf2.datei_pfad, name: entwurf2.datei_name, projektId: Z2.projektId, bereich: "belege" },
+      { datei: dateiWartend4, pfad: entwurf5.datei_pfad, name: entwurf5.datei_name, projektId: Z2.projektId, bereich: "belege" },
       "beleg",
       (i) => {
         const liste = block.querySelector(".lade-schritte");
@@ -1911,36 +2940,36 @@ async function analysieren2(Z2) {
     meldung(analyseFehlerText(fehler), true);
     return;
   }
-  if (!document.querySelector(".modal") || !entwurf2) return;
-  entwurf2.datei_pfad = e.datei_pfad;
-  entwurf2.datei_name = e.datei_name;
-  dateiWartend2 = null;
+  if (!document.querySelector(".modal") || !entwurf5) return;
+  entwurf5.datei_pfad = e.datei_pfad;
+  entwurf5.datei_name = e.datei_name;
+  dateiWartend4 = null;
   letzterHinweis2 = e.hinweis || "";
   mwstManuell = false;
-  Object.assign(entwurf2, {
+  Object.assign(entwurf5, {
     ki_erkannt: true,
-    lieferant: e.lieferant || entwurf2.lieferant,
-    nummer: e.nummer || entwurf2.nummer,
-    datum: e.datum || entwurf2.datum,
+    lieferant: e.lieferant || entwurf5.lieferant,
+    nummer: e.nummer || entwurf5.nummer,
+    datum: e.datum || entwurf5.datum,
     netto: e.netto,
     mwst: e.mwst,
     brutto: e.brutto,
-    bezahlt: e.bezahlt || entwurf2.bezahlt,
-    zahlungsdatum: e.zahlungsdatum || entwurf2.zahlungsdatum
+    bezahlt: e.bezahlt || entwurf5.bezahlt,
+    zahlungsdatum: e.zahlungsdatum || entwurf5.zahlungsdatum
   });
-  if (!entwurf2.offerte_id && entwurf2.lieferant) {
-    const gesucht = entwurf2.lieferant.toLowerCase();
+  if (!entwurf5.offerte_id && entwurf5.lieferant) {
+    const gesucht = entwurf5.lieferant.toLowerCase();
     const passend = Z2.offerten.find((o) => (o.lieferant || "").toLowerCase() === gesucht);
-    if (passend) entwurf2.offerte_id = passend.id;
+    if (passend) entwurf5.offerte_id = passend.id;
   }
   const koerperEl = document.querySelector(".modal-koerper");
-  if (koerperEl) koerperEl.innerHTML = koerper2(Z2);
+  if (koerperEl) koerperEl.innerHTML = koerper5(Z2);
   meldung(
     e.brutto ? "Beleg ausgelesen – bitte prüfen." : "Es konnte kein Betrag erkannt werden. Bitte von Hand erfassen."
   );
 }
-async function speichern2(Z2) {
-  const b = entwurf2;
+async function speichern5(Z2) {
+  const b = entwurf5;
   if (!b.lieferant.trim() && !b.nummer.trim()) {
     meldung("Bitte mindestens Lieferant oder Rechnungsnummer angeben.", true);
     return false;
@@ -1955,16 +2984,16 @@ async function speichern2(Z2) {
   if (b.bezahlt && !b.zahlungsdatum) b.zahlungsdatum = heuteISO();
   if (!b.bezahlt) b.zahlungsdatum = "";
   const feld = document.getElementById("b-datei");
-  if (!dateiWartend2 && feld && feld.files && feld.files[0]) dateiWartend2 = feld.files[0];
+  if (!dateiWartend4 && feld && feld.files && feld.files[0]) dateiWartend4 = feld.files[0];
   try {
-    if (dateiWartend2) {
-      const info = await hochladen(dateiWartend2, Z2.projektId, "belege");
+    if (dateiWartend4) {
+      const info = await hochladen(dateiWartend4, Z2.projektId, "belege");
       b.datei_pfad = info.datei_pfad;
       b.datei_name = info.datei_name;
     }
     await belegSpeichern(Z2.projektId, b, b.geaendert_am);
     meldung(b.id ? "Beleg aktualisiert." : "Beleg gespeichert.");
-    dateiWartend2 = null;
+    dateiWartend4 = null;
     await neuLaden(["belege"]);
     return true;
   } catch (err) {
@@ -1972,41 +3001,41 @@ async function speichern2(Z2) {
     return false;
   }
 }
-function eingabe2(e) {
-  if (!document.querySelector(".modal") || !entwurf2) return;
+function eingabe6(e) {
+  if (!document.querySelector(".modal") || !entwurf5) return;
   const feld = e.target.closest("[data-feld]");
   if (!feld) return;
   const name = feld.dataset.feld;
   const wert = feld.type === "checkbox" ? feld.checked : feld.value;
   if (name === "budgetposition_id" || name === "offerte_id") {
-    entwurf2[name] = wert || null;
+    entwurf5[name] = wert || null;
     return;
   }
-  entwurf2[name] = wert;
+  entwurf5[name] = wert;
   if (name === "mwst") mwstManuell = true;
   if (feld.dataset.betrag) betraegeAbgleichen(name);
-  if (name === "bezahlt" && wert && !entwurf2.zahlungsdatum) {
-    entwurf2.zahlungsdatum = heuteISO();
+  if (name === "bezahlt" && wert && !entwurf5.zahlungsdatum) {
+    entwurf5.zahlungsdatum = heuteISO();
     const zd = document.querySelector('[data-feld="zahlungsdatum"]');
-    if (zd) zd.value = entwurf2.zahlungsdatum;
+    if (zd) zd.value = entwurf5.zahlungsdatum;
   }
 }
 function aenderung3(e, Z2) {
-  if (e.target.id === "b-ohne-mwst" && entwurf2) {
+  if (e.target.id === "b-ohne-mwst" && entwurf5) {
     if (e.target.checked) {
-      entwurf2.mwst = null;
-      entwurf2.netto = zahl(entwurf2.brutto);
+      entwurf5.mwst = null;
+      entwurf5.netto = zahl(entwurf5.brutto);
     } else {
-      entwurf2.mwst = 0;
+      entwurf5.mwst = 0;
       betraegeAbgleichen("brutto");
     }
     const koerperEl = document.querySelector(".modal-koerper");
-    if (koerperEl) koerperEl.innerHTML = koerper2(Z2);
+    if (koerperEl) koerperEl.innerHTML = koerper5(Z2);
   }
 }
-function aktion5(a, knopf, Z2) {
-  if (a === "beleg-neu") return formular3(Z2, null);
-  if (a === "beleg-bearbeiten") return formular3(Z2, Z2.belege.find((b) => b.id === knopf.dataset.id));
+function aktion8(a, knopf, Z2) {
+  if (a === "beleg-neu") return formular6(Z2, null);
+  if (a === "beleg-bearbeiten") return formular6(Z2, Z2.belege.find((b) => b.id === knopf.dataset.id));
   if (a === "beleg-loeschen") {
     const b = Z2.belege.find((x) => x.id === knopf.dataset.id);
     if (b && bestaetigen("Beleg " + (b.nummer || b.lieferant || "") + " löschen?")) {
@@ -2025,11 +3054,11 @@ function aktion5(a, knopf, Z2) {
   }
   if (a === "b-analysieren") return analysieren2(Z2);
   if (a === "b-datei-entfernen") {
-    if (entwurf2.datei_pfad) loeschen(entwurf2.datei_pfad).catch(() => {
+    if (entwurf5.datei_pfad) loeschen(entwurf5.datei_pfad).catch(() => {
     });
-    entwurf2.datei_pfad = null;
-    entwurf2.datei_name = null;
-    dateiWartend2 = null;
+    entwurf5.datei_pfad = null;
+    entwurf5.datei_name = null;
+    dateiWartend4 = null;
     document.getElementById("b-analyse").innerHTML = analyseBlock2();
     return;
   }
@@ -2039,16 +3068,35 @@ function aktion5(a, knopf, Z2) {
     }).catch((e) => meldung(e.message, true));
   }
 }
+var entwurf5, dateiWartend4, letzterHinweis2, mwstManuell;
+var init_belege = __esm({
+  "app/js/ansichten/belege.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_dateien();
+    init_ki();
+    init_app();
+    init_konfig();
+    entwurf5 = null;
+    dateiWartend4 = null;
+    letzterHinweis2 = "";
+    mwstManuell = false;
+  }
+});
 
 // app/js/ansichten/dokumente.js
 var dokumente_exports = {};
 __export(dokumente_exports, {
-  aktion: () => aktion6,
-  render: () => render6
+  aktion: () => aktion9,
+  render: () => render9
 });
-function render6(Z2) {
+function render9(Z2) {
   const bearbeitbar = kannBearbeiten();
-  let h = '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Dokumente</h2><p>' + Z2.dokumente.length + " Ablagen · Kaufvertrag, Pläne, Bewilligungen, Garantien</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="dokument-neu">+ Dateien</button>' : "") + "</div>";
+  const istFoto = (d) => istBild(d.mime_typ, d.dateiname);
+  const fotos = Z2.dokumente.filter(istFoto).slice().reverse();
+  const uebrige = Z2.dokumente.filter((d) => !istFoto(d)).slice().reverse();
+  let h = '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Dokumente</h2><p>' + uebrige.length + (uebrige.length === 1 ? " Dokument" : " Dokumente") + (fotos.length ? " · " + fotos.length + (fotos.length === 1 ? " Foto" : " Fotos") : "") + "</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="dokument-neu">+ Dateien</button>' : "") + "</div>";
   if (!Z2.dokumente.length) {
     h += leerZustand(
       "Die Ablage ist leer",
@@ -2057,11 +3105,26 @@ function render6(Z2) {
     );
     return h + "</section>";
   }
-  h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Dateiname</th><th>Dokumenttyp</th><th>Datum</th><th>Kategorie</th><th>Bemerkung</th><th></th></tr></thead><tbody>';
-  Z2.dokumente.slice().reverse().forEach((d) => {
-    h += "<tr><td><b>" + esc(d.dateiname) + "</b>" + (d.groesse ? ' <span class="badge">' + dateigroesse(d.groesse) + "</span>" : "") + "</td><td>" + esc(d.typ || "Sonstiges") + "</td><td>" + datumCH(d.datum) + "</td><td>" + esc(kategorieName(Z2.budget, d.budgetposition_id)) + '</td><td style="white-space:normal;max-width:260px">' + esc(d.bemerkung || "") + '</td><td><div class="zeile-aktion">' + (d.datei_pfad ? '<button class="btn still klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(d.datei_pfad) + '">Öffnen</button>' : "") + '<button class="btn still klein" type="button" data-aktion="dokument-bearbeiten" data-id="' + d.id + '">' + (bearbeitbar ? "Bearbeiten" : "Ansehen") + "</button>" + (bearbeitbar ? '<button class="btn still klein" type="button" data-aktion="dokument-loeschen" data-id="' + d.id + '">Löschen</button>' : "") + "</div></td></tr>";
+  if (!uebrige.length) {
+    h += '<div class="karte karte-pad"><div class="leer" style="padding:8px 0">Nur Fotos abgelegt – Verträge, Pläne und Bewilligungen erscheinen hier.</div></div>';
+  } else {
+    h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Dateiname</th><th>Dokumenttyp</th><th>Datum</th><th>Kategorie</th><th>Bemerkung</th><th></th></tr></thead><tbody>';
+    uebrige.forEach((d) => {
+      h += "<tr><td><b>" + esc(d.dateiname) + "</b>" + (d.groesse ? ' <span class="badge">' + dateigroesse(d.groesse) + "</span>" : "") + "</td><td>" + esc(d.typ || "Sonstiges") + "</td><td>" + datumCH(d.datum) + "</td><td>" + esc(kategorieName(Z2.budget, d.budgetposition_id)) + '</td><td style="white-space:normal;max-width:260px">' + esc(d.bemerkung || "") + '</td><td><div class="zeile-aktion">' + (d.datei_pfad ? '<button class="btn still klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(d.datei_pfad) + '">Öffnen</button>' : "") + '<button class="btn still klein" type="button" data-aktion="dokument-bearbeiten" data-id="' + d.id + '">' + (bearbeitbar ? "Bearbeiten" : "Ansehen") + "</button>" + (bearbeitbar ? '<button class="btn still klein" type="button" data-aktion="dokument-loeschen" data-id="' + d.id + '">Löschen</button>' : "") + "</div></td></tr>";
+    });
+    h += "</tbody></table></div></div>";
+  }
+  h += "</section>";
+  if (fotos.length) h += fotoAbschnitt(Z2, fotos, bearbeitbar);
+  return h;
+}
+function fotoAbschnitt(Z2, fotos, bearbeitbar) {
+  let h = '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Fotos</h2><p>' + fotos.length + ' Bilder · zum Vergrössern antippen</p></div></div><div class="foto-raster">';
+  fotos.forEach((d) => {
+    h += '<figure class="foto-kachel"><button class="foto-bild" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(d.datei_pfad || "") + '" title="' + esc(d.dateiname) + '">' + (d.datei_pfad && istAnzeigbar(d.mime_typ, d.dateiname) ? bildMarkierung(d.datei_pfad, d.dateiname) : '<span class="foto-ersatz">' + (d.datei_pfad ? "Format ohne Vorschau" : "keine Datei") + "</span>") + '</button><figcaption><b title="' + esc(d.dateiname) + '">' + esc(d.dateiname) + "</b><span>" + (d.datum ? datumCH(d.datum) : "ohne Datum") + (d.budgetposition_id ? " · " + esc(kategorieName(Z2.budget, d.budgetposition_id)) : "") + "</span>" + (d.bemerkung ? '<span class="bemerkung">' + esc(d.bemerkung) + "</span>" : "") + '<span class="foto-aktionen"><button class="btn still klein" type="button" data-aktion="dokument-bearbeiten" data-id="' + d.id + '">' + (bearbeitbar ? "Bearbeiten" : "Ansehen") + "</button>" + (bearbeitbar ? '<button class="btn still klein" type="button" data-aktion="dokument-loeschen" data-id="' + d.id + '">Löschen</button>' : "") + "</span></figcaption></figure>";
   });
-  return h + "</tbody></table></div></div></section>";
+  nachladenBald();
+  return h + "</div></section>";
 }
 function hochladenFormular(Z2) {
   modalOeffnen({
@@ -2138,7 +3201,7 @@ function bearbeitenFormular(Z2, d) {
     }
   });
 }
-function aktion6(a, knopf, Z2) {
+function aktion9(a, knopf, Z2) {
   if (a === "dokument-neu") return hochladenFormular(Z2);
   if (a === "dokument-bearbeiten") return bearbeitenFormular(Z2, Z2.dokumente.find((d) => d.id === knopf.dataset.id));
   if (a === "dokument-loeschen") {
@@ -2163,50 +3226,31 @@ function aktion6(a, knopf, Z2) {
     }).catch((e) => meldung(e.message, true));
   }
 }
+var init_dokumente = __esm({
+  "app/js/ansichten/dokumente.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_dateien();
+    init_vorschau();
+    init_app();
+    init_konfig();
+  }
+});
 
 // app/js/app.js
-var el = (id) => document.getElementById(id);
-var Z = {
-  session: null,
-  benutzer: null,
-  projekte: [],
-  projektId: null,
-  projekt: null,
-  mitglieder: [],
-  meineRolle: null,
-  budget: [],
-  offerten: [],
-  belege: [],
-  dokumente: [],
-  kostenvergleich: [],
-  nebenkosten: [],
-  aktuelleAnsicht: "uebersicht",
-  online: navigator.onLine,
-  ladeVorgaenge: 0,
-  abmeldeAbo: null,
-  // Beim Start wird sofort gezeichnet. sitzungVermutet kommt aus dem lokalen
-  // Speicher, authGeklaert wird gesetzt, sobald Supabase geantwortet hat.
-  sitzungVermutet: false,
-  authGeklaert: false,
-  authHinweis: "",
-  laedt: false,
-  ladeFehler: "",
-  neueVersion: false,
-  ladeStand: {},
-  // je Abfrage: "läuft" | "fertig" | Fehlertext
-  ladeBegonnen: 0,
-  einladungen: [],
-  einladung: null
-  // einladung: offener Link, noch nicht eingelöst
-};
-var ANSICHTEN = [
-  { id: "uebersicht", text: "Übersicht", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/>' },
-  { id: "budget", text: "Budget", icon: '<path d="M3 20V9"/><path d="M9 20V4"/><path d="M15 20v-8"/><path d="M21 20V7"/>' },
-  { id: "offerten", text: "Offerten", icon: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/>' },
-  { id: "belege", text: "Belege", icon: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9.5 8h5M9.5 12h5"/>' },
-  { id: "dokumente", text: "Dokumente", icon: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>' }
-];
-var ANSICHTS_MODULE = { uebersicht: uebersicht_exports, budget: budget_exports, offerten: offerten_exports, belege: belege_exports, dokumente: dokumente_exports };
+var app_exports = {};
+__export(app_exports, {
+  Z: () => Z,
+  frischLaden: () => frischLaden,
+  istEigentuemer: () => istEigentuemer,
+  kannBearbeiten: () => kannBearbeiten,
+  modalOeffnen: () => modalOeffnen,
+  modalSchliessen: () => modalSchliessen,
+  neuLaden: () => neuLaden,
+  neuZeichnen: () => neuZeichnen,
+  projektWechseln: () => projektWechseln
+});
 function kannBearbeiten() {
   return Z.meineRolle === "eigentuemer" || Z.meineRolle === "bearbeiter";
 }
@@ -2248,6 +3292,9 @@ async function neuLaden(teile) {
     }, () => null));
   }
   holen("nebenkosten", nebenkostenLaden, "nebenkosten");
+  holen("foerdergelder", foerdergelderLaden, "foerdergelder");
+  holen("anschaffungen", anschaffungenLaden, "anschaffungen");
+  holen("arbeiten", arbeitenLaden, "arbeiten");
   holen("budget", budgetLaden, "budget");
   holen("offerten", offertenLaden, "offerten");
   holen("belege", belegeLaden, "belege");
@@ -2315,8 +3362,6 @@ async function projektWechseln(projektId) {
     Z.abmeldeAbo = projektAbonnieren(Z.projektId, (bereich) => neuLadenGesammelt(bereich));
   }
 }
-var sammelUhr = null;
-var sammelBereiche = /* @__PURE__ */ new Set();
 function neuLadenGesammelt(bereich) {
   sammelBereiche.add(bereich);
   clearTimeout(sammelUhr);
@@ -2420,7 +3465,6 @@ function navZeichnen() {
     (a) => '<button type="button" data-ansicht="' + a.id + '"' + (a.id === Z.aktuelleAnsicht ? ' aria-current="page"' : "") + '><svg viewBox="0 0 24 24" aria-hidden="true">' + a.icon + "</svg>" + a.text + "</button>"
   ).join("");
 }
-var modalSpeichern = null;
 function modalOeffnen(o) {
   modalSpeichern = o.speichern || null;
   el("modal-wrap").innerHTML = '<div class="modal-hg" id="modal-hg"><div class="modal" role="dialog" aria-modal="true" aria-label="' + esc(o.titel) + '"><div class="modal-kopf"><h2>' + esc(o.titel) + '</h2><button class="x-btn" type="button" data-aktion="modal-zu" aria-label="Schliessen">×</button></div><div class="modal-koerper">' + o.koerper + '</div><div class="modal-fuss"><button class="btn zweit" type="button" data-aktion="modal-zu">Abbrechen</button><button class="btn" type="button" data-aktion="modal-speichern">' + (o.knopfText || "Speichern") + "</button></div></div></div>";
@@ -2445,80 +3489,6 @@ async function modalSpeichernAusloesen(knopf) {
     if (knopf) knopf.disabled = false;
   }
 }
-document.addEventListener("click", async (e) => {
-  const knopf = e.target.closest("[data-ansicht]");
-  if (knopf) return ansichtWechseln(knopf.dataset.ansicht);
-  const aktionsKnopf = e.target.closest("[data-aktion]");
-  if (aktionsKnopf) {
-    const a = aktionsKnopf.dataset.aktion;
-    if (a === "modal-zu") return modalSchliessen();
-    if (a === "modal-speichern") return modalSpeichernAusloesen(aktionsKnopf);
-    if (a === "abmelden") {
-      if (Z.abmeldeAbo) {
-        Z.abmeldeAbo();
-        Z.abmeldeAbo = null;
-      }
-      Z.session = null;
-      Z.benutzer = null;
-      Z.sitzungVermutet = false;
-      Z.authGeklaert = true;
-      Z.projekte = [];
-      Z.projekt = null;
-      Z.projektId = null;
-      Z.laedt = false;
-      Z.ladeFehler = "";
-      Z.authHinweis = "";
-      zeichnen();
-      abmelden().catch(() => {
-      });
-      return;
-    }
-    if (a === "version-laden") return frischLaden();
-    if (a === "neu-laden") {
-      Z.ladeFehler = "";
-      if (Z.projektId) neuLaden();
-      else projekteUndDatenLaden();
-      return;
-    }
-    if (!Z.session) return aktion(a, aktionsKnopf, Z);
-    const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
-    if (modul && modul.aktion) return modul.aktion(a, aktionsKnopf, Z);
-    return aktion2(a, aktionsKnopf, Z);
-  }
-  if (e.target.id === "modal-hg") modalSchliessen();
-});
-document.addEventListener("submit", (e) => {
-  if (e.target.closest("#anmelde-formular")) {
-    e.preventDefault();
-    formularAbschicken(e.target);
-  }
-});
-document.addEventListener("input", (e) => {
-  const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
-  if (modul && modul.eingabe) modul.eingabe(e, Z);
-});
-document.addEventListener("change", (e) => {
-  if (e.target.id === "projekt-wahl") return projektWechseln(e.target.value);
-  const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
-  if (modul && modul.aenderung) return modul.aenderung(e, Z);
-});
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && el("modal-wrap").innerHTML) modalSchliessen();
-});
-window.addEventListener("online", () => {
-  Z.online = true;
-  if (Z.projektId) neuLaden();
-  else zeichnen();
-});
-window.addEventListener("offline", () => {
-  Z.online = false;
-  zeichnen();
-});
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState !== "visible") return;
-  neueVersionPruefen();
-  if (Z.projektId) neuLaden();
-});
 async function projekteUndDatenLaden() {
   Z.laedt = true;
   Z.ladeFehler = "";
@@ -2547,38 +3517,6 @@ async function projekteUndDatenLaden() {
   if (gewaehlt) await projektWechseln(gewaehlt.id);
   else zeichnen();
 }
-aufAuthAchten((ereignis, sitzung) => {
-  Z.authGeklaert = true;
-  Z.authHinweis = "";
-  Z.session = sitzung;
-  Z.benutzer = sitzung ? sitzung.user : null;
-  if (ereignis === "SIGNED_OUT" || !sitzung) {
-    if (Z.abmeldeAbo) {
-      Z.abmeldeAbo();
-      Z.abmeldeAbo = null;
-    }
-    Z.projektId = null;
-    Z.projekt = null;
-    Z.projekte = [];
-    zeichnen();
-    return;
-  }
-  zeichnen();
-  if (ereignis === "SIGNED_IN" || ereignis === "INITIAL_SESSION" || ereignis === "TOKEN_REFRESHED") {
-    setTimeout(() => {
-      if (ladenLaeuft) return;
-      ladenLaeuft = true;
-      einladungVerarbeiten().then((erledigt) => erledigt || Z.projekte.length ? null : projekteUndDatenLaden()).catch((e) => {
-        Z.ladeFehler = e.message || String(e);
-        zeichnen();
-      }).finally(() => {
-        ladenLaeuft = false;
-      });
-    }, 0);
-  }
-});
-var ladenLaeuft = false;
-var EINLADUNG_SCHLUESSEL = "tw-einladung";
 function einladungAusAdresse() {
   const ausAdresse = new URLSearchParams(location.search).get("einladung");
   if (ausAdresse) {
@@ -2618,28 +3556,206 @@ async function einladungVerarbeiten() {
     return true;
   }
 }
-(function start() {
-  Z.sitzungVermutet = gespeicherteSitzungVorhanden();
-  zeichnen();
-  const token = einladungAusAdresse();
-  if (token) {
-    einladungInfo(token).then((info) => {
-      if (info) {
-        Z.einladung = info;
-        zeichnen();
+var el, Z, ANSICHTEN, ANSICHTS_MODULE, sammelUhr, sammelBereiche, modalSpeichern, ladenLaeuft, EINLADUNG_SCHLUESSEL;
+var init_app = __esm({
+  "app/js/app.js"() {
+    init_supabase();
+    init_daten();
+    init_format();
+    init_anmeldung();
+    init_uebersicht();
+    init_budget();
+    init_offerten();
+    init_belege();
+    init_arbeiten();
+    init_dokumente();
+    el = (id) => document.getElementById(id);
+    Z = {
+      session: null,
+      benutzer: null,
+      projekte: [],
+      projektId: null,
+      projekt: null,
+      mitglieder: [],
+      meineRolle: null,
+      budget: [],
+      offerten: [],
+      belege: [],
+      dokumente: [],
+      kostenvergleich: [],
+      nebenkosten: [],
+      foerdergelder: [],
+      anschaffungen: [],
+      arbeiten: [],
+      aktuelleAnsicht: "uebersicht",
+      online: navigator.onLine,
+      ladeVorgaenge: 0,
+      abmeldeAbo: null,
+      // Beim Start wird sofort gezeichnet. sitzungVermutet kommt aus dem lokalen
+      // Speicher, authGeklaert wird gesetzt, sobald Supabase geantwortet hat.
+      sitzungVermutet: false,
+      authGeklaert: false,
+      authHinweis: "",
+      laedt: false,
+      ladeFehler: "",
+      neueVersion: false,
+      ladeStand: {},
+      // je Abfrage: "läuft" | "fertig" | Fehlertext
+      ladeBegonnen: 0,
+      einladungen: [],
+      einladung: null
+      // einladung: offener Link, noch nicht eingelöst
+    };
+    ANSICHTEN = [
+      { id: "uebersicht", text: "Übersicht", icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/>' },
+      { id: "budget", text: "Budget", icon: '<path d="M3 20V9"/><path d="M9 20V4"/><path d="M15 20v-8"/><path d="M21 20V7"/>' },
+      { id: "offerten", text: "Offerten", icon: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/>' },
+      { id: "belege", text: "Belege", icon: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9.5 8h5M9.5 12h5"/>' },
+      { id: "arbeiten", text: "Arbeiten", icon: '<path d="M14.5 5.5a3.5 3.5 0 0 0-4.8 4.3l-5.4 5.4a1.5 1.5 0 0 0 2.1 2.1l5.4-5.4a3.5 3.5 0 0 0 4.3-4.8l-2 2-1.6-1.6z"/><path d="M15 14l5 5"/>' },
+      { id: "dokumente", text: "Dokumente", icon: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>' }
+    ];
+    ANSICHTS_MODULE = {
+      uebersicht: uebersicht_exports,
+      budget: budget_exports,
+      offerten: offerten_exports,
+      belege: belege_exports,
+      arbeiten: arbeiten_exports,
+      dokumente: dokumente_exports
+    };
+    sammelUhr = null;
+    sammelBereiche = /* @__PURE__ */ new Set();
+    modalSpeichern = null;
+    document.addEventListener("click", async (e) => {
+      const knopf = e.target.closest("[data-ansicht]");
+      if (knopf) return ansichtWechseln(knopf.dataset.ansicht);
+      const aktionsKnopf = e.target.closest("[data-aktion]");
+      if (aktionsKnopf) {
+        const a = aktionsKnopf.dataset.aktion;
+        if (a === "modal-zu") return modalSchliessen();
+        if (a === "modal-speichern") return modalSpeichernAusloesen(aktionsKnopf);
+        if (a === "abmelden") {
+          if (Z.abmeldeAbo) {
+            Z.abmeldeAbo();
+            Z.abmeldeAbo = null;
+          }
+          Z.session = null;
+          Z.benutzer = null;
+          Z.sitzungVermutet = false;
+          Z.authGeklaert = true;
+          Z.projekte = [];
+          Z.projekt = null;
+          Z.projektId = null;
+          Z.laedt = false;
+          Z.ladeFehler = "";
+          Z.authHinweis = "";
+          zeichnen();
+          abmelden().catch(() => {
+          });
+          return;
+        }
+        if (a === "version-laden") return frischLaden();
+        if (a === "neu-laden") {
+          Z.ladeFehler = "";
+          if (Z.projektId) neuLaden();
+          else projekteUndDatenLaden();
+          return;
+        }
+        if (!Z.session) return aktion(a, aktionsKnopf, Z);
+        const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
+        if (modul && modul.aktion) return modul.aktion(a, aktionsKnopf, Z);
+        return aktion3(a, aktionsKnopf, Z);
       }
-    }).catch(() => {
+      if (e.target.id === "modal-hg") modalSchliessen();
     });
+    document.addEventListener("submit", (e) => {
+      if (e.target.closest("#anmelde-formular")) {
+        e.preventDefault();
+        formularAbschicken(e.target);
+      }
+    });
+    document.addEventListener("input", (e) => {
+      const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
+      if (modul && modul.eingabe) modul.eingabe(e, Z);
+    });
+    document.addEventListener("change", (e) => {
+      if (e.target.id === "projekt-wahl") return projektWechseln(e.target.value);
+      const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
+      if (modul && modul.aenderung) return modul.aenderung(e, Z);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && el("modal-wrap").innerHTML) modalSchliessen();
+    });
+    window.addEventListener("online", () => {
+      Z.online = true;
+      if (Z.projektId) neuLaden();
+      else zeichnen();
+    });
+    window.addEventListener("offline", () => {
+      Z.online = false;
+      zeichnen();
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState !== "visible") return;
+      neueVersionPruefen();
+      if (Z.projektId) neuLaden();
+    });
+    aufAuthAchten((ereignis, sitzung) => {
+      Z.authGeklaert = true;
+      Z.authHinweis = "";
+      Z.session = sitzung;
+      Z.benutzer = sitzung ? sitzung.user : null;
+      if (ereignis === "SIGNED_OUT" || !sitzung) {
+        if (Z.abmeldeAbo) {
+          Z.abmeldeAbo();
+          Z.abmeldeAbo = null;
+        }
+        Z.projektId = null;
+        Z.projekt = null;
+        Z.projekte = [];
+        zeichnen();
+        return;
+      }
+      zeichnen();
+      if (ereignis === "SIGNED_IN" || ereignis === "INITIAL_SESSION" || ereignis === "TOKEN_REFRESHED") {
+        setTimeout(() => {
+          if (ladenLaeuft) return;
+          ladenLaeuft = true;
+          einladungVerarbeiten().then((erledigt) => erledigt || Z.projekte.length ? null : projekteUndDatenLaden()).catch((e) => {
+            Z.ladeFehler = e.message || String(e);
+            zeichnen();
+          }).finally(() => {
+            ladenLaeuft = false;
+          });
+        }, 0);
+      }
+    });
+    ladenLaeuft = false;
+    EINLADUNG_SCHLUESSEL = "tw-einladung";
+    (function start() {
+      Z.sitzungVermutet = gespeicherteSitzungVorhanden();
+      zeichnen();
+      const token = einladungAusAdresse();
+      if (token) {
+        einladungInfo(token).then((info) => {
+          if (info) {
+            Z.einladung = info;
+            zeichnen();
+          }
+        }).catch(() => {
+        });
+      }
+      setTimeout(neueVersionPruefen, 3e3);
+      setInterval(neueVersionPruefen, 15 * 60 * 1e3);
+      setTimeout(() => {
+        if (Z.session || Z.projekt || Z.ladeFehler) return;
+        Z.authGeklaert = true;
+        if (!Z.session) Z.authHinweis = "Die Anmeldung konnte nicht geprüft werden – bitte erneut anmelden.";
+        zeichnen();
+      }, 15e3);
+    })();
   }
-  setTimeout(neueVersionPruefen, 3e3);
-  setInterval(neueVersionPruefen, 15 * 60 * 1e3);
-  setTimeout(() => {
-    if (Z.session || Z.projekt || Z.ladeFehler) return;
-    Z.authGeklaert = true;
-    if (!Z.session) Z.authHinweis = "Die Anmeldung konnte nicht geprüft werden – bitte erneut anmelden.";
-    zeichnen();
-  }, 15e3);
-})();
+});
+init_app();
 export {
   Z,
   frischLaden,

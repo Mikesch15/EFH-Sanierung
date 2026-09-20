@@ -8,6 +8,7 @@ import {
 } from "../daten.js";
 import { ROLLEN, NEBENKOSTEN_ARTEN } from "../konfig.js";
 import * as ImportModul from "../import.js";
+import { istOffen, istUeberfaellig, istDieseWoche } from "./arbeiten.js";
 import { Z as ZUstand, modalOeffnen, neuLaden, neuZeichnen, projektWechseln } from "../app.js";
 
 let importDaten = null; // {erstellt, daten} während der Vorschau im Import-Modal
@@ -91,6 +92,8 @@ export function render(Z) {
         " und liegen damit über dem Sanierungsrahmen von " + chf(s.rahmen) + ".</div></div>"
       : "") +
     "</div></section>";
+
+  h += baustelle(Z);
 
   const kats = (Z.kostenvergleich || []).filter((k) => k.budget > 0 || k.ist > 0).slice(0, 8);
   h += '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Kosten nach Kategorien</h2>' +
@@ -514,4 +517,46 @@ function importOeffnen(Z, modalOeffnen, neuLaden) {
       } catch (err) { meldung(err.message, true); return false; }
     },
   });
+}
+
+/** Was auf der Baustelle ansteht – nur zeigen, wenn überhaupt etwas geplant ist. */
+function baustelle(Z) {
+  const alle = Z.arbeiten || [];
+  if (!alle.length) return "";
+  const arbeiten = alle.filter((a) => a.art !== "pendenz");
+  const pendenzen = alle.filter((a) => a.art === "pendenz");
+  const dieseWoche = arbeiten.filter(istDieseWoche);
+  const laufend = arbeiten.filter((a) => a.status === "In Arbeit");
+  const offenePendenzen = pendenzen.filter(istOffen);
+  const ueberfaellig = alle.filter(istUeberfaellig);
+
+  let h = '<section class="abschnitt"><div class="abschnitt-kopf"><div><h2>Baustelle</h2>' +
+    "<p>Was läuft und was noch offen ist</p></div>" +
+    '<button class="btn still klein" type="button" data-ansicht="arbeiten">Alle</button></div>' +
+    '<div class="karte karte-pad">';
+
+  if (ueberfaellig.length) {
+    h += '<div class="hinweis warn" style="margin-bottom:12px"><div><b>' + ueberfaellig.length +
+      (ueberfaellig.length === 1 ? " Termin ist verstrichen" : " Termine sind verstrichen") + "</b>" +
+      ueberfaellig.slice(0, 3).map((a) => esc(a.titel)).join(" · ") +
+      (ueberfaellig.length > 3 ? " …" : "") + "</div></div>";
+  }
+
+  h += '<ul class="liste">';
+  if (laufend.length) {
+    h += '<li><div class="haupt"><div class="titel">In Arbeit</div>' +
+      '<div class="unter">' + esc(laufend.map((a) => a.titel).join(" · ")) + "</div></div>" +
+      '<div class="betrag">' + laufend.length + "</div></li>";
+  }
+  h += '<li><div class="haupt"><div class="titel">Diese Woche</div>' +
+    '<div class="unter">' + (dieseWoche.length
+      ? esc(dieseWoche.map((a) => a.titel + (a.firma ? " (" + a.firma + ")" : "")).join(" · "))
+      : "nichts eingeplant") + "</div></div>" +
+    '<div class="betrag">' + dieseWoche.length + "</div></li>";
+  h += '<li><div class="haupt"><div class="titel">Offene Pendenzen</div>' +
+    '<div class="unter">' + (offenePendenzen.length
+      ? esc(offenePendenzen.slice(0, 3).map((a) => a.titel).join(" · ")) + (offenePendenzen.length > 3 ? " …" : "")
+      : "keine") + "</div></div>" +
+    '<div class="betrag">' + offenePendenzen.length + "</div></li>";
+  return h + "</ul></div></section>";
 }

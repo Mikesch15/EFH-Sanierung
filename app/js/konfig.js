@@ -42,6 +42,10 @@ export const ANSCHAFFUNG_ARTEN = [
 ];
 export const FINANZIERUNGEN = ["Kredit", "Eigenmittel"];
 
+// Bauablauf: derselbe Stand für Arbeiten und Pendenzen, damit die Übersicht
+// beides gemeinsam auswerten kann.
+export const ARBEIT_STATUS = ["Offen", "In Arbeit", "Erledigt"];
+
 export const ROLLEN = {
   eigentuemer: "Eigentümer",
   bearbeiter: "Bearbeiter",

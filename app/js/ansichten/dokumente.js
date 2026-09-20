@@ -1,77 +1,14 @@
 import { esc, datumCH, heuteISO, meldung, bestaetigen, dateigroesse } from "../format.js";
 import { leerZustand, kategorieOptionen, kategorieName } from "./gemeinsam.js";
 import { dokumenteAnlegen, dokumentAktualisieren, dokumentLoeschen } from "../daten.js";
-import { hochladen, signierterLink, vorschauLinks, loeschen as dateiLoeschen, dateiPruefen } from "../dateien.js";
+import { hochladen, signierterLink, loeschen as dateiLoeschen, dateiPruefen } from "../dateien.js";
+import { istBild, istAnzeigbar, bildMarkierung, nachladenBald } from "../vorschau.js";
 import { modalOeffnen, neuLaden, kannBearbeiten } from "../app.js";
 import { DOKUMENT_TYPEN } from "../konfig.js";
 
-// Was der Browser als Bild anzeigen kann. HEIC gehört bewusst nicht dazu: Es zählt
-// als Foto, lässt sich aber ausserhalb von Safari nicht darstellen – dafür gibt es
-// unten eine Ersatzkachel statt eines kaputten Bildes.
-const BILD_ENDUNG = /\.(jpe?g|png|webp|gif|heic|heif)$/i;
-const ANZEIGBAR = /^image\/(jpeg|png|webp|gif)$/i;
-
-function istFoto(d) {
-  if (d.mime_typ) return d.mime_typ.startsWith("image/");
-  return BILD_ENDUNG.test(d.dateiname || "");
-}
-function istAnzeigbar(d) {
-  if (d.mime_typ) return ANZEIGBAR.test(d.mime_typ);
-  return /\.(jpe?g|png|webp|gif)$/i.test(d.dateiname || "");
-}
-
-// Einmal geholte Vorschau-Adressen halten: Ohne diesen Puffer würde jede
-// Aktualisierung (auch die von anderen Geräten) alle Bilder neu anfragen.
-const vorschauSpeicher = new Map();   // Pfad → { url, zeit }
-const VORSCHAU_GUELTIG_MS = 8 * 60 * 1000;
-let vorschauLaeuft = false;
-
-function vorschauAusSpeicher(pfad) {
-  const eintrag = vorschauSpeicher.get(pfad);
-  if (!eintrag || Date.now() - eintrag.zeit > VORSCHAU_GUELTIG_MS) return null;
-  return eintrag.url;
-}
-
-/** Holt die fehlenden Vorschau-Adressen und setzt sie in die schon gezeichneten Kacheln. */
-async function vorschauenNachladen() {
-  if (vorschauLaeuft) return;
-  // Lädt eine Adresse nicht (abgelaufen, gelöscht), zeigt die Kachel Text statt
-  // eines kaputten Bildsymbols.
-  document.querySelectorAll("img[data-vorschau]").forEach((bild) => {
-    if (bild.dataset.wacht) return;
-    bild.dataset.wacht = "1";
-    bild.addEventListener("error", () => kachelOhneBild(bild, "Vorschau nicht geladen"));
-  });
-  const offen = Array.from(document.querySelectorAll("img[data-vorschau]"))
-    .filter((bild) => !bild.getAttribute("src"));
-  const pfade = [...new Set(offen.map((bild) => bild.dataset.vorschau))];
-  if (!pfade.length) return;
-  vorschauLaeuft = true;
-  try {
-    const karte = await vorschauLinks(pfade);
-    Object.entries(karte).forEach(([pfad, url]) => vorschauSpeicher.set(pfad, { url, zeit: Date.now() }));
-    offen.forEach((bild) => {
-      const url = karte[bild.dataset.vorschau];
-      if (url) bild.setAttribute("src", url);
-      else kachelOhneBild(bild, "kein Zugriff");
-    });
-  } catch (e) {
-    offen.forEach((bild) => kachelOhneBild(bild, "Vorschau nicht geladen"));
-  } finally {
-    vorschauLaeuft = false;
-  }
-}
-
-/** Ersatz für ein Bild, das nicht angezeigt werden kann – nie ein kaputtes Symbol. */
-function kachelOhneBild(bild, text) {
-  const halter = bild.parentElement;
-  if (!halter) return;
-  bild.remove();
-  halter.innerHTML = '<span class="foto-ersatz">' + esc(text) + "</span>";
-}
-
 export function render(Z) {
   const bearbeitbar = kannBearbeiten();
+  const istFoto = (d) => istBild(d.mime_typ, d.dateiname);
   const fotos = Z.dokumente.filter(istFoto).slice().reverse();
   const uebrige = Z.dokumente.filter((d) => !istFoto(d)).slice().reverse();
 
@@ -122,13 +59,11 @@ function fotoAbschnitt(Z, fotos, bearbeitbar) {
     '<div class="foto-raster">';
 
   fotos.forEach((d) => {
-    const gespeichert = d.datei_pfad ? vorschauAusSpeicher(d.datei_pfad) : null;
     h += '<figure class="foto-kachel">' +
       '<button class="foto-bild" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(d.datei_pfad || "") + '"' +
       ' title="' + esc(d.dateiname) + '">' +
-      (d.datei_pfad && istAnzeigbar(d)
-        ? '<img alt="' + esc(d.dateiname) + '" loading="lazy" data-vorschau="' + esc(d.datei_pfad) + '"' +
-          (gespeichert ? ' src="' + esc(gespeichert) + '"' : "") + ">"
+      (d.datei_pfad && istAnzeigbar(d.mime_typ, d.dateiname)
+        ? bildMarkierung(d.datei_pfad, d.dateiname)
         : '<span class="foto-ersatz">' + (d.datei_pfad ? "Format ohne Vorschau" : "keine Datei") + "</span>") +
       "</button>" +
       '<figcaption><b title="' + esc(d.dateiname) + '">' + esc(d.dateiname) + "</b>" +
@@ -144,7 +79,7 @@ function fotoAbschnitt(Z, fotos, bearbeitbar) {
 
   // Die Adressen sind signiert und laufen ab – sie werden erst geholt, wenn die
   // Kacheln stehen, und nur für die, die noch keine haben.
-  setTimeout(vorschauenNachladen, 0);
+  nachladenBald();
   return h + "</div></section>";
 }
 

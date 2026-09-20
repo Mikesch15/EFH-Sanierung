@@ -52,13 +52,14 @@ a{color:var(--blau-700)}
 .tabs-mobil{
   position:fixed; left:0; right:0; bottom:0; z-index:40;
   background:#fff; border-top:1px solid var(--linie);
-  display:grid; grid-template-columns:repeat(5,1fr);
+  display:grid; grid-template-columns:repeat(6,1fr);
   padding-bottom:env(safe-area-inset-bottom);
 }
 .tabs-mobil button{
   background:none; border:0; cursor:pointer; padding:9px 2px 8px;
   display:flex; flex-direction:column; align-items:center; gap:3px;
-  font-size:.68rem; color:var(--grau); font-weight:550; min-height:58px;
+  font-size:.64rem; color:var(--grau); font-weight:550; min-height:58px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;
 }
 .tabs-mobil svg{width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.7;
   stroke-linecap:round; stroke-linejoin:round}
@@ -139,6 +140,28 @@ tfoot td{font-weight:650; background:#F7F9FB; border-top:2px solid var(--linie-s
 .foto-kachel figcaption span{color:var(--grau)}
 .foto-kachel figcaption .bemerkung{color:var(--text-2); white-space:normal}
 .foto-aktionen{display:flex; gap:6px; margin-top:7px}
+
+/* ---------- Pendenzen ---------- */
+.pendenz-liste{list-style:none; margin:0; padding:0}
+.pendenz{display:flex; gap:11px; align-items:flex-start; padding:11px 12px; border-bottom:1px solid var(--linie)}
+.pendenz:last-child{border-bottom:0}
+.pendenz.erledigt{opacity:.62}
+.pendenz-bild{flex:0 0 auto; width:62px; height:62px; padding:0; border:1px solid var(--linie);
+  border-radius:var(--r-s); overflow:hidden; background:var(--blau-50); cursor:pointer}
+.pendenz-bild.leer{border-style:dashed; cursor:default}
+.pendenz-bild img{width:100%; height:100%; object-fit:cover; display:block}
+.pendenz-bild .foto-ersatz{font-size:.66rem}
+.pendenz-text{flex:1; min-width:0}
+.pendenz-text b{font-size:.9rem; font-weight:600}
+.pendenz-text>div{font-size:.8rem; color:var(--text-2); white-space:normal; margin-top:2px}
+.pendenz-fuss{font-size:.76rem; color:var(--grau); margin-top:4px; white-space:normal}
+.pendenz-aktion{display:flex; flex-direction:column; gap:5px; align-items:flex-end}
+/* Schmales Gerät: die Knöpfe unter den Text, sonst bleibt für ihn nichts übrig. */
+@media (max-width:560px){
+  .pendenz{flex-wrap:wrap}
+  .pendenz-text{flex:1 1 60%}
+  .pendenz-aktion{flex:1 1 100%; flex-direction:row; justify-content:flex-end; margin-top:4px}
+}
 
 /* ---------- Listen ---------- */
 .liste{list-style:none; margin:0; padding:0}

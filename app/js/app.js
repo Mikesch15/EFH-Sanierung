@@ -2,7 +2,7 @@ import { supabase, aufAuthAchten, abmelden, gespeicherteSitzungVorhanden } from 
 import {
   DatenFehler, projekteLaden, mitgliederLaden, budgetLaden, offertenLaden,
   belegeLaden, dokumenteLaden, kostenvergleichLaden, projektAbonnieren,
-  einladungenLaden, einladungInfo, einladungEinloesen, nebenkostenLaden, foerdergelderLaden, anschaffungenLaden,
+  einladungenLaden, einladungInfo, einladungEinloesen, nebenkostenLaden, foerdergelderLaden, anschaffungenLaden, arbeitenLaden,
 } from "./daten.js";
 import { esc, meldung } from "./format.js";
 import * as Anmeldung from "./ansichten/anmeldung.js";
@@ -10,6 +10,7 @@ import * as Uebersicht from "./ansichten/uebersicht.js";
 import * as Budget from "./ansichten/budget.js";
 import * as Offerten from "./ansichten/offerten.js";
 import * as Belege from "./ansichten/belege.js";
+import * as Arbeiten from "./ansichten/arbeiten.js";
 import * as Dokumente from "./ansichten/dokumente.js";
 
 const el = (id) => document.getElementById(id);
@@ -18,7 +19,7 @@ export const Z = {
   session: null, benutzer: null,
   projekte: [], projektId: null, projekt: null, mitglieder: [], meineRolle: null,
   budget: [], offerten: [], belege: [], dokumente: [], kostenvergleich: [], nebenkosten: [],
-  foerdergelder: [], anschaffungen: [],
+  foerdergelder: [], anschaffungen: [], arbeiten: [],
   aktuelleAnsicht: "uebersicht",
   online: navigator.onLine, ladeVorgaenge: 0,
   abmeldeAbo: null,
@@ -36,10 +37,14 @@ const ANSICHTEN = [
   { id: "budget", text: "Budget", icon: '<path d="M3 20V9"/><path d="M9 20V4"/><path d="M15 20v-8"/><path d="M21 20V7"/>' },
   { id: "offerten", text: "Offerten", icon: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/>' },
   { id: "belege", text: "Belege", icon: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9.5 8h5M9.5 12h5"/>' },
+  { id: "arbeiten", text: "Arbeiten", icon: '<path d="M14.5 5.5a3.5 3.5 0 0 0-4.8 4.3l-5.4 5.4a1.5 1.5 0 0 0 2.1 2.1l5.4-5.4a3.5 3.5 0 0 0 4.3-4.8l-2 2-1.6-1.6z"/><path d="M15 14l5 5"/>' },
   { id: "dokumente", text: "Dokumente", icon: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>' },
 ];
 
-const ANSICHTS_MODULE = { uebersicht: Uebersicht, budget: Budget, offerten: Offerten, belege: Belege, dokumente: Dokumente };
+const ANSICHTS_MODULE = {
+  uebersicht: Uebersicht, budget: Budget, offerten: Offerten, belege: Belege,
+  arbeiten: Arbeiten, dokumente: Dokumente,
+};
 
 export function kannBearbeiten() { return Z.meineRolle === "eigentuemer" || Z.meineRolle === "bearbeiter"; }
 export function istEigentuemer() { return Z.meineRolle === "eigentuemer"; }
@@ -75,6 +80,7 @@ async function neuLaden(teile) {
   holen("nebenkosten", nebenkostenLaden, "nebenkosten");
   holen("foerdergelder", foerdergelderLaden, "foerdergelder");
   holen("anschaffungen", anschaffungenLaden, "anschaffungen");
+  holen("arbeiten", arbeitenLaden, "arbeiten");
   holen("budget", budgetLaden, "budget");
   holen("offerten", offertenLaden, "offerten");
   holen("belege", belegeLaden, "belege");
