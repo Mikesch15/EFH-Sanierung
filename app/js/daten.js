@@ -237,6 +237,100 @@ export function nebenkostenLoeschen(id) {
   return schreiben(async () => pruefen(await supabase.from("kaufnebenkosten").delete().eq("id", id)));
 }
 
+/* ------------------------------------------- Aufnahme: Checkliste und Räume */
+export function checklisteLaden(projektId) {
+  return lesen(async () =>
+    pruefen(
+      await supabase
+        .from("checkliste")
+        .select("*")
+        .eq("projekt_id", projektId)
+        .order("sortierung")
+        .order("erstellt_am")
+    )
+  );
+}
+
+/** Legt die Vorlage als Liste dieses Projekts an – ein Insert für alle Punkte. */
+export function checklisteAnlegen(projektId, punkte) {
+  return schreiben(async () =>
+    pruefen(
+      await supabase
+        .from("checkliste")
+        .insert(punkte.map((p) => ({
+          projekt_id: projektId,
+          gruppe: p.gruppe,
+          titel: p.titel,
+          sortierung: p.sortierung || 0,
+          eigen: !!p.eigen,
+        })))
+        .select()
+    )
+  );
+}
+
+export function checklistePunktAktualisieren(id, daten) {
+  return schreiben(async () =>
+    pruefen(await supabase.from("checkliste").update(daten).eq("id", id).select().single())
+  );
+}
+
+export function checklistePunktLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("checkliste").delete().eq("id", id)));
+}
+
+export function raeumeLaden(projektId) {
+  return lesen(async () =>
+    pruefen(
+      await supabase
+        .from("raeume")
+        .select("*")
+        .eq("projekt_id", projektId)
+        .order("sortierung")
+        .order("erstellt_am")
+    )
+  );
+}
+
+function raumFelder(daten) {
+  const zahlOderNull = (wert) => (wert === "" || wert === null || wert === undefined ? null : wert);
+  return {
+    name: daten.name || "",
+    geschoss: daten.geschoss || "",
+    laenge: zahlOderNull(daten.laenge),
+    breite: zahlOderNull(daten.breite),
+    hoehe: zahlOderNull(daten.hoehe),
+    wandstaerke: zahlOderNull(daten.wandstaerke),
+    fenster: daten.fenster || "",
+    tueren: daten.tueren || "",
+    boden: daten.boden || "",
+    bemerkung: daten.bemerkung || "",
+  };
+}
+
+export function raumAnlegen(projektId, daten) {
+  return schreiben(async () =>
+    pruefen(
+      await supabase
+        .from("raeume")
+        .insert({ projekt_id: projektId, ...raumFelder(daten) })
+        .select()
+        .single()
+    )
+  );
+}
+
+export function raumAktualisieren(id, daten, geladenAm) {
+  return schreiben(async () => {
+    await konfliktPruefen("raeume", id, geladenAm);
+    return pruefen(await supabase.from("raeume").update(raumFelder(daten)).eq("id", id).select().single());
+  });
+}
+
+export function raumLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("raeume").delete().eq("id", id)));
+}
+
 /* ------------------------------------------------- Arbeiten und Pendenzen */
 // Der Bauablauf: Arbeiten mit Zeitraum, Pendenzen und Mängel mit Frist und Foto.
 export function arbeitenLaden(projektId) {
@@ -635,6 +729,8 @@ export function projektAbonnieren(projektId, aufAenderung) {
     .on("postgres_changes", { event: "*", schema: "public", table: "foerdergelder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("foerdergelder"))
     .on("postgres_changes", { event: "*", schema: "public", table: "anschaffungen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("anschaffungen"))
     .on("postgres_changes", { event: "*", schema: "public", table: "arbeiten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("arbeiten"))
+    .on("postgres_changes", { event: "*", schema: "public", table: "checkliste", filter: "projekt_id=eq." + projektId }, () => aufAenderung("checkliste"))
+    .on("postgres_changes", { event: "*", schema: "public", table: "raeume", filter: "projekt_id=eq." + projektId }, () => aufAenderung("raeume"))
     .on("postgres_changes", { event: "*", schema: "public", table: "projekt_mitglieder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("mitglieder"))
     .subscribe();
   return () => supabase.removeChannel(kanal);

@@ -18,6 +18,7 @@ dieses auch nicht.
 | Register für Fördergelder | fertig, siehe «Fördergelder» |
 | Anschaffungen ausserhalb des Budgets (Kredit) | fertig, siehe «Anschaffungen» |
 | Zeitplan der Arbeiten, Pendenzen und Mängel | fertig, siehe «Arbeiten» |
+| Besichtigungs-Checkliste und Raum-Messblatt | fertig, siehe «Aufnahme» |
 | Echte Dokumentenanalyse (Gemini) | fertig in der App, siehe «KI-Auswertung»; im Prototyp weiterhin simuliert |
 
 ## Supabase-Projekt
@@ -47,6 +48,8 @@ projekte                 Objekt, Adresse, Kaufpreis, Gesamtbudget, Kreditrahmen
    ├─ belege             Netto, MWST, Brutto, bezahlt, Bezug zu Offerte und Datei
    ├─ foerdergelder      Beiträge von Bund, Kanton, Gemeinde, Werken – mit Stand und Frist
    ├─ arbeiten           Zeitplan der Gewerke sowie Pendenzen und Mängel (mit Foto)
+└─ checkliste            Besichtigung: Punkt, Mass/Feststellung, abgehakt
+└─ raeume                Raum-Messblatt: Länge, Breite, Höhe, Wandstärke, Fenster, Türen
    └─ dokumente          Kaufvertrag, Pläne, Bewilligungen, Garantien
 ```
 
@@ -141,8 +144,9 @@ app/
   js/import.js          Übernahme der Prototyp-Sicherung
   js/app.js             Start, Navigation, Modal, Realtime
   js/vorschau.js        Vorschaubilder: signierte Adressen gebündelt holen und merken
+  js/checkliste-vorlage.js  Besichtigungs-Checkliste als Vorlage (12 Gruppen, 88 Punkte)
   js/ansichten/*.js     Anmeldung, Übersicht, Budget, Fördergelder, Anschaffungen,
-                        Offerten, Belege, Arbeiten, Dokumente
+                        Offerten, Belege, Arbeiten, Aufnahme, Dokumente
   js/paket/*.js         daraus gebaute Auslieferung (nicht von Hand ändern)
 ```
 
@@ -473,6 +477,30 @@ etwas erfasst ist.
 Beides liegt in einer Tabelle (`arbeiten`, Spalte `art`): Die Felder sind fast dieselben,
 und so lässt sich «was ist überfällig» über beides hinweg beantworten.
 
+## Aufnahme: Checkliste und Raum-Messblatt
+
+Vorlage ist die Besichtigungs-Checkliste Tulpenweg 37 (`unterlagen/`): 12 Gruppen mit
+88 Punkten, von den Grundmassen über Keller, Heizung und Elektro bis zu den Unterlagen
+des Verkäufers. Sie steht im Tab *Arbeiten*, unterhalb von Zeitplan und Pendenzen – es
+ist derselbe Gang durchs Haus, nur früher in der Zeit.
+
+**Checkliste.** Ein Tipp auf das Kästchen hakt ab, daneben steht ein Feld für das Mass
+oder die Feststellung («2.42 m, Keller 2.10»). Beides speichert sofort – ohne Formular,
+ohne Speichern-Knopf; wer den Meterstab in der anderen Hand hat, soll nicht zweimal
+tippen müssen. Das Mass-Feld schreibt beim Verlassen, nicht bei jedem Zeichen.
+
+Die Gruppen sind zugeklappt und zeigen ihren Stand (3/8), darüber ein Balken mit dem
+Gesamtfortschritt. So bleiben 88 Punkte auf einem Handy überschaubar.
+
+Die Vorlage wird einmal pro Projekt mit *Checkliste aus Vorlage anlegen* übernommen;
+danach gehört die Liste dem Projekt: Punkte löschen, ändern oder mit *+ Punkt* eigene
+ergänzen (die sind als *eigener Punkt* gekennzeichnet). Die Vorlage selbst bleibt
+unverändert in `app/js/checkliste-vorlage.js`.
+
+**Raum-Messblatt.** Je Raum eine Zeile mit Geschoss, Länge, Breite, Höhe, Wandstärke,
+Fenster, Türen, Boden und Bemerkungen. Längen in Metern, Wandstärke in Zentimetern – so
+misst man es auch. Die Fläche wird gerechnet, ebenso das Total über alle Räume.
+
 ## Migrationen anwenden
 
 Die Migrationen sind im Supabase-Projekt bereits eingespielt. Für eine zweite Umgebung
@@ -519,14 +547,18 @@ Am besten auf zwei Geräten (oder einem normalen Fenster und einem privaten Fens
     *Gestartet* und *Fertig* weiterschalten. Unter *+ Pendenz* einen Punkt mit Foto
     erfassen – die Kamera öffnet direkt. Auf der Übersicht erscheint der Abschnitt
     *Baustelle*.
-11. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
+11. **Aufnahme**: Tab *Arbeiten* → *Checkliste aus Vorlage anlegen*. Eine Gruppe
+    antippen, einen Punkt abhaken, ein Mass eintragen und die Seite neu laden – beides
+    steht noch da. Mit *+ Punkt* einen eigenen Punkt ergänzen, unter *Raum-Messblatt*
+    einen Raum erfassen (Fläche wird gerechnet).
+12. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
    Werten passen. Der Kostenvergleich kommt aus der View `v_kostenvergleich`.
-12. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür
+13. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür
     nötigen Tabellen stehen seit Migration 0012 in der Veröffentlichung
     `supabase_realtime` – vorher war sie leer, und es wurde erst beim Tabwechsel
     aktualisiert); beim Zurückkehren
    in den Tab wird zusätzlich neu geladen.
-13. **Prototyp-Sicherung importieren**: im Prototyp *Daten exportieren*, dann in der App
+14. **Prototyp-Sicherung importieren**: im Prototyp *Daten exportieren*, dann in der App
     Übersicht → *Sicherung importieren*. Der erste Klick auf *Importieren* zeigt nur, was
     eingefügt würde; erst der zweite führt den Import aus. Derselbe Export wird pro Projekt
     nur einmal importiert.

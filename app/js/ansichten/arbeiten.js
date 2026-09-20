@@ -11,6 +11,7 @@ import { hochladen, signierterLink, loeschen as dateiLoeschen } from "../dateien
 import { istAnzeigbar, bildMarkierung, nachladenBald } from "../vorschau.js";
 import { modalOeffnen, neuLaden, kannBearbeiten } from "../app.js";
 import { ARBEIT_STATUS } from "../konfig.js";
+import * as Aufnahme from "./aufnahme.js";
 
 let entwurf = null;
 let dateiWartend = null;
@@ -79,9 +80,14 @@ export function render(Z) {
   let h = '<nav class="sprungleiste">' +
     '<a href="#abschnitt-zeitplan">Zeitplan</a>' +
     '<a href="#abschnitt-pendenzen">Pendenzen &amp; Mängel</a>' +
+    '<a href="#abschnitt-checkliste">Checkliste</a>' +
+    '<a href="#abschnitt-raeume">Räume</a>' +
     "</nav>";
 
   h += zeitplanAbschnitt(Z, arbeiten) + pendenzAbschnitt(Z, pendenzen);
+  // Die Aufnahme gehört in denselben Tab: Es ist dieselbe Hand, dasselbe Haus,
+  // derselbe Gang durchs Gebäude – nur früher in der Zeit.
+  h += Aufnahme.checklisteAbschnitt(Z) + Aufnahme.raumAbschnitt(Z);
   nachladenBald();
   return h;
 }
@@ -276,7 +282,8 @@ async function speichern(Z) {
   } catch (err) { meldung(err.message, true); return false; }
 }
 
-export function eingabe(e) {
+export function eingabe(e, Z) {
+  Aufnahme.eingabe(e, Z);
   if (!document.querySelector(".modal") || !entwurf) return;
   const feld = e.target.closest("[data-feld]");
   if (!feld) return;
@@ -285,9 +292,13 @@ export function eingabe(e) {
   entwurf[name] = feld.value;
 }
 
+/** Die Mass-Felder der Checkliste speichern beim Verlassen, nicht bei jedem Zeichen. */
+export function aenderung(e, Z) { Aufnahme.aenderung(e, Z); }
+
 /* ---------------------------------------------------------------- Aktionen */
 
 export function aktion(a, knopf, Z) {
+  if (a.startsWith("chk-") || a.startsWith("raum-")) return Aufnahme.aktion(a, knopf, Z);
   if (a === "arbeit-neu") return formular(Z, null, "arbeit");
   if (a === "pendenz-neu") return formular(Z, null, "pendenz");
   if (a === "arbeit-bearbeiten") {

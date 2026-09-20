@@ -141,6 +141,23 @@ tfoot td{font-weight:650; background:#F7F9FB; border-top:2px solid var(--linie-s
 .foto-kachel figcaption .bemerkung{color:var(--text-2); white-space:normal}
 .foto-aktionen{display:flex; gap:6px; margin-top:7px}
 
+/* ---------- Checkliste ---------- */
+.gruppe-kopf{display:flex; align-items:center; gap:10px; width:100%; padding:12px 14px;
+  background:none; border:0; cursor:pointer; text-align:left}
+.gruppe-kopf b{flex:1; font-size:.9rem; font-weight:600}
+.gruppe-kopf .pfeil{color:var(--grau); font-size:.9rem; width:14px; text-align:center}
+.chk-liste{list-style:none; margin:0; padding:0; border-top:1px solid var(--linie)}
+.chk{display:flex; gap:10px; align-items:flex-start; padding:10px 14px; border-bottom:1px solid var(--linie)}
+.chk:last-child{border-bottom:0}
+.chk.fertig .chk-text>span{color:var(--grau); text-decoration:line-through}
+.chk-haken{flex:0 0 auto; width:30px; height:30px; border-radius:8px; cursor:pointer;
+  border:1.5px solid var(--linie-stark); background:#fff; color:#fff; font-size:1rem; line-height:1}
+.chk.fertig .chk-haken{background:var(--gruen); border-color:var(--gruen)}
+.chk-text{flex:1; min-width:0}
+.chk-text>span{font-size:.87rem; display:inline}
+.chk-wert{margin-top:6px; min-height:36px; padding:6px 9px; font-size:.84rem}
+.chk-wert-fest{margin-top:4px; font-size:.82rem; color:var(--text-2)}
+
 /* ---------- Pendenzen ---------- */
 .pendenz-liste{list-style:none; margin:0; padding:0}
 .pendenz{display:flex; gap:11px; align-items:flex-start; padding:11px 12px; border-bottom:1px solid var(--linie)}
