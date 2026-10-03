@@ -1,89 +1,82 @@
-// Die drei Geschosse aus den Verkaufsunterlagen (Tulpenweg 37).
+// Die drei Geschosse aus den Verkaufsunterlagen (Tulpenweg 37), massstäblich
+// nachgezeichnet.
 //
-// Übernommen sind Raumnamen und Flächen; die Masse breite/tiefe sind daraus und
-// aus den Proportionen des Plans abgeleitet – Startwerte, bis gemessen ist.
-// In den Unterlagen steht ausdrücklich: "Die Fläche dient nur als Richtwert; sie
-// stellt keine zugesicherte Eigenschaft des Objekts dar." Genau deshalb der Plan
-// hier: beim nächsten Besuch nachmessen und die eigenen Werte eintragen.
+// Jeder Raum hat feste Koordinaten in Metern: x/y = linke obere Ecke, b/t =
+// Breite und Tiefe. Nullpunkt ist die obere linke Ecke des Geschosses, die
+// Blickrichtung entspricht den Plänen der Verkaufsdokumentation.
 //
-// Aufbau: Jedes Geschoss besteht aus waagrechten Bändern (von oben nach unten),
-// in denen die Räume nebeneinander liegen. Das ist keine Architektenzeichnung,
-// sondern eine Skizze, die immer sauber aufgeht – auch wenn die gemessenen Masse
-// vom Plan abweichen.
+// Die Rechtecke sind so gewählt, dass die Fläche mit der ausgewiesenen
+// übereinstimmt (Abweichung unter 0.02 m²) UND die Lage zueinander stimmt: Was im
+// Plan links oben liegt, liegt hier links oben. Zwischenräume sind Wände, der
+// Treppenlauf und Schächte – sie gehören bewusst keinem Raum.
+//
+// Die Zeichnung verändert sich NICHT, wenn gemessen wird. Ein Grundriss, der sich
+// bei jeder Messung verzieht, ist nicht wiederzuerkennen; gemessene Masse stehen
+// stattdessen im Raum und als Abweichung zur Planfläche.
 
 export const GESCHOSSE = [
   {
     name: "OG",
     titel: "Obergeschoss",
-    baender: [
-      [
-        { name: "Ankleidezimmer", flaeche: 4.85, breite: 2.05, tiefe: 2.37 },
-        { name: "Badezimmer OG", flaeche: 2.80, breite: 1.18, tiefe: 2.37 },
-        { name: "Zimmer Nord (OG)", flaeche: 11.38, breite: 3.10, tiefe: 3.67 },
-      ],
-      [
-        { name: "Treppe OG", flaeche: 1.41, breite: 1.00, tiefe: 1.41 },
-        { name: "Büro", flaeche: 12.55, breite: 3.23, tiefe: 3.89 },
-        { name: "Zimmer Süd (OG)", flaeche: 12.25, breite: 3.10, tiefe: 3.95 },
-      ],
+    breite: 8.00,
+    tiefe: 7.00,
+    raeume: [
+      { name: "Ankleidezimmer",   flaeche: 4.85,  x: 0.00, y: 0.00, b: 2.05, t: 2.37 },
+      { name: "Badezimmer OG",    flaeche: 2.80,  x: 2.25, y: 0.00, b: 1.18, t: 2.37 },
+      { name: "Zimmer Nord (OG)", flaeche: 11.38, x: 4.25, y: 0.00, b: 3.75, t: 3.03 },
+      { name: "Treppe OG",        flaeche: 1.41,  x: 0.00, y: 2.57, b: 0.95, t: 1.48 },
+      { name: "Büro",             flaeche: 12.55, x: 1.15, y: 2.57, b: 2.90, t: 4.33 },
+      { name: "Zimmer Süd (OG)",  flaeche: 12.25, x: 4.25, y: 3.23, b: 3.75, t: 3.27 },
     ],
   },
   {
     name: "EG",
     titel: "Erdgeschoss",
-    baender: [
-      [
-        { name: "Küche", flaeche: 6.16, breite: 2.60, tiefe: 2.37 },
-        { name: "Badezimmer EG", flaeche: 3.69, breite: 1.55, tiefe: 2.38 },
-        { name: "Zimmer Nord (EG)", flaeche: 13.98, breite: 3.80, tiefe: 3.68 },
-      ],
-      [
-        { name: "Treppe EG", flaeche: 1.35, breite: 1.00, tiefe: 1.35 },
-        { name: "Gang EG", flaeche: 1.48, breite: 1.10, tiefe: 1.35 },
-      ],
-      [
-        { name: "Eingang", flaeche: 1.31, breite: 1.30, tiefe: 1.00 },
-        { name: "Esszimmer", flaeche: 10.26, breite: 2.85, tiefe: 3.60 },
-        { name: "Wohnzimmer", flaeche: 13.76, breite: 3.80, tiefe: 3.62 },
-      ],
+    breite: 8.00,
+    tiefe: 7.65,
+    raeume: [
+      { name: "Küche",            flaeche: 6.16,  x: 0.00, y: 0.00, b: 2.55, t: 2.42 },
+      { name: "Badezimmer EG",    flaeche: 3.69,  x: 2.75, y: 0.00, b: 1.50, t: 2.46 },
+      { name: "Zimmer Nord (EG)", flaeche: 13.98, x: 4.25, y: 0.00, b: 3.75, t: 3.73 },
+      { name: "Treppe EG",        flaeche: 1.35,  x: 0.00, y: 2.62, b: 0.95, t: 1.42 },
+      { name: "Gang EG",          flaeche: 1.48,  x: 2.75, y: 2.66, b: 1.29, t: 1.15 },
+      { name: "Esszimmer",        flaeche: 10.26, x: 1.15, y: 4.01, b: 2.85, t: 3.60 },
+      { name: "Wohnzimmer",       flaeche: 13.76, x: 4.25, y: 3.93, b: 3.75, t: 3.67 },
+      { name: "Eingang",          flaeche: 1.31,  x: 0.00, y: 6.30, b: 1.00, t: 1.31 },
     ],
   },
   {
     name: "UG",
     titel: "Untergeschoss",
-    baender: [
-      [
-        { name: "Waschküche", flaeche: 13.50, breite: 3.60, tiefe: 3.75 },
-        { name: "Raum (UG)", flaeche: 24.15, breite: 4.60, tiefe: 5.25 },
-      ],
-      [
-        { name: "Treppe UG", flaeche: 0.87, breite: 0.90, tiefe: 0.97 },
-        { name: "Gang UG", flaeche: 7.92, breite: 2.90, tiefe: 2.73 },
-        { name: "Abstellraum Kellerhals", flaeche: 3.33, breite: 1.40, tiefe: 2.38 },
-      ],
-      [
-        { name: "Abstellraum", flaeche: 4.02, breite: 2.10, tiefe: 1.91 },
-      ],
+    breite: 8.00,
+    tiefe: 8.80,
+    raeume: [
+      { name: "Waschküche",              flaeche: 13.50, x: 0.00, y: 0.00, b: 3.60, t: 3.75 },
+      { name: "Raum (UG)",               flaeche: 24.15, x: 3.80, y: 0.00, b: 4.20, t: 5.75 },
+      { name: "Treppe UG",               flaeche: 0.87,  x: 0.00, y: 3.95, b: 0.90, t: 0.97 },
+      { name: "Gang UG",                 flaeche: 7.92,  x: 1.10, y: 3.95, b: 2.70, t: 2.93 },
+      { name: "Abstellraum",             flaeche: 4.02,  x: 1.10, y: 6.88, b: 2.10, t: 1.91 },
+      { name: "Abstellraum Kellerhals",  flaeche: 3.33,  x: 3.95, y: 5.95, b: 1.40, t: 2.38 },
     ],
   },
 ];
 
-/** Alle Räume der Vorlage als flache Liste, bereit zum Anlegen. */
+/** Alle Räume der drei Geschosse als flache Liste, bereit zum Anlegen. */
 export function grundrissRaeume() {
   const alle = [];
   GESCHOSSE.forEach((geschoss) => {
-    geschoss.baender.forEach((band, bandNr) => {
-      band.forEach((raum, stelle) => {
-        alle.push({
-          name: raum.name,
-          geschoss: geschoss.name,
-          flaeche_plan: raum.flaeche,
-          soll_breite: raum.breite,
-          soll_tiefe: raum.tiefe,
-          plan_band: bandNr + 1,
-          plan_sort: stelle,
-          sortierung: alle.length,
-        });
+    geschoss.raeume.forEach((raum) => {
+      alle.push({
+        name: raum.name,
+        geschoss: geschoss.name,
+        flaeche_plan: raum.flaeche,
+        soll_breite: raum.b,
+        soll_tiefe: raum.t,
+        plan_x: raum.x,
+        plan_y: raum.y,
+        plan_w: raum.b,
+        plan_h: raum.t,
+        sortierung: alle.length,
       });
     });
   });
@@ -91,6 +84,7 @@ export function grundrissRaeume() {
 }
 
 export const PLAN_HINWEIS =
-  "Flächen aus den Verkaufsunterlagen – dort ausdrücklich nur als Richtwert bezeichnet. " +
-  "Die Skizze ist massstäblich, aber kein Architektenplan: Räume stehen in waagrechten " +
-  "Bändern nebeneinander. Sobald ein Raum gemessen ist, zeichnet sie mit Ihren Massen.";
+  "Massstäblich nach den Verkaufsunterlagen gezeichnet; dort sind die Flächen " +
+  "ausdrücklich nur als Richtwert bezeichnet. Die Zeichnung bleibt beim Messen stehen – " +
+  "Ihre Masse erscheinen im Raum, und je Geschoss steht die Abweichung zur Planfläche. " +
+  "Freiflächen zwischen den Räumen sind Wände, Treppenlauf und Schächte.";

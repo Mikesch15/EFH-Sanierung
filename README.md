@@ -19,7 +19,7 @@ dieses auch nicht.
 | Anschaffungen ausserhalb des Budgets (Kredit) | fertig, siehe «Anschaffungen» |
 | Zeitplan der Arbeiten, Pendenzen und Mängel | fertig, siehe «Arbeiten» |
 | Besichtigungs-Checkliste und Raum-Messblatt | fertig, siehe «Aufnahme» |
-| Schema-Grundriss, der sich nach den Messungen richtet | fertig, siehe «Grundriss» |
+| Grundriss der drei Geschosse zum Vermessen | fertig, siehe «Grundriss» |
 | Echte Dokumentenanalyse (Gemini) | fertig in der App, siehe «KI-Auswertung»; im Prototyp weiterhin simuliert |
 
 ## Supabase-Projekt
@@ -146,7 +146,7 @@ app/
   js/app.js             Start, Navigation, Modal, Realtime
   js/vorschau.js        Vorschaubilder: signierte Adressen gebündelt holen und merken
   js/checkliste-vorlage.js  Besichtigungs-Checkliste als Vorlage (12 Gruppen, 88 Punkte)
-  js/grundriss-vorlage.js   die drei Geschosse aus den Verkaufsunterlagen
+  js/grundriss-vorlage.js   Geometrie der drei Geschosse (Lage und Grösse je Raum)
   js/ansichten/*.js     Anmeldung, Übersicht, Budget, Fördergelder, Anschaffungen,
                         Offerten, Belege, Arbeiten, Aufnahme, Grundriss, Dokumente
   js/paket/*.js         daraus gebaute Auslieferung (nicht von Hand ändern)
@@ -503,29 +503,32 @@ unverändert in `app/js/checkliste-vorlage.js`.
 Fenster, Türen, Boden und Bemerkungen. Längen in Metern, Wandstärke in Zentimetern – so
 misst man es auch. Die Fläche wird gerechnet, ebenso das Total über alle Räume.
 
-## Grundriss: Skizze, die beim Vermessen die Form annimmt
+## Grundriss: die drei Geschosse zum Antippen
 
 Im Tab *Arbeiten* steht zwischen Checkliste und Messblatt der Abschnitt *Grundriss*:
-Unter-, Erd- und Obergeschoss als massstäbliche Skizze, 20 Räume mit den Flächen aus den
-Verkaufsunterlagen.
+Unter-, Erd- und Obergeschoss, massstäblich nach den Verkaufsunterlagen gezeichnet, mit
+Umriss, Massstabsbalken und allen 20 Räumen an ihrer tatsächlichen Stelle.
 
-**So wird daraus eine eigene Aufnahme:** Jeder Raum im Plan ist antippbar und öffnet das
-Messblatt-Formular. Sobald Breite und Länge erfasst sind, zeichnet die Skizze mit **Ihren**
-Massen statt mit denen aus dem Verkaufsplan – der Raum wird grün, die Fläche neu gerechnet,
-und je Geschoss steht die Abweichung zur Planfläche (z.B. «48.88 m² (Plan 45.24 m², +3.64
-m²)»). So sieht man beim Messen, wo die Angaben des Verkäufers nicht stimmen.
+**Messen:** Raum im Plan (oder als Kachel darunter) antippen, Breite und Länge vom Laser
+eintragen. Der Raum wird grün, Ihre Masse stehen in ihm, und im Kopf des Geschosses
+erscheint die Abweichung zur Planfläche – z.B. «45.67 m² (Plan 45.24 m², +0.43)». So
+sieht man sofort, wo die Verkaufsangaben nicht stimmen; sie sind dort selbst nur als
+Richtwert bezeichnet.
 
-**Warum waagrechte Bänder und kein echter Grundriss.** Ein Architektenplan müsste Wände,
-Ecken und Versätze kennen; schon eine einzige abweichende Messung bringt eine solche
-Zeichnung zum Kippen – Räume überlappen oder es klaffen Lücken. Hier liegen die Räume
-stattdessen in waagrechten Bändern nebeneinander, wie sie im Plan übereinander liegen. Das
-geht immer sauber auf, bleibt massstäblich (Massstabsbalken unter jeder Zeichnung) und
-lässt sich mit dem Daumen bedienen. Es ist eine ehrliche Skizze statt einer Zeichnung, die
-eine Genauigkeit vortäuscht, die sie nicht hat.
+**Die Zeichnung bleibt stehen.** Ein erster Versuch liess die Räume mit den gemessenen
+Massen wachsen, damit sich der Plan «anpasst». Das Ergebnis war unbrauchbar: Man erkannte
+die Räume nicht wieder. Ein Plan nützt nur, wenn er aussieht wie das Haus – was sich beim
+Messen ändert, ist die Beschriftung, nicht die Form.
 
-Die Flächen der Verkaufsunterlagen sind dort selbst nur als Richtwert bezeichnet – genau
-deshalb dieser Abschnitt. Gemessene Werte stehen in denselben Feldern wie im Messblatt;
-beides ist dieselbe Tabelle (`raeume`), nur zwei Ansichten darauf.
+Die Geometrie steht in `app/js/grundriss-vorlage.js`: je Raum Lage und Grösse in Metern,
+Nullpunkt oben links. `npm run grundriss` prüft, dass sich keine zwei Räume
+überlappen, keiner aus dem Umriss ragt und jede Rechteckfläche der ausgewiesenen
+entspricht (Abweichung unter 0.02 m²). Freiflächen zwischen den Räumen sind Wände, Treppenlauf und
+Schächte – sie gehören bewusst keinem Raum.
+
+**Schon erfasste Räume** werden übernommen: Wer vorher von Hand einen «Wohnzimmer»
+erfasst hat, bekommt beim Anlegen des Grundrisses nur dessen Lage dazu – Messungen und
+Notizen bleiben, Doppel entstehen keine.
 
 ## Migrationen anwenden
 
@@ -577,9 +580,9 @@ Am besten auf zwei Geräten (oder einem normalen Fenster und einem privaten Fens
     antippen, einen Punkt abhaken, ein Mass eintragen und die Seite neu laden – beides
     steht noch da. Mit *+ Punkt* einen eigenen Punkt ergänzen, unter *Raum-Messblatt*
     einen Raum erfassen (Fläche wird gerechnet).
-12. **Grundriss**: Tab *Arbeiten* → *Grundriss aus Unterlagen anlegen*. Einen Raum in der
-    Skizze antippen, Breite und Länge eintragen – der Raum wird grün und die Zeichnung
-    passt sich an; die Abweichung zur Planfläche steht im Kopf des Geschosses.
+12. **Grundriss**: Tab *Arbeiten* → *Grundriss aus Unterlagen anlegen*. Einen Raum im Plan
+    antippen, Breite und Länge eintragen – der Raum wird grün, die Masse stehen in ihm und
+    die Abweichung zur Planfläche im Kopf des Geschosses. Die Form bleibt unverändert.
 13. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
    Werten passen. Der Kostenvergleich kommt aus der View `v_kostenvergleich`.
 14. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür

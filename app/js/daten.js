@@ -308,7 +308,34 @@ function raumFelder(daten) {
   };
 }
 
-/** Die Räume des Schema-Grundrisses auf einmal anlegen. */
+/**
+ * Setzt die Plandaten auf einen bestehenden Raum. Eigene Messungen und Notizen
+ * bleiben unberührt – wer schon Räume erfasst hat, verliert nichts.
+ */
+export function raumPlanSetzen(id, plan) {
+  return schreiben(async () =>
+    pruefen(
+      await supabase
+        .from("raeume")
+        .update({
+          geschoss: plan.geschoss || "",
+          flaeche_plan: plan.flaeche_plan ?? null,
+          soll_breite: plan.soll_breite ?? null,
+          soll_tiefe: plan.soll_tiefe ?? null,
+          plan_x: plan.plan_x ?? null,
+          plan_y: plan.plan_y ?? null,
+          plan_w: plan.plan_w ?? null,
+          plan_h: plan.plan_h ?? null,
+          sortierung: plan.sortierung ?? 0,
+        })
+        .eq("id", id)
+        .select()
+        .single()
+    )
+  );
+}
+
+/** Die Räume des Grundrisses auf einmal anlegen. */
 export function raeumeAnlegen(projektId, liste) {
   return schreiben(async () =>
     pruefen(
@@ -321,8 +348,10 @@ export function raeumeAnlegen(projektId, liste) {
           flaeche_plan: r.flaeche_plan ?? null,
           soll_breite: r.soll_breite ?? null,
           soll_tiefe: r.soll_tiefe ?? null,
-          plan_band: r.plan_band ?? null,
-          plan_sort: r.plan_sort ?? 0,
+          plan_x: r.plan_x ?? null,
+          plan_y: r.plan_y ?? null,
+          plan_w: r.plan_w ?? null,
+          plan_h: r.plan_h ?? null,
           sortierung: r.sortierung ?? 0,
         })))
         .select()

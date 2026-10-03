@@ -11,7 +11,7 @@ import { esc, zahl, meldung, bestaetigen, heuteISO } from "../format.js";
 import { leerZustand } from "./gemeinsam.js";
 import {
   checklisteAnlegen, checklistePunktAktualisieren, checklistePunktLoeschen,
-  raumAnlegen, raumAktualisieren, raumLoeschen, raeumeAnlegen,
+  raumAnlegen, raumAktualisieren, raumLoeschen, raeumeAnlegen, raumPlanSetzen,
 } from "../daten.js";
 import { modalOeffnen, neuLaden, neuZeichnen, kannBearbeiten } from "../app.js";
 import { vorlagePunkte, FOTO_REGEL, CHECKLISTE_HINWEIS } from "../checkliste-vorlage.js";
@@ -186,11 +186,13 @@ function raumFormular(Z, r) {
       "</div>" +
       '<label class="feld"><span>Boden</span><input data-feld="boden" value="' + esc(entwurf.boden) + '" placeholder="Parkett auf Blindboden"></label>' +
       '<label class="feld"><span>Bemerkungen</span><textarea data-feld="bemerkung" placeholder="Balkenrichtung, Auffälligkeiten …">' + esc(entwurf.bemerkung || "") + "</textarea></label>" +
-      (entwurf.plan_band
+      (entwurf.plan_x !== null && entwurf.plan_x !== undefined
         ? '<div class="hinweis info"><div>Dieser Raum steht im Grundriss: <b>Breite</b> ist die Seite ' +
-          "quer zum Band (waagrecht in der Skizze), <b>Länge</b> die Tiefe. Sobald beide erfasst sind, " +
-          "zeichnet der Plan mit Ihren Massen" +
-          (entwurf.flaeche_plan ? " statt mit den " + zahl(entwurf.flaeche_plan).toFixed(2) + " m² aus den Verkaufsunterlagen" : "") +
+          "quer zum Haus (waagrecht im Plan), <b>Länge</b> die Tiefe. Die Zeichnung behält ihre Form; " +
+          "Ihre Masse erscheinen im Raum" +
+          (entwurf.flaeche_plan
+            ? " und werden mit den " + zahl(entwurf.flaeche_plan).toFixed(2) + " m² aus den Verkaufsunterlagen verglichen"
+            : "") +
           ".</div></div>"
         : ""),
     speichern: () => raumSpeichern(Z),
@@ -244,6 +246,26 @@ function punktFormular(Z) {
       } catch (err) { meldung(err.message, true); return false; }
     },
   });
+}
+
+/**
+ * Legt den Grundriss an. Räume, die schon erfasst sind (gleicher Name), bekommen
+ * nur ihre Lage im Plan – Messungen und Notizen bleiben, und es entstehen keine
+ * Doppel. Das ist der Fall, wenn jemand vorher von Hand Räume erfasst hat.
+ */
+async function grundrissUebernehmen(Z) {
+  const vorhanden = Z.raeume || [];
+  const vorlage = grundrissRaeume();
+  const fehlende = [];
+  const anpassen = [];
+  vorlage.forEach((v) => {
+    const alt = vorhanden.find((r) => r.name === v.name);
+    if (alt) anpassen.push({ id: alt.id, plan: v });
+    else fehlende.push(v);
+  });
+  for (const eintrag of anpassen) await raumPlanSetzen(eintrag.id, eintrag.plan);
+  if (fehlende.length) await raeumeAnlegen(Z.projektId, fehlende);
+  return fehlende.length;
 }
 
 /* ---------------------------------------------------------------- Aktionen */
@@ -313,8 +335,11 @@ export function aktion(a, knopf, Z) {
     if (vorlageLaeuft) return;
     vorlageLaeuft = true;
     knopf.disabled = true;
-    raeumeAnlegen(Z.projektId, grundrissRaeume())
-      .then(() => { meldung("Grundriss angelegt."); return neuLaden(["raeume"]); })
+    grundrissUebernehmen(Z)
+      .then((neue) => {
+        meldung(neue ? "Grundriss angelegt." : "Grundriss auf die bestehenden Räume gelegt.");
+        return neuLaden(["raeume"]);
+      })
       .catch((err) => meldung(err.message, true))
       .finally(() => { vorlageLaeuft = false; });
     return;

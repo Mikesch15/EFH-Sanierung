@@ -144,7 +144,8 @@ tfoot td{font-weight:650; background:#F7F9FB; border-top:2px solid var(--linie-s
 /* ---------- Schema-Grundriss ---------- */
 .plan-huelle{overflow-x:auto; -webkit-overflow-scrolling:touch; padding:4px 14px 10px}
 .plan{display:block; height:auto; max-width:100%; min-width:260px}
-.plan-raum rect{fill:var(--blau-50); stroke:var(--blau-900); stroke-width:3; stroke-linejoin:round}
+.plan-umriss{fill:none; stroke:var(--blau-900); stroke-width:4; stroke-linejoin:round}
+.plan-raum rect{fill:var(--blau-50); stroke:var(--blau-900); stroke-width:2.5; stroke-linejoin:round}
 .plan-raum{cursor:pointer}
 .plan-raum:hover rect{fill:var(--blau-100)}
 .plan-raum:focus{outline:none}
