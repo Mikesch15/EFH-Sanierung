@@ -305,58 +305,11 @@ function raumFelder(daten) {
     tueren: daten.tueren || "",
     boden: daten.boden || "",
     bemerkung: daten.bemerkung || "",
+    // Messpunkt auf dem Plan: Lage relativ zum Bild (0 bis 1).
+    plan_id: daten.plan_id || null,
+    marke_x: zahlOderNull(daten.marke_x),
+    marke_y: zahlOderNull(daten.marke_y),
   };
-}
-
-/**
- * Setzt die Plandaten auf einen bestehenden Raum. Eigene Messungen und Notizen
- * bleiben unberührt – wer schon Räume erfasst hat, verliert nichts.
- */
-export function raumPlanSetzen(id, plan) {
-  return schreiben(async () =>
-    pruefen(
-      await supabase
-        .from("raeume")
-        .update({
-          geschoss: plan.geschoss || "",
-          flaeche_plan: plan.flaeche_plan ?? null,
-          soll_breite: plan.soll_breite ?? null,
-          soll_tiefe: plan.soll_tiefe ?? null,
-          plan_x: plan.plan_x ?? null,
-          plan_y: plan.plan_y ?? null,
-          plan_w: plan.plan_w ?? null,
-          plan_h: plan.plan_h ?? null,
-          sortierung: plan.sortierung ?? 0,
-        })
-        .eq("id", id)
-        .select()
-        .single()
-    )
-  );
-}
-
-/** Die Räume des Grundrisses auf einmal anlegen. */
-export function raeumeAnlegen(projektId, liste) {
-  return schreiben(async () =>
-    pruefen(
-      await supabase
-        .from("raeume")
-        .insert(liste.map((r) => ({
-          projekt_id: projektId,
-          name: r.name,
-          geschoss: r.geschoss || "",
-          flaeche_plan: r.flaeche_plan ?? null,
-          soll_breite: r.soll_breite ?? null,
-          soll_tiefe: r.soll_tiefe ?? null,
-          plan_x: r.plan_x ?? null,
-          plan_y: r.plan_y ?? null,
-          plan_w: r.plan_w ?? null,
-          plan_h: r.plan_h ?? null,
-          sortierung: r.sortierung ?? 0,
-        })))
-        .select()
-    )
-  );
 }
 
 export function raumAnlegen(projektId, daten) {
@@ -364,11 +317,52 @@ export function raumAnlegen(projektId, daten) {
     pruefen(
       await supabase
         .from("raeume")
-        .insert({ projekt_id: projektId, ...raumFelder(daten) })
+        .insert(Object.assign({ projekt_id: projektId, sortierung: daten.sortierung ?? 0 }, raumFelder(daten)))
         .select()
         .single()
     )
   );
+}
+
+export function plaeneLaden(projektId) {
+  return lesen(async () =>
+    pruefen(
+      await supabase
+        .from("plaene")
+        .select("*")
+        .eq("projekt_id", projektId)
+        .order("sortierung")
+        .order("erstellt_am")
+    )
+  );
+}
+
+export function planAnlegen(projektId, daten) {
+  return schreiben(async () =>
+    pruefen(
+      await supabase
+        .from("plaene")
+        .insert({
+          projekt_id: projektId,
+          titel: daten.titel || "",
+          datei_pfad: daten.datei_pfad,
+          datei_name: daten.datei_name || "",
+          sortierung: daten.sortierung ?? 0,
+        })
+        .select()
+        .single()
+    )
+  );
+}
+
+export function planAktualisieren(id, daten) {
+  return schreiben(async () =>
+    pruefen(await supabase.from("plaene").update(daten).eq("id", id).select().single())
+  );
+}
+
+export function planLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("plaene").delete().eq("id", id)));
 }
 
 export function raumAktualisieren(id, daten, geladenAm) {
@@ -782,6 +776,7 @@ export function projektAbonnieren(projektId, aufAenderung) {
     .on("postgres_changes", { event: "*", schema: "public", table: "arbeiten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("arbeiten"))
     .on("postgres_changes", { event: "*", schema: "public", table: "checkliste", filter: "projekt_id=eq." + projektId }, () => aufAenderung("checkliste"))
     .on("postgres_changes", { event: "*", schema: "public", table: "raeume", filter: "projekt_id=eq." + projektId }, () => aufAenderung("raeume"))
+    .on("postgres_changes", { event: "*", schema: "public", table: "plaene", filter: "projekt_id=eq." + projektId }, () => aufAenderung("plaene"))
     .on("postgres_changes", { event: "*", schema: "public", table: "projekt_mitglieder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("mitglieder"))
     .subscribe();
   return () => supabase.removeChannel(kanal);

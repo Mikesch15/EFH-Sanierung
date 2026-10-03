@@ -1,131 +1,128 @@
-// Grundriss der drei Geschosse, massstäblich nach den Verkaufsunterlagen.
+// Grundrisse: der Originalplan als Bild, mit Messpunkten darauf.
 //
-// Die Zeichnung steht fest. Ein erster Versuch liess die Räume mit den gemessenen
-// Massen wachsen – das Ergebnis war unbrauchbar, weil man die Räume nicht mehr
-// wiedererkannte. Ein Plan nützt nur, wenn er aussieht wie das Haus.
+// Zwei Versuche, den Plan nachzuzeichnen, waren unbrauchbar – erst mitwachsende
+// Bänder, dann feste Rechtecke. Beide scheitern am selben Punkt: Echte Räume sind
+// nicht rechtwinklig. Schräge Wände, Versätze und Erker lassen sich mit Rechtecken
+// nicht abbilden, und in einem Plan, in dem man die Räume nicht wiedererkennt,
+// will niemand messen.
 //
-// Gemessene Werte erscheinen deshalb IM Raum (Breite × Länge und Fläche), der Raum
-// wird grün, und je Geschoss steht die Abweichung zur Planfläche. Was sich ändert,
-// ist die Beschriftung – nicht die Form.
+// Jetzt andersherum: Der Plan wird als Bild hochgeladen und unverändert gezeigt.
+// Ein Tipp auf den Raum setzt einen Messpunkt, dort stehen danach die Masse. Der
+// Plan sieht aus wie der Plan, weil er der Plan ist.
 import { esc, zahl } from "../format.js";
 import { leerZustand } from "./gemeinsam.js";
+import { istAnzeigbar, bildMarkierung, nachladenBald } from "../vorschau.js";
 import { kannBearbeiten } from "../app.js";
-import { GESCHOSSE, PLAN_HINWEIS } from "../grundriss-vorlage.js";
 
-const RAND = 14;              // Rand um die Zeichnung, in Bildpunkten
-const PIXEL_JE_METER = 52;
+// Wartet auf den Tipp, der den nächsten Messpunkt setzt (plan-Id oder null).
+let setzenAuf = null;
+
+export function setzModus() { return setzenAuf; }
+export function setzModusSetzen(planId) { setzenAuf = planId; }
 
 export function istGemessen(r) { return !!(zahl(r.breite) && zahl(r.laenge)); }
-function gemesseneFlaeche(r) { return zahl(r.breite) * zahl(r.laenge); }
+function flaeche(r) { return zahl(r.breite) * zahl(r.laenge); }
 
-/** Fläche, die für diesen Raum gilt: gemessen, sonst aus dem Verkaufsplan. */
-function flaeche(r) {
-  return istGemessen(r) ? gemesseneFlaeche(r) : zahl(r.flaeche_plan);
+/** Kurzform für die Marke: Name, dazu die Fläche, sobald gemessen. */
+function markenText(r) {
+  const name = r.name || "?";
+  return istGemessen(r) ? name + " · " + flaeche(r).toFixed(2) + " m²" : name;
 }
 
-function geschossZeichnen(geschoss, raeume) {
-  const b = geschoss.breite * PIXEL_JE_METER + RAND * 2;
-  const h = geschoss.tiefe * PIXEL_JE_METER + RAND * 2 + 16;   // Platz für den Massstab
-  const mx = (wert) => (RAND + wert * PIXEL_JE_METER).toFixed(1);
+function planZeichnen(plan, raeume, bearbeitbar) {
+  const marken = raeume.filter((r) => r.plan_id === plan.id && r.marke_x !== null && r.marke_x !== undefined);
+  const setzt = setzenAuf === plan.id;
 
-  let svg = '<svg class="plan" viewBox="0 0 ' + b.toFixed(0) + " " + h.toFixed(0) + '" ' +
-    'role="img" aria-label="Grundriss ' + esc(geschoss.titel) + '">' +
-    // Umriss des Geschosses
-    '<rect class="plan-umriss" x="' + mx(0) + '" y="' + mx(0) + '" width="' +
-    (geschoss.breite * PIXEL_JE_METER).toFixed(1) + '" height="' +
-    (geschoss.tiefe * PIXEL_JE_METER).toFixed(1) + '"></rect>';
+  let h = '<div class="plan-bild' + (setzt ? " setzt" : "") + '"' +
+    (setzt ? ' data-aktion="plan-tippen" data-plan="' + plan.id + '"' : "") + ">";
+  h += istAnzeigbar(null, plan.datei_name || plan.datei_pfad)
+    ? bildMarkierung(plan.datei_pfad, plan.titel || plan.datei_name)
+    : '<div class="foto-ersatz" style="height:160px">Dieses Format lässt sich nicht anzeigen – ' +
+      "bitte als JPG oder PNG hochladen.</div>";
 
-  geschoss.raeume.forEach((vorlage) => {
-    const r = raeume.find((x) => x.name === vorlage.name) || { name: vorlage.name, flaeche_plan: vorlage.flaeche };
-    const gemessen = istGemessen(r);
-    const bx = vorlage.b * PIXEL_JE_METER, by = vorlage.t * PIXEL_JE_METER;
-    const mitte = { x: RAND + (vorlage.x + vorlage.b / 2) * PIXEL_JE_METER,
-                    y: RAND + (vorlage.y + vorlage.t / 2) * PIXEL_JE_METER };
-
-    svg += '<g class="plan-raum' + (gemessen ? " gemessen" : "") + '"' +
-      (r.id ? ' data-aktion="plan-raum" data-id="' + r.id + '" tabindex="0" role="button"' : "") +
-      ' aria-label="' + esc(vorlage.name) + '">' +
-      '<rect x="' + mx(vorlage.x) + '" y="' + mx(vorlage.y) + '" width="' + bx.toFixed(1) +
-      '" height="' + by.toFixed(1) + '" rx="1"></rect>';
-
-    // Beschriftung nur, wo sie hineinpasst. Enge Räume (Bad, Gang, Treppe)
-    // bekommen nur die Fläche; der Name steht in der Liste unter dem Plan.
-    const platzFuerNamen = bx > 62 && by > 34;
-    const zeilen = [];
-    if (platzFuerNamen) zeilen.push({ text: kurz(vorlage.name, Math.floor(bx / 5.6)), klasse: "plan-name" });
-    zeilen.push({ text: flaeche(r).toFixed(2) + " m²", klasse: "plan-mass" });
-    if (gemessen && by > 58) {
-      zeilen.push({ text: zahl(r.breite).toFixed(2) + " × " + zahl(r.laenge).toFixed(2) + " m", klasse: "plan-mass" });
-    }
-    const start = mitte.y - ((zeilen.length - 1) * 12) / 2 + 4;
-    zeilen.forEach((z, i) => {
-      svg += '<text class="' + z.klasse + '" x="' + mitte.x.toFixed(1) + '" y="' + (start + i * 12).toFixed(1) +
-        '">' + esc(z.text) + "</text>";
-    });
-    svg += "</g>";
+  marken.forEach((r, i) => {
+    h += '<button class="plan-marke' + (istGemessen(r) ? " gemessen" : "") + '" type="button"' +
+      ' data-aktion="plan-marke" data-id="' + r.id + '"' +
+      ' style="left:' + (zahl(r.marke_x) * 100).toFixed(2) + "%;top:" + (zahl(r.marke_y) * 100).toFixed(2) + '%"' +
+      ' title="' + esc(r.name) + '">' +
+      '<span class="nr">' + (i + 1) + "</span>" +
+      '<span class="wert">' + esc(markenText(r)) + "</span></button>";
   });
+  h += "</div>";
 
-  // Massstabsbalken: ohne ihn ist eine massstäbliche Zeichnung nur ein Bild.
-  const strich = 2 * PIXEL_JE_METER;
-  svg += '<g class="plan-massstab"><line x1="' + RAND + '" y1="' + (h - 6) + '" x2="' + (RAND + strich) +
-    '" y2="' + (h - 6) + '"></line><text x="' + (RAND + strich / 2) + '" y="' + (h - 10) + '">2 m</text></g>';
-  return svg + "</svg>";
-}
-
-function kurz(text, zeichen) {
-  return text.length > zeichen ? text.slice(0, Math.max(3, zeichen - 1)) + "…" : text;
+  if (setzt) {
+    h += '<div class="hinweis warn" style="margin:0 14px 12px"><div>' +
+      "<b>Messpunkt setzen</b>Tippen Sie im Plan auf den Raum. Danach öffnet sich das Formular " +
+      "für Namen und Masse." +
+      '<div class="btn-reihe" style="margin-top:9px">' +
+      '<button class="btn still klein" type="button" data-aktion="plan-setzen-aus">Abbrechen</button>' +
+      "</div></div></div>";
+  } else if (bearbeitbar) {
+    h += '<div class="karte-pad" style="padding-top:0"><div class="btn-reihe">' +
+      '<button class="btn zweit klein" type="button" data-aktion="plan-setzen" data-plan="' + plan.id + '">+ Messpunkt</button>' +
+      '<button class="btn still klein" type="button" data-aktion="plan-umbenennen" data-id="' + plan.id + '">Umbenennen</button>' +
+      '<button class="btn still klein" type="button" data-aktion="plan-loeschen" data-id="' + plan.id + '">Plan entfernen</button>' +
+      "</div></div>";
+  }
+  return { html: h, marken };
 }
 
 export function grundrissAbschnitt(Z) {
+  const plaene = Z.plaene || [];
   const raeume = Z.raeume || [];
-  const imPlan = raeume.filter((r) => r.plan_x !== null && r.plan_x !== undefined);
   const bearbeitbar = kannBearbeiten();
+  const mitMarke = raeume.filter((r) => r.plan_id && r.marke_x !== null && r.marke_x !== undefined);
 
-  let h = '<section class="abschnitt" id="abschnitt-grundriss"><div class="abschnitt-kopf"><div><h2>Grundriss</h2>' +
-    "<p>" + (imPlan.length
-      ? imPlan.filter(istGemessen).length + " von " + imPlan.length + " Räumen gemessen"
-      : "Die drei Geschosse aus den Verkaufsunterlagen") + "</p></div></div>";
+  let h = '<section class="abschnitt" id="abschnitt-grundriss"><div class="abschnitt-kopf"><div><h2>Grundrisse</h2>' +
+    "<p>" + (plaene.length
+      ? plaene.length + (plaene.length === 1 ? " Plan · " : " Pläne · ") +
+        mitMarke.filter(istGemessen).length + " von " + mitMarke.length + " Messpunkten erfasst"
+      : "Originalplan hochladen und darauf messen") + "</p></div>" +
+    (bearbeitbar && plaene.length
+      ? '<button class="btn klein" type="button" data-aktion="plan-neu">+ Plan</button>'
+      : "") + "</div>";
 
-  if (!imPlan.length) {
+  if (!plaene.length) {
     h += leerZustand("Noch kein Grundriss",
-      "Unter-, Erd- und Obergeschoss massstäblich nach den Verkaufsunterlagen. Beim Besuch " +
-      "tippen Sie den Raum im Plan an und tragen die Lasermasse ein – der Raum wird grün, " +
-      "und je Geschoss steht die Abweichung zur Planfläche.",
-      bearbeitbar ? '<button class="btn" type="button" data-aktion="plan-vorlage">Grundriss aus Unterlagen anlegen</button>' : "");
+      "Laden Sie die Geschosspläne als Bild hoch – Foto, Screenshot oder Ausschnitt aus den " +
+      "Verkaufsunterlagen. Der Plan wird unverändert angezeigt; beim Besuch tippen Sie auf " +
+      "einen Raum, setzen einen Messpunkt und tragen die Lasermasse ein.",
+      bearbeitbar ? '<button class="btn" type="button" data-aktion="plan-neu">Plan hochladen</button>' : "");
     return h + "</section>";
   }
 
-  GESCHOSSE.forEach((geschoss) => {
-    const eigene = geschoss.raeume
-      .map((v) => raeume.find((r) => r.name === v.name && r.geschoss === geschoss.name))
-      .filter(Boolean);
-    if (!eigene.length) return;
-    const gemessen = eigene.filter(istGemessen);
-    const istFlaeche = eigene.reduce((s, r) => s + flaeche(r), 0);
-    const planFlaeche = geschoss.raeume.reduce((s, v) => s + v.flaeche, 0);
-    const abweichung = istFlaeche - planFlaeche;
+  plaene.forEach((plan) => {
+    const { html, marken } = planZeichnen(plan, raeume, bearbeitbar);
+    const gemessen = marken.filter(istGemessen);
+    const summe = gemessen.reduce((s, r) => s + flaeche(r), 0);
 
     h += '<div class="karte abschnitt" style="margin-bottom:12px">' +
-      '<div class="karte-pad" style="padding-bottom:4px"><div class="abschnitt-kopf" style="margin:0">' +
-      "<div><h3>" + esc(geschoss.titel) + "</h3><p>" +
-      gemessen.length + " von " + eigene.length + " gemessen · " + istFlaeche.toFixed(2) + " m²" +
-      " (Plan " + planFlaeche.toFixed(2) + " m²" +
-      (gemessen.length && Math.abs(abweichung) >= 0.05
-        ? ", " + (abweichung > 0 ? "+" : "−") + Math.abs(abweichung).toFixed(2)
-        : "") + ")</p></div></div></div>" +
-      '<div class="plan-huelle">' + geschossZeichnen(geschoss, eigene) + "</div>" +
-      '<div class="karte-pad" style="border-top:1px solid var(--linie);padding-top:10px">' +
-      '<div class="plan-liste">' +
-      eigene.map((r) =>
-        '<button class="plan-chip' + (istGemessen(r) ? " gemessen" : "") + '" type="button" ' +
-        'data-aktion="plan-raum" data-id="' + r.id + '">' + esc(r.name) +
-        "<span>" + (istGemessen(r)
-          ? zahl(r.breite).toFixed(2) + " × " + zahl(r.laenge).toFixed(2) + " m"
-          : "messen") + "</span></button>"
-      ).join("") +
-      "</div></div></div>";
+      '<div class="karte-pad" style="padding-bottom:8px"><div class="abschnitt-kopf" style="margin:0">' +
+      "<div><h3>" + esc(plan.titel || plan.datei_name || "Plan") + "</h3><p>" +
+      (marken.length
+        ? gemessen.length + " von " + marken.length + " gemessen" + (summe ? " · " + summe.toFixed(2) + " m²" : "")
+        : "noch keine Messpunkte") + "</p></div></div></div>" +
+      html;
+
+    if (marken.length) {
+      h += '<div class="karte-pad" style="border-top:1px solid var(--linie);padding-top:10px">' +
+        '<div class="plan-liste">' +
+        marken.map((r, i) =>
+          '<button class="plan-chip' + (istGemessen(r) ? " gemessen" : "") + '" type="button" ' +
+          'data-aktion="plan-marke" data-id="' + r.id + '"><b>' + (i + 1) + "</b> " + esc(r.name) +
+          "<span>" + (istGemessen(r)
+            ? zahl(r.breite).toFixed(2) + " × " + zahl(r.laenge).toFixed(2) + " m"
+            : "messen") + "</span></button>"
+        ).join("") +
+        "</div></div>";
+    }
+    h += "</div>";
   });
 
-  h += '<div class="karte karte-pad" style="font-size:.8rem;color:var(--grau)">' + esc(PLAN_HINWEIS) + "</div>";
+  h += '<div class="karte karte-pad" style="font-size:.8rem;color:var(--grau)">' +
+    "Die Pläne werden so angezeigt, wie sie hochgeladen wurden – nichts wird nachgezeichnet. " +
+    "Ein Messpunkt gehört zu einem Raum im Messblatt: Was Sie hier eintragen, steht auch dort, " +
+    "und umgekehrt.</div>";
+  nachladenBald();
   return h + "</section>";
 }

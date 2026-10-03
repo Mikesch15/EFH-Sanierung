@@ -11,11 +11,13 @@ import { esc, zahl, meldung, bestaetigen, heuteISO } from "../format.js";
 import { leerZustand } from "./gemeinsam.js";
 import {
   checklisteAnlegen, checklistePunktAktualisieren, checklistePunktLoeschen,
-  raumAnlegen, raumAktualisieren, raumLoeschen, raeumeAnlegen, raumPlanSetzen,
+  raumAnlegen, raumAktualisieren, raumLoeschen,
+  planAnlegen, planAktualisieren, planLoeschen,
 } from "../daten.js";
+import { hochladen, loeschen as dateiLoeschen, dateiPruefen } from "../dateien.js";
 import { modalOeffnen, neuLaden, neuZeichnen, kannBearbeiten } from "../app.js";
 import { vorlagePunkte, FOTO_REGEL, CHECKLISTE_HINWEIS } from "../checkliste-vorlage.js";
-import { grundrissRaeume } from "../grundriss-vorlage.js";
+import { setzModus, setzModusSetzen } from "./grundriss.js";
 export { grundrissAbschnitt } from "./grundriss.js";
 
 let entwurf = null;                  // Raum im Formular
@@ -159,11 +161,11 @@ export function raumAbschnitt(Z) {
 
 /* ---------------------------------------------------------------- Formular */
 
-function raumFormular(Z, r) {
-  entwurf = r ? JSON.parse(JSON.stringify(r)) : {
+function raumFormular(Z, r, vorgabe) {
+  entwurf = r ? JSON.parse(JSON.stringify(r)) : Object.assign({
     id: null, name: "", geschoss: "", laenge: "", breite: "", hoehe: "",
     wandstaerke: "", fenster: "", tueren: "", boden: "", bemerkung: "",
-  };
+  }, vorgabe || {});
   modalOeffnen({
     titel: entwurf.id ? "Raum bearbeiten" : "Neuer Raum",
     koerper:
@@ -186,14 +188,9 @@ function raumFormular(Z, r) {
       "</div>" +
       '<label class="feld"><span>Boden</span><input data-feld="boden" value="' + esc(entwurf.boden) + '" placeholder="Parkett auf Blindboden"></label>' +
       '<label class="feld"><span>Bemerkungen</span><textarea data-feld="bemerkung" placeholder="Balkenrichtung, Auffälligkeiten …">' + esc(entwurf.bemerkung || "") + "</textarea></label>" +
-      (entwurf.plan_x !== null && entwurf.plan_x !== undefined
-        ? '<div class="hinweis info"><div>Dieser Raum steht im Grundriss: <b>Breite</b> ist die Seite ' +
-          "quer zum Haus (waagrecht im Plan), <b>Länge</b> die Tiefe. Die Zeichnung behält ihre Form; " +
-          "Ihre Masse erscheinen im Raum" +
-          (entwurf.flaeche_plan
-            ? " und werden mit den " + zahl(entwurf.flaeche_plan).toFixed(2) + " m² aus den Verkaufsunterlagen verglichen"
-            : "") +
-          ".</div></div>"
+      (entwurf.plan_id
+        ? '<div class="hinweis info"><div>Dieser Raum hängt an einem Messpunkt im Grundriss. ' +
+          "Sobald <b>Länge</b> und <b>Breite</b> stehen, zeigt der Punkt im Plan die Fläche.</div></div>"
         : ""),
     speichern: () => raumSpeichern(Z),
   });
@@ -210,6 +207,9 @@ async function raumSpeichern(Z) {
     wandstaerke: r.wandstaerke === "" ? "" : zahl(r.wandstaerke),
     fenster: (r.fenster || "").trim(), tueren: (r.tueren || "").trim(),
     boden: (r.boden || "").trim(), bemerkung: (r.bemerkung || "").trim(),
+    plan_id: r.plan_id || null,
+    marke_x: r.marke_x === null || r.marke_x === undefined ? "" : zahl(r.marke_x),
+    marke_y: r.marke_y === null || r.marke_y === undefined ? "" : zahl(r.marke_y),
   };
   try {
     if (r.id) await raumAktualisieren(r.id, daten, r.geaendert_am);
@@ -248,24 +248,75 @@ function punktFormular(Z) {
   });
 }
 
-/**
- * Legt den Grundriss an. Räume, die schon erfasst sind (gleicher Name), bekommen
- * nur ihre Lage im Plan – Messungen und Notizen bleiben, und es entstehen keine
- * Doppel. Das ist der Fall, wenn jemand vorher von Hand Räume erfasst hat.
- */
-async function grundrissUebernehmen(Z) {
-  const vorhanden = Z.raeume || [];
-  const vorlage = grundrissRaeume();
-  const fehlende = [];
-  const anpassen = [];
-  vorlage.forEach((v) => {
-    const alt = vorhanden.find((r) => r.name === v.name);
-    if (alt) anpassen.push({ id: alt.id, plan: v });
-    else fehlende.push(v);
+/* ------------------------------------------------------------- Plan-Upload */
+
+function planFormular(Z) {
+  entwurf = null;
+  modalOeffnen({
+    titel: "Grundriss hochladen",
+    koerper:
+      '<div class="datei-feld" style="margin-bottom:14px"><p>Plan als Bild – Foto, Screenshot oder ' +
+      "Ausschnitt aus den Verkaufsunterlagen (JPG, PNG, WEBP, max. 25 MB)</p>" +
+      '<input type="file" id="p-datei" accept=".jpg,.jpeg,.png,.webp"></div>' +
+      '<label class="feld"><span>Bezeichnung</span><input id="p-titel" placeholder="z.B. Erdgeschoss"></label>',
+    knopfText: "Hochladen",
+    speichern: async () => {
+      const feld = document.getElementById("p-datei");
+      const datei = feld && feld.files && feld.files[0];
+      if (!datei) { meldung("Bitte eine Datei auswählen.", true); return false; }
+      const fehler = dateiPruefen(datei);
+      if (fehler) { meldung(fehler, true); return false; }
+      const titel = document.getElementById("p-titel").value.trim() || datei.name;
+      let pfad = null;
+      try {
+        const info = await hochladen(datei, Z.projektId, "plaene");
+        pfad = info.datei_pfad;
+        await planAnlegen(Z.projektId, {
+          titel, datei_pfad: pfad, datei_name: datei.name,
+          sortierung: (Z.plaene || []).length + 1,
+        });
+        meldung("Plan gespeichert.");
+        await neuLaden(["plaene"]);
+        return true;
+      } catch (err) {
+        if (pfad) await dateiLoeschen(pfad).catch(() => {});
+        meldung(err.message, true);
+        return false;
+      }
+    },
   });
-  for (const eintrag of anpassen) await raumPlanSetzen(eintrag.id, eintrag.plan);
-  if (fehlende.length) await raeumeAnlegen(Z.projektId, fehlende);
-  return fehlende.length;
+}
+
+function planUmbenennen(Z, plan) {
+  entwurf = null;
+  modalOeffnen({
+    titel: "Plan umbenennen",
+    koerper: '<label class="feld"><span>Bezeichnung</span><input id="p-titel" value="' +
+      esc(plan.titel || "") + '"></label>',
+    speichern: async () => {
+      const titel = document.getElementById("p-titel").value.trim();
+      if (!titel) { meldung("Bitte eine Bezeichnung angeben.", true); return false; }
+      try {
+        await planAktualisieren(plan.id, { titel });
+        await neuLaden(["plaene"]);
+        return true;
+      } catch (err) { meldung(err.message, true); return false; }
+    },
+  });
+}
+
+/**
+ * Rechnet den Tipp im Plan in eine Lage von 0 bis 1 um. Gespeichert wird relativ,
+ * damit die Marke auf jeder Bildschirmbreite am selben Punkt im Plan sitzt.
+ */
+function markeAusTipp(e, flaeche) {
+  const r = flaeche.getBoundingClientRect();
+  if (!r.width || !r.height) return null;
+  const punkt = e.touches && e.touches[0] ? e.touches[0] : e;
+  const x = (punkt.clientX - r.left) / r.width;
+  const y = (punkt.clientY - r.top) / r.height;
+  if (x < 0 || x > 1 || y < 0 || y > 1) return null;
+  return { marke_x: Math.round(x * 10000) / 10000, marke_y: Math.round(y * 10000) / 10000 };
 }
 
 /* ---------------------------------------------------------------- Aktionen */
@@ -291,7 +342,7 @@ export function aenderung(e, Z) {
     .catch((err) => meldung(err.message, true));
 }
 
-export function aktion(a, knopf, Z) {
+export function aktion(a, knopf, Z, ereignis) {
   if (a === "chk-gruppe") {
     const name = knopf.dataset.gruppe;
     if (offeneGruppen.has(name)) offeneGruppen.delete(name);
@@ -331,20 +382,36 @@ export function aktion(a, knopf, Z) {
     }
     return;
   }
-  if (a === "plan-vorlage") {
-    if (vorlageLaeuft) return;
-    vorlageLaeuft = true;
-    knopf.disabled = true;
-    grundrissUebernehmen(Z)
-      .then((neue) => {
-        meldung(neue ? "Grundriss angelegt." : "Grundriss auf die bestehenden Räume gelegt.");
-        return neuLaden(["raeume"]);
-      })
-      .catch((err) => meldung(err.message, true))
-      .finally(() => { vorlageLaeuft = false; });
+  if (a === "plan-neu") return planFormular(Z);
+  if (a === "plan-umbenennen") {
+    const plan = (Z.plaene || []).find((p) => p.id === knopf.dataset.id);
+    return plan ? planUmbenennen(Z, plan) : undefined;
+  }
+  if (a === "plan-loeschen") {
+    const plan = (Z.plaene || []).find((p) => p.id === knopf.dataset.id);
+    if (!plan) return;
+    const marken = (Z.raeume || []).filter((r) => r.plan_id === plan.id).length;
+    if (!bestaetigen('Plan "' + (plan.titel || "") + '" entfernen?' +
+      (marken ? " Die " + marken + " Messpunkte verlieren ihre Lage, die Räume bleiben im Messblatt." : ""))) return;
+    if (setzModus() === plan.id) setzModusSetzen(null);
+    planLoeschen(plan.id)
+      .then(() => dateiLoeschen(plan.datei_pfad).catch(() => {}))
+      .then(() => { meldung("Plan entfernt."); return neuLaden(["plaene", "raeume"]); })
+      .catch((err) => meldung(err.message, true));
     return;
   }
-  if (a === "plan-raum") return raumFormular(Z, (Z.raeume || []).find((r) => r.id === knopf.dataset.id));
+  if (a === "plan-setzen") { setzModusSetzen(knopf.dataset.plan); return neuZeichnen(); }
+  if (a === "plan-setzen-aus") { setzModusSetzen(null); return neuZeichnen(); }
+  if (a === "plan-tippen") {
+    const planId = knopf.dataset.plan;
+    if (setzModus() !== planId) return;
+    const lage = markeAusTipp(ereignis, knopf);
+    if (!lage) return;
+    setzModusSetzen(null);
+    neuZeichnen();
+    return raumFormular(Z, null, Object.assign({ plan_id: planId }, lage));
+  }
+  if (a === "plan-marke") return raumFormular(Z, (Z.raeume || []).find((r) => r.id === knopf.dataset.id));
   if (a === "raum-neu") return raumFormular(Z, null);
   if (a === "raum-bearbeiten") return raumFormular(Z, (Z.raeume || []).find((r) => r.id === knopf.dataset.id));
   if (a === "raum-loeschen") {

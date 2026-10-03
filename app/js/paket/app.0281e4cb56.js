@@ -306,6 +306,10 @@ __export(daten_exports, {
   offerteLoeschen: () => offerteLoeschen,
   offerteSpeichern: () => offerteSpeichern,
   offertenLaden: () => offertenLaden,
+  plaeneLaden: () => plaeneLaden,
+  planAktualisieren: () => planAktualisieren,
+  planAnlegen: () => planAnlegen,
+  planLoeschen: () => planLoeschen,
   projektAbonnieren: () => projektAbonnieren,
   projektAktualisieren: () => projektAktualisieren,
   projektAnlegen: () => projektAnlegen,
@@ -517,15 +521,47 @@ function raumFelder(daten) {
     fenster: daten.fenster || "",
     tueren: daten.tueren || "",
     boden: daten.boden || "",
-    bemerkung: daten.bemerkung || ""
+    bemerkung: daten.bemerkung || "",
+    // Messpunkt auf dem Plan: Lage relativ zum Bild (0 bis 1).
+    plan_id: daten.plan_id || null,
+    marke_x: zahlOderNull(daten.marke_x),
+    marke_y: zahlOderNull(daten.marke_y)
   };
 }
 function raumAnlegen(projektId, daten) {
   return schreiben(
     async () => pruefen(
-      await supabase.from("raeume").insert({ projekt_id: projektId, ...raumFelder(daten) }).select().single()
+      await supabase.from("raeume").insert(Object.assign({ projekt_id: projektId, sortierung: daten.sortierung ?? 0 }, raumFelder(daten))).select().single()
     )
   );
+}
+function plaeneLaden(projektId) {
+  return lesen(
+    async () => pruefen(
+      await supabase.from("plaene").select("*").eq("projekt_id", projektId).order("sortierung").order("erstellt_am")
+    )
+  );
+}
+function planAnlegen(projektId, daten) {
+  return schreiben(
+    async () => pruefen(
+      await supabase.from("plaene").insert({
+        projekt_id: projektId,
+        titel: daten.titel || "",
+        datei_pfad: daten.datei_pfad,
+        datei_name: daten.datei_name || "",
+        sortierung: daten.sortierung ?? 0
+      }).select().single()
+    )
+  );
+}
+function planAktualisieren(id, daten) {
+  return schreiben(
+    async () => pruefen(await supabase.from("plaene").update(daten).eq("id", id).select().single())
+  );
+}
+function planLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("plaene").delete().eq("id", id)));
 }
 function raumAktualisieren(id, daten, geladenAm) {
   return schreiben(async () => {
@@ -817,7 +853,7 @@ function kostenvergleichLaden(projektId) {
   );
 }
 function projektAbonnieren(projektId, aufAenderung) {
-  const kanal = supabase.channel("projekt-" + projektId).on("postgres_changes", { event: "*", schema: "public", table: "budgetpositionen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("budget")).on("postgres_changes", { event: "*", schema: "public", table: "offerten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "offert_positionen" }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "belege", filter: "projekt_id=eq." + projektId }, () => aufAenderung("belege")).on("postgres_changes", { event: "*", schema: "public", table: "dokumente", filter: "projekt_id=eq." + projektId }, () => aufAenderung("dokumente")).on("postgres_changes", { event: "*", schema: "public", table: "kaufnebenkosten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("nebenkosten")).on("postgres_changes", { event: "*", schema: "public", table: "foerdergelder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("foerdergelder")).on("postgres_changes", { event: "*", schema: "public", table: "anschaffungen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("anschaffungen")).on("postgres_changes", { event: "*", schema: "public", table: "arbeiten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("arbeiten")).on("postgres_changes", { event: "*", schema: "public", table: "checkliste", filter: "projekt_id=eq." + projektId }, () => aufAenderung("checkliste")).on("postgres_changes", { event: "*", schema: "public", table: "raeume", filter: "projekt_id=eq." + projektId }, () => aufAenderung("raeume")).on("postgres_changes", { event: "*", schema: "public", table: "projekt_mitglieder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("mitglieder")).subscribe();
+  const kanal = supabase.channel("projekt-" + projektId).on("postgres_changes", { event: "*", schema: "public", table: "budgetpositionen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("budget")).on("postgres_changes", { event: "*", schema: "public", table: "offerten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "offert_positionen" }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "belege", filter: "projekt_id=eq." + projektId }, () => aufAenderung("belege")).on("postgres_changes", { event: "*", schema: "public", table: "dokumente", filter: "projekt_id=eq." + projektId }, () => aufAenderung("dokumente")).on("postgres_changes", { event: "*", schema: "public", table: "kaufnebenkosten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("nebenkosten")).on("postgres_changes", { event: "*", schema: "public", table: "foerdergelder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("foerdergelder")).on("postgres_changes", { event: "*", schema: "public", table: "anschaffungen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("anschaffungen")).on("postgres_changes", { event: "*", schema: "public", table: "arbeiten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("arbeiten")).on("postgres_changes", { event: "*", schema: "public", table: "checkliste", filter: "projekt_id=eq." + projektId }, () => aufAenderung("checkliste")).on("postgres_changes", { event: "*", schema: "public", table: "raeume", filter: "projekt_id=eq." + projektId }, () => aufAenderung("raeume")).on("postgres_changes", { event: "*", schema: "public", table: "plaene", filter: "projekt_id=eq." + projektId }, () => aufAenderung("plaene")).on("postgres_changes", { event: "*", schema: "public", table: "projekt_mitglieder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("mitglieder")).subscribe();
   return () => supabase.removeChannel(kanal);
 }
 var DatenFehler, VORGANG_ZEITLIMIT_MS, UPLOAD_ZEITLIMIT_MS, lesen, ANALYSE_ZEITLIMIT_MS;
@@ -1550,6 +1586,80 @@ var init_checkliste_vorlage = __esm({
   }
 });
 
+// app/js/ansichten/grundriss.js
+function setzModus() {
+  return setzenAuf;
+}
+function setzModusSetzen(planId) {
+  setzenAuf = planId;
+}
+function istGemessen(r) {
+  return !!(zahl(r.breite) && zahl(r.laenge));
+}
+function flaeche(r) {
+  return zahl(r.breite) * zahl(r.laenge);
+}
+function markenText(r) {
+  if (istGemessen(r)) return flaeche(r).toFixed(2) + " m²";
+  return r.name || "?";
+}
+function planZeichnen(plan, raeume, bearbeitbar) {
+  const marken = raeume.filter((r) => r.plan_id === plan.id && r.marke_x !== null && r.marke_x !== void 0);
+  const setzt = setzenAuf === plan.id;
+  let h = '<div class="plan-bild' + (setzt ? " setzt" : "") + '"' + (setzt ? ' data-aktion="plan-tippen" data-plan="' + plan.id + '"' : "") + ">";
+  h += istAnzeigbar(null, plan.datei_name || plan.datei_pfad) ? bildMarkierung(plan.datei_pfad, plan.titel || plan.datei_name) : '<div class="foto-ersatz" style="height:160px">Dieses Format lässt sich nicht anzeigen – bitte als JPG oder PNG hochladen.</div>';
+  marken.forEach((r, i) => {
+    h += '<button class="plan-marke' + (istGemessen(r) ? " gemessen" : "") + '" type="button" data-aktion="plan-marke" data-id="' + r.id + '" style="left:' + (zahl(r.marke_x) * 100).toFixed(2) + "%;top:" + (zahl(r.marke_y) * 100).toFixed(2) + '%" title="' + esc(r.name) + '"><span class="nr">' + (i + 1) + '</span><span class="wert">' + esc(markenText(r)) + "</span></button>";
+  });
+  h += "</div>";
+  if (setzt) {
+    h += '<div class="hinweis warn" style="margin:0 14px 12px"><div><b>Messpunkt setzen</b>Tippen Sie im Plan auf den Raum. Danach öffnet sich das Formular für Namen und Masse.<div class="btn-reihe" style="margin-top:9px"><button class="btn still klein" type="button" data-aktion="plan-setzen-aus">Abbrechen</button></div></div></div>';
+  } else if (bearbeitbar) {
+    h += '<div class="karte-pad" style="padding-top:0"><div class="btn-reihe"><button class="btn zweit klein" type="button" data-aktion="plan-setzen" data-plan="' + plan.id + '">+ Messpunkt</button><button class="btn still klein" type="button" data-aktion="plan-umbenennen" data-id="' + plan.id + '">Umbenennen</button><button class="btn still klein" type="button" data-aktion="plan-loeschen" data-id="' + plan.id + '">Plan entfernen</button></div></div>';
+  }
+  return { html: h, marken };
+}
+function grundrissAbschnitt(Z2) {
+  const plaene = Z2.plaene || [];
+  const raeume = Z2.raeume || [];
+  const bearbeitbar = kannBearbeiten();
+  const mitMarke = raeume.filter((r) => r.plan_id && r.marke_x !== null && r.marke_x !== void 0);
+  let h = '<section class="abschnitt" id="abschnitt-grundriss"><div class="abschnitt-kopf"><div><h2>Grundrisse</h2><p>' + (plaene.length ? plaene.length + (plaene.length === 1 ? " Plan · " : " Pläne · ") + mitMarke.filter(istGemessen).length + " von " + mitMarke.length + " Messpunkten erfasst" : "Originalplan hochladen und darauf messen") + "</p></div>" + (bearbeitbar && plaene.length ? '<button class="btn klein" type="button" data-aktion="plan-neu">+ Plan</button>' : "") + "</div>";
+  if (!plaene.length) {
+    h += leerZustand(
+      "Noch kein Grundriss",
+      "Laden Sie die Geschosspläne als Bild hoch – Foto, Screenshot oder Ausschnitt aus den Verkaufsunterlagen. Der Plan wird unverändert angezeigt; beim Besuch tippen Sie auf einen Raum, setzen einen Messpunkt und tragen die Lasermasse ein.",
+      bearbeitbar ? '<button class="btn" type="button" data-aktion="plan-neu">Plan hochladen</button>' : ""
+    );
+    return h + "</section>";
+  }
+  plaene.forEach((plan) => {
+    const { html, marken } = planZeichnen(plan, raeume, bearbeitbar);
+    const gemessen = marken.filter(istGemessen);
+    const summe = gemessen.reduce((s, r) => s + flaeche(r), 0);
+    h += '<div class="karte abschnitt" style="margin-bottom:12px"><div class="karte-pad" style="padding-bottom:8px"><div class="abschnitt-kopf" style="margin:0"><div><h3>' + esc(plan.titel || plan.datei_name || "Plan") + "</h3><p>" + (marken.length ? gemessen.length + " von " + marken.length + " gemessen" + (summe ? " · " + summe.toFixed(2) + " m²" : "") : "noch keine Messpunkte") + "</p></div></div></div>" + html;
+    if (marken.length) {
+      h += '<div class="karte-pad" style="border-top:1px solid var(--linie);padding-top:10px"><div class="plan-liste">' + marken.map(
+        (r, i) => '<button class="plan-chip' + (istGemessen(r) ? " gemessen" : "") + '" type="button" data-aktion="plan-marke" data-id="' + r.id + '"><b>' + (i + 1) + "</b> " + esc(r.name) + "<span>" + (istGemessen(r) ? zahl(r.breite).toFixed(2) + " × " + zahl(r.laenge).toFixed(2) + " m" : "messen") + "</span></button>"
+      ).join("") + "</div></div>";
+    }
+    h += "</div>";
+  });
+  h += '<div class="karte karte-pad" style="font-size:.8rem;color:var(--grau)">Die Pläne werden so angezeigt, wie sie hochgeladen wurden – nichts wird nachgezeichnet. Ein Messpunkt gehört zu einem Raum im Messblatt: Was Sie hier eintragen, steht auch dort, und umgekehrt.</div>';
+  nachladenBald();
+  return h + "</section>";
+}
+var setzenAuf;
+var init_grundriss = __esm({
+  "app/js/ansichten/grundriss.js"() {
+    init_format();
+    init_gemeinsam();
+    init_vorschau();
+    init_app();
+    setzenAuf = null;
+  }
+});
+
 // app/js/ansichten/aufnahme.js
 function nachGruppen(liste) {
   const gruppen = [];
@@ -1594,7 +1704,7 @@ function checklisteAbschnitt(Z2) {
   h += '<div class="karte karte-pad" style="font-size:.8rem;color:var(--grau)"><b style="display:block;color:var(--text-2)">Foto-Regel</b>' + esc(FOTO_REGEL) + '<div style="margin-top:8px">' + esc(CHECKLISTE_HINWEIS) + "</div></div>";
   return h + "</section>";
 }
-function flaeche(r) {
+function flaeche2(r) {
   const l = zahl(r.laenge), b = zahl(r.breite);
   return l && b ? (l * b).toFixed(2).replace(".", ".") + " m²" : "–";
 }
@@ -1616,13 +1726,13 @@ function raumAbschnitt(Z2) {
   }
   h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Raum</th><th class="num">Länge</th><th class="num">Breite</th><th class="num">Fläche</th><th class="num">Höhe</th><th class="num">Wand</th><th>Fenster</th><th>Türen</th><th>Boden</th><th></th></tr></thead><tbody>';
   liste.forEach((r) => {
-    h += "<tr><td><b>" + esc(r.name || "Ohne Namen") + "</b>" + (r.geschoss ? '<div style="font-size:.76rem;color:var(--grau)">' + esc(r.geschoss) + "</div>" : "") + (r.bemerkung ? '<div style="font-size:.76rem;color:var(--grau);white-space:normal;max-width:220px">' + esc(r.bemerkung) + "</div>" : "") + '</td><td class="num">' + mass(r.laenge, "m") + '</td><td class="num">' + mass(r.breite, "m") + '</td><td class="num"><b>' + flaeche(r) + '</b></td><td class="num">' + mass(r.hoehe, "m") + '</td><td class="num">' + (r.wandstaerke == null || r.wandstaerke === "" ? "–" : zahl(r.wandstaerke) + " cm") + "</td><td>" + esc(r.fenster || "–") + "</td><td>" + esc(r.tueren || "–") + "</td><td>" + esc(r.boden || "–") + "</td><td>" + (bearbeitbar ? '<div class="zeile-aktion"><button class="btn still klein" type="button" data-aktion="raum-bearbeiten" data-id="' + r.id + '">Bearbeiten</button><button class="btn still klein" type="button" data-aktion="raum-loeschen" data-id="' + r.id + '">Löschen</button></div>' : "") + "</td></tr>";
+    h += "<tr><td><b>" + esc(r.name || "Ohne Namen") + "</b>" + (r.geschoss ? '<div style="font-size:.76rem;color:var(--grau)">' + esc(r.geschoss) + "</div>" : "") + (r.bemerkung ? '<div style="font-size:.76rem;color:var(--grau);white-space:normal;max-width:220px">' + esc(r.bemerkung) + "</div>" : "") + '</td><td class="num">' + mass(r.laenge, "m") + '</td><td class="num">' + mass(r.breite, "m") + '</td><td class="num"><b>' + flaeche2(r) + '</b></td><td class="num">' + mass(r.hoehe, "m") + '</td><td class="num">' + (r.wandstaerke == null || r.wandstaerke === "" ? "–" : zahl(r.wandstaerke) + " cm") + "</td><td>" + esc(r.fenster || "–") + "</td><td>" + esc(r.tueren || "–") + "</td><td>" + esc(r.boden || "–") + "</td><td>" + (bearbeitbar ? '<div class="zeile-aktion"><button class="btn still klein" type="button" data-aktion="raum-bearbeiten" data-id="' + r.id + '">Bearbeiten</button><button class="btn still klein" type="button" data-aktion="raum-loeschen" data-id="' + r.id + '">Löschen</button></div>' : "") + "</td></tr>";
   });
   h += '</tbody><tfoot><tr><td colspan="3">Total Bodenfläche</td><td class="num">' + (gesamt ? gesamt.toFixed(2) + " m²" : "–") + '</td><td colspan="6"></td></tr></tfoot>';
   return h + "</table></div></div></section>";
 }
-function raumFormular(Z2, r) {
-  entwurf = r ? JSON.parse(JSON.stringify(r)) : {
+function raumFormular(Z2, r, vorgabe) {
+  entwurf = r ? JSON.parse(JSON.stringify(r)) : Object.assign({
     id: null,
     name: "",
     geschoss: "",
@@ -1634,10 +1744,10 @@ function raumFormular(Z2, r) {
     tueren: "",
     boden: "",
     bemerkung: ""
-  };
+  }, vorgabe || {});
   modalOeffnen({
     titel: entwurf.id ? "Raum bearbeiten" : "Neuer Raum",
-    koerper: '<div class="feld-paar"><label class="feld"><span>Raum</span><input data-feld="name" value="' + esc(entwurf.name) + '" placeholder="z.B. Wohnzimmer"></label><label class="feld"><span>Geschoss</span><input list="geschoss-liste" data-feld="geschoss" value="' + esc(entwurf.geschoss) + '" placeholder="EG"><datalist id="geschoss-liste"><option value="Keller"><option value="EG"><option value="OG"><option value="Dachstock"><option value="Aussen"></datalist></label></div><div class="feld-paar"><label class="feld"><span>Länge (m)</span><input inputmode="decimal" data-feld="laenge" value="' + esc(entwurf.laenge ?? "") + '" placeholder="4.20"></label><label class="feld"><span>Breite (m)</span><input inputmode="decimal" data-feld="breite" value="' + esc(entwurf.breite ?? "") + '" placeholder="3.60"></label></div><div class="feld-paar"><label class="feld"><span>Höhe (m)</span><input inputmode="decimal" data-feld="hoehe" value="' + esc(entwurf.hoehe ?? "") + '" placeholder="2.40"></label><label class="feld"><span>Wandstärke (cm)</span><input inputmode="decimal" data-feld="wandstaerke" value="' + esc(entwurf.wandstaerke ?? "") + '" placeholder="24"></label></div><div class="feld-paar"><label class="feld"><span>Fenster</span><input data-feld="fenster" value="' + esc(entwurf.fenster) + '" placeholder="2 × 120/140, Brüstung 85"></label><label class="feld"><span>Türen</span><input data-feld="tueren" value="' + esc(entwurf.tueren) + '" placeholder="1 × 80/200"></label></div><label class="feld"><span>Boden</span><input data-feld="boden" value="' + esc(entwurf.boden) + '" placeholder="Parkett auf Blindboden"></label><label class="feld"><span>Bemerkungen</span><textarea data-feld="bemerkung" placeholder="Balkenrichtung, Auffälligkeiten …">' + esc(entwurf.bemerkung || "") + "</textarea></label>",
+    koerper: '<div class="feld-paar"><label class="feld"><span>Raum</span><input data-feld="name" value="' + esc(entwurf.name) + '" placeholder="z.B. Wohnzimmer"></label><label class="feld"><span>Geschoss</span><input list="geschoss-liste" data-feld="geschoss" value="' + esc(entwurf.geschoss) + '" placeholder="EG"><datalist id="geschoss-liste"><option value="Keller"><option value="EG"><option value="OG"><option value="Dachstock"><option value="Aussen"></datalist></label></div><div class="feld-paar"><label class="feld"><span>Länge (m)</span><input inputmode="decimal" data-feld="laenge" value="' + esc(entwurf.laenge ?? "") + '" placeholder="4.20"></label><label class="feld"><span>Breite (m)</span><input inputmode="decimal" data-feld="breite" value="' + esc(entwurf.breite ?? "") + '" placeholder="3.60"></label></div><div class="feld-paar"><label class="feld"><span>Höhe (m)</span><input inputmode="decimal" data-feld="hoehe" value="' + esc(entwurf.hoehe ?? "") + '" placeholder="2.40"></label><label class="feld"><span>Wandstärke (cm)</span><input inputmode="decimal" data-feld="wandstaerke" value="' + esc(entwurf.wandstaerke ?? "") + '" placeholder="24"></label></div><div class="feld-paar"><label class="feld"><span>Fenster</span><input data-feld="fenster" value="' + esc(entwurf.fenster) + '" placeholder="2 × 120/140, Brüstung 85"></label><label class="feld"><span>Türen</span><input data-feld="tueren" value="' + esc(entwurf.tueren) + '" placeholder="1 × 80/200"></label></div><label class="feld"><span>Boden</span><input data-feld="boden" value="' + esc(entwurf.boden) + '" placeholder="Parkett auf Blindboden"></label><label class="feld"><span>Bemerkungen</span><textarea data-feld="bemerkung" placeholder="Balkenrichtung, Auffälligkeiten …">' + esc(entwurf.bemerkung || "") + "</textarea></label>" + (entwurf.plan_id ? '<div class="hinweis info"><div>Dieser Raum hängt an einem Messpunkt im Grundriss. Sobald <b>Länge</b> und <b>Breite</b> stehen, zeigt der Punkt im Plan die Fläche.</div></div>' : ""),
     speichern: () => raumSpeichern(Z2)
   });
 }
@@ -1657,7 +1767,10 @@ async function raumSpeichern(Z2) {
     fenster: (r.fenster || "").trim(),
     tueren: (r.tueren || "").trim(),
     boden: (r.boden || "").trim(),
-    bemerkung: (r.bemerkung || "").trim()
+    bemerkung: (r.bemerkung || "").trim(),
+    plan_id: r.plan_id || null,
+    marke_x: r.marke_x === null || r.marke_x === void 0 ? "" : zahl(r.marke_x),
+    marke_y: r.marke_y === null || r.marke_y === void 0 ? "" : zahl(r.marke_y)
   };
   try {
     if (r.id) await raumAktualisieren(r.id, daten, r.geaendert_am);
@@ -1701,6 +1814,78 @@ function punktFormular(Z2) {
     }
   });
 }
+function planFormular(Z2) {
+  entwurf = null;
+  modalOeffnen({
+    titel: "Grundriss hochladen",
+    koerper: '<div class="datei-feld" style="margin-bottom:14px"><p>Plan als Bild – Foto, Screenshot oder Ausschnitt aus den Verkaufsunterlagen (JPG, PNG, WEBP, max. 25 MB)</p><input type="file" id="p-datei" accept=".jpg,.jpeg,.png,.webp"></div><label class="feld"><span>Bezeichnung</span><input id="p-titel" placeholder="z.B. Erdgeschoss"></label>',
+    knopfText: "Hochladen",
+    speichern: async () => {
+      const feld = document.getElementById("p-datei");
+      const datei = feld && feld.files && feld.files[0];
+      if (!datei) {
+        meldung("Bitte eine Datei auswählen.", true);
+        return false;
+      }
+      const fehler = dateiPruefen(datei);
+      if (fehler) {
+        meldung(fehler, true);
+        return false;
+      }
+      const titel = document.getElementById("p-titel").value.trim() || datei.name;
+      let pfad = null;
+      try {
+        const info = await hochladen(datei, Z2.projektId, "plaene");
+        pfad = info.datei_pfad;
+        await planAnlegen(Z2.projektId, {
+          titel,
+          datei_pfad: pfad,
+          datei_name: datei.name,
+          sortierung: (Z2.plaene || []).length + 1
+        });
+        meldung("Plan gespeichert.");
+        await neuLaden(["plaene"]);
+        return true;
+      } catch (err) {
+        if (pfad) await loeschen(pfad).catch(() => {
+        });
+        meldung(err.message, true);
+        return false;
+      }
+    }
+  });
+}
+function planUmbenennen(Z2, plan) {
+  entwurf = null;
+  modalOeffnen({
+    titel: "Plan umbenennen",
+    koerper: '<label class="feld"><span>Bezeichnung</span><input id="p-titel" value="' + esc(plan.titel || "") + '"></label>',
+    speichern: async () => {
+      const titel = document.getElementById("p-titel").value.trim();
+      if (!titel) {
+        meldung("Bitte eine Bezeichnung angeben.", true);
+        return false;
+      }
+      try {
+        await planAktualisieren(plan.id, { titel });
+        await neuLaden(["plaene"]);
+        return true;
+      } catch (err) {
+        meldung(err.message, true);
+        return false;
+      }
+    }
+  });
+}
+function markeAusTipp(e, flaeche3) {
+  const r = flaeche3.getBoundingClientRect();
+  if (!r.width || !r.height) return null;
+  const punkt = e.touches && e.touches[0] ? e.touches[0] : e;
+  const x = (punkt.clientX - r.left) / r.width;
+  const y = (punkt.clientY - r.top) / r.height;
+  if (x < 0 || x > 1 || y < 0 || y > 1) return null;
+  return { marke_x: Math.round(x * 1e4) / 1e4, marke_y: Math.round(y * 1e4) / 1e4 };
+}
 function eingabe(e) {
   if (!document.querySelector(".modal") || !entwurf) return;
   const feld = e.target.closest("[data-feld]");
@@ -1717,7 +1902,7 @@ function aenderung(e, Z2) {
   punkt.wert = wert;
   checklistePunktAktualisieren(id, { wert }).catch((err) => meldung(err.message, true));
 }
-function aktion2(a, knopf, Z2) {
+function aktion2(a, knopf, Z2, ereignis) {
   if (a === "chk-gruppe") {
     const name = knopf.dataset.gruppe;
     if (offeneGruppen.has(name)) offeneGruppen.delete(name);
@@ -1755,6 +1940,42 @@ function aktion2(a, knopf, Z2) {
     }
     return;
   }
+  if (a === "plan-neu") return planFormular(Z2);
+  if (a === "plan-umbenennen") {
+    const plan = (Z2.plaene || []).find((p) => p.id === knopf.dataset.id);
+    return plan ? planUmbenennen(Z2, plan) : void 0;
+  }
+  if (a === "plan-loeschen") {
+    const plan = (Z2.plaene || []).find((p) => p.id === knopf.dataset.id);
+    if (!plan) return;
+    const marken = (Z2.raeume || []).filter((r) => r.plan_id === plan.id).length;
+    if (!bestaetigen('Plan "' + (plan.titel || "") + '" entfernen?' + (marken ? " Die " + marken + " Messpunkte verlieren ihre Lage, die Räume bleiben im Messblatt." : ""))) return;
+    if (setzModus() === plan.id) setzModusSetzen(null);
+    planLoeschen(plan.id).then(() => loeschen(plan.datei_pfad).catch(() => {
+    })).then(() => {
+      meldung("Plan entfernt.");
+      return neuLaden(["plaene", "raeume"]);
+    }).catch((err) => meldung(err.message, true));
+    return;
+  }
+  if (a === "plan-setzen") {
+    setzModusSetzen(knopf.dataset.plan);
+    return neuZeichnen();
+  }
+  if (a === "plan-setzen-aus") {
+    setzModusSetzen(null);
+    return neuZeichnen();
+  }
+  if (a === "plan-tippen") {
+    const planId = knopf.dataset.plan;
+    if (setzModus() !== planId) return;
+    const lage = markeAusTipp(ereignis, knopf);
+    if (!lage) return;
+    setzModusSetzen(null);
+    neuZeichnen();
+    return raumFormular(Z2, null, Object.assign({ plan_id: planId }, lage));
+  }
+  if (a === "plan-marke") return raumFormular(Z2, (Z2.raeume || []).find((r) => r.id === knopf.dataset.id));
   if (a === "raum-neu") return raumFormular(Z2, null);
   if (a === "raum-bearbeiten") return raumFormular(Z2, (Z2.raeume || []).find((r) => r.id === knopf.dataset.id));
   if (a === "raum-loeschen") {
@@ -1773,8 +1994,11 @@ var init_aufnahme = __esm({
     init_format();
     init_gemeinsam();
     init_daten();
+    init_dateien();
     init_app();
     init_checkliste_vorlage();
+    init_grundriss();
+    init_grundriss();
     entwurf = null;
     offeneGruppen = /* @__PURE__ */ new Set();
     vorlageLaeuft = false;
@@ -1836,9 +2060,9 @@ function render2(Z2) {
   const alle = Z2.arbeiten || [];
   const arbeiten = sortiert(alle.filter((a) => a.art !== "pendenz"));
   const pendenzen = sortiert(alle.filter((a) => a.art === "pendenz"));
-  let h = '<nav class="sprungleiste"><a href="#abschnitt-zeitplan">Zeitplan</a><a href="#abschnitt-pendenzen">Pendenzen &amp; Mängel</a><a href="#abschnitt-checkliste">Checkliste</a><a href="#abschnitt-raeume">Räume</a></nav>';
+  let h = '<nav class="sprungleiste"><a href="#abschnitt-zeitplan">Zeitplan</a><a href="#abschnitt-pendenzen">Pendenzen &amp; Mängel</a><a href="#abschnitt-checkliste">Checkliste</a><a href="#abschnitt-grundriss">Grundriss</a><a href="#abschnitt-raeume">Räume</a></nav>';
   h += zeitplanAbschnitt(Z2, arbeiten) + pendenzAbschnitt(Z2, pendenzen);
-  h += checklisteAbschnitt(Z2) + raumAbschnitt(Z2);
+  h += checklisteAbschnitt(Z2) + grundrissAbschnitt(Z2) + raumAbschnitt(Z2);
   nachladenBald();
   return h;
 }
@@ -1977,8 +2201,8 @@ function eingabe2(e, Z2) {
 function aenderung2(e, Z2) {
   aenderung(e, Z2);
 }
-function aktion3(a, knopf, Z2) {
-  if (a.startsWith("chk-") || a.startsWith("raum-")) return aktion2(a, knopf, Z2);
+function aktion3(a, knopf, Z2, ereignis) {
+  if (a.startsWith("chk-") || a.startsWith("raum-") || a.startsWith("plan-")) return aktion2(a, knopf, Z2, ereignis);
   if (a === "arbeit-neu") return formular(Z2, null, "arbeit");
   if (a === "pendenz-neu") return formular(Z2, null, "pendenz");
   if (a === "arbeit-bearbeiten") {
@@ -3778,6 +4002,7 @@ async function neuLaden(teile) {
   holen("arbeiten", arbeitenLaden, "arbeiten");
   holen("checkliste", checklisteLaden, "checkliste");
   holen("raeume", raeumeLaden, "raeume");
+  holen("plaene", plaeneLaden, "plaene");
   holen("budget", budgetLaden, "budget");
   holen("offerten", offertenLaden, "offerten");
   holen("belege", belegeLaden, "belege");
@@ -4072,6 +4297,7 @@ var init_app = __esm({
       arbeiten: [],
       checkliste: [],
       raeume: [],
+      plaene: [],
       aktuelleAnsicht: "uebersicht",
       online: navigator.onLine,
       ladeVorgaenge: 0,
@@ -4147,7 +4373,7 @@ var init_app = __esm({
         }
         if (!Z.session) return aktion(a, aktionsKnopf, Z);
         const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
-        if (modul && modul.aktion) return modul.aktion(a, aktionsKnopf, Z);
+        if (modul && modul.aktion) return modul.aktion(a, aktionsKnopf, Z, e);
         return aktion4(a, aktionsKnopf, Z);
       }
       if (e.target.id === "modal-hg") modalSchliessen();

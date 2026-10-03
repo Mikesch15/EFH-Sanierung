@@ -19,7 +19,7 @@ dieses auch nicht.
 | Anschaffungen ausserhalb des Budgets (Kredit) | fertig, siehe «Anschaffungen» |
 | Zeitplan der Arbeiten, Pendenzen und Mängel | fertig, siehe «Arbeiten» |
 | Besichtigungs-Checkliste und Raum-Messblatt | fertig, siehe «Aufnahme» |
-| Grundriss der drei Geschosse zum Vermessen | fertig, siehe «Grundriss» |
+| Grundrisse mit Messpunkten zum Vermessen | fertig, siehe «Grundriss» |
 | Echte Dokumentenanalyse (Gemini) | fertig in der App, siehe «KI-Auswertung»; im Prototyp weiterhin simuliert |
 
 ## Supabase-Projekt
@@ -50,7 +50,8 @@ projekte                 Objekt, Adresse, Kaufpreis, Gesamtbudget, Kreditrahmen
    ├─ foerdergelder      Beiträge von Bund, Kanton, Gemeinde, Werken – mit Stand und Frist
    ├─ arbeiten           Zeitplan der Gewerke sowie Pendenzen und Mängel (mit Foto)
 └─ checkliste            Besichtigung: Punkt, Mass/Feststellung, abgehakt
-└─ raeume                Raum-Messblatt und Platz im Schema-Grundriss
+└─ plaene                hochgeladene Grundrisse (Bild je Geschoss)
+└─ raeume                Raum-Messblatt, bei Bedarf mit Messpunkt auf einem Plan
    └─ dokumente          Kaufvertrag, Pläne, Bewilligungen, Garantien
 ```
 
@@ -146,7 +147,6 @@ app/
   js/app.js             Start, Navigation, Modal, Realtime
   js/vorschau.js        Vorschaubilder: signierte Adressen gebündelt holen und merken
   js/checkliste-vorlage.js  Besichtigungs-Checkliste als Vorlage (12 Gruppen, 88 Punkte)
-  js/grundriss-vorlage.js   Geometrie der drei Geschosse (Lage und Grösse je Raum)
   js/ansichten/*.js     Anmeldung, Übersicht, Budget, Fördergelder, Anschaffungen,
                         Offerten, Belege, Arbeiten, Aufnahme, Grundriss, Dokumente
   js/paket/*.js         daraus gebaute Auslieferung (nicht von Hand ändern)
@@ -503,32 +503,30 @@ unverändert in `app/js/checkliste-vorlage.js`.
 Fenster, Türen, Boden und Bemerkungen. Längen in Metern, Wandstärke in Zentimetern – so
 misst man es auch. Die Fläche wird gerechnet, ebenso das Total über alle Räume.
 
-## Grundriss: die drei Geschosse zum Antippen
+## Grundriss: der eigene Plan mit Messpunkten
 
-Im Tab *Arbeiten* steht zwischen Checkliste und Messblatt der Abschnitt *Grundriss*:
-Unter-, Erd- und Obergeschoss, massstäblich nach den Verkaufsunterlagen gezeichnet, mit
-Umriss, Massstabsbalken und allen 20 Räumen an ihrer tatsächlichen Stelle.
+Im Tab *Arbeiten* steht zwischen Checkliste und Messblatt der Abschnitt *Grundriss*.
+Dort lädt man die Geschosspläne als Bild hoch – Foto, Screenshot oder Ausschnitt aus den
+Verkaufsunterlagen. Der Plan wird **unverändert angezeigt**; die App zeichnet nichts nach.
 
-**Messen:** Raum im Plan (oder als Kachel darunter) antippen, Breite und Länge vom Laser
-eintragen. Der Raum wird grün, Ihre Masse stehen in ihm, und im Kopf des Geschosses
-erscheint die Abweichung zur Planfläche – z.B. «45.67 m² (Plan 45.24 m², +0.43)». So
-sieht man sofort, wo die Verkaufsangaben nicht stimmen; sie sind dort selbst nur als
-Richtwert bezeichnet.
+**Messen:** *+ Messpunkt* antippen, dann im Plan auf den Raum tippen. Es öffnet sich das
+Raumformular; Name, Breite und Länge vom Laser eintragen. Danach sitzt an der getippten
+Stelle eine Marke mit Name und Fläche, grün sobald gemessen. Ein zweiter Tipp auf die
+Marke öffnet den Raum wieder. Jeder Messpunkt ist zugleich eine Zeile im *Raum-Messblatt*:
+Was hier steht, steht auch dort, und umgekehrt.
 
-**Die Zeichnung bleibt stehen.** Ein erster Versuch liess die Räume mit den gemessenen
-Massen wachsen, damit sich der Plan «anpasst». Das Ergebnis war unbrauchbar: Man erkannte
-die Räume nicht wieder. Ein Plan nützt nur, wenn er aussieht wie das Haus – was sich beim
-Messen ändert, ist die Beschriftung, nicht die Form.
+**Warum kein gezeichneter Plan.** Zwei Versuche, die Geschosse selbst zu zeichnen, waren
+unbrauchbar – erst mit den Massen mitwachsende Bänder, dann feste Rechtecke. Beide
+scheitern am selben Punkt: Echte Räume sind nicht rechtwinklig. Schräge Wände, Versätze
+und Erker lassen sich mit Rechtecken nicht abbilden, und in einem Plan, in dem man die
+Räume nicht wiedererkennt, will niemand messen. Der Originalplan sieht aus wie der Plan,
+weil er der Plan ist.
 
-Die Geometrie steht in `app/js/grundriss-vorlage.js`: je Raum Lage und Grösse in Metern,
-Nullpunkt oben links. `npm run grundriss` prüft, dass sich keine zwei Räume
-überlappen, keiner aus dem Umriss ragt und jede Rechteckfläche der ausgewiesenen
-entspricht (Abweichung unter 0.02 m²). Freiflächen zwischen den Räumen sind Wände, Treppenlauf und
-Schächte – sie gehören bewusst keinem Raum.
-
-**Schon erfasste Räume** werden übernommen: Wer vorher von Hand einen «Wohnzimmer»
-erfasst hat, bekommt beim Anlegen des Grundrisses nur dessen Lage dazu – Messungen und
-Notizen bleiben, Doppel entstehen keine.
+**Technisch:** Die Lage einer Marke wird relativ zum Bild gespeichert (0 bis 1 in
+`raeume.marke_x` / `marke_y`, Plan in `raeume.plan_id`). So sitzt sie auf jedem Gerät an
+derselben Stelle im Plan, unabhängig von der Bildschirmbreite. Die Planbilder liegen wie
+alle Dateien im privaten Bucket `projektdateien` und werden über signierte Adressen
+geladen.
 
 ## Migrationen anwenden
 
@@ -580,9 +578,10 @@ Am besten auf zwei Geräten (oder einem normalen Fenster und einem privaten Fens
     antippen, einen Punkt abhaken, ein Mass eintragen und die Seite neu laden – beides
     steht noch da. Mit *+ Punkt* einen eigenen Punkt ergänzen, unter *Raum-Messblatt*
     einen Raum erfassen (Fläche wird gerechnet).
-12. **Grundriss**: Tab *Arbeiten* → *Grundriss aus Unterlagen anlegen*. Einen Raum im Plan
-    antippen, Breite und Länge eintragen – der Raum wird grün, die Masse stehen in ihm und
-    die Abweichung zur Planfläche im Kopf des Geschosses. Die Form bleibt unverändert.
+12. **Grundriss**: Tab *Arbeiten* → *Plan hochladen* (Bild eines Geschosses). Dann
+    *+ Messpunkt*, in den Plan auf einen Raum tippen, Name sowie Breite und Länge
+    eintragen – die Marke wird grün und zeigt die Fläche; der Raum steht auch im
+    Messblatt.
 13. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
    Werten passen. Der Kostenvergleich kommt aus der View `v_kostenvergleich`.
 14. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür

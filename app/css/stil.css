@@ -141,21 +141,24 @@ tfoot td{font-weight:650; background:#F7F9FB; border-top:2px solid var(--linie-s
 .foto-kachel figcaption .bemerkung{color:var(--text-2); white-space:normal}
 .foto-aktionen{display:flex; gap:6px; margin-top:7px}
 
-/* ---------- Schema-Grundriss ---------- */
-.plan-huelle{overflow-x:auto; -webkit-overflow-scrolling:touch; padding:4px 14px 10px}
-.plan{display:block; height:auto; max-width:100%; min-width:260px}
-.plan-umriss{fill:none; stroke:var(--blau-900); stroke-width:4; stroke-linejoin:round}
-.plan-raum rect{fill:var(--blau-50); stroke:var(--blau-900); stroke-width:2.5; stroke-linejoin:round}
-.plan-raum{cursor:pointer}
-.plan-raum:hover rect{fill:var(--blau-100)}
-.plan-raum:focus{outline:none}
-.plan-raum:focus rect{stroke:var(--blau-600); stroke-width:4}
-.plan-raum.gemessen rect{fill:var(--gruen-bg)}
-.plan-name{font-size:10px; font-weight:650; fill:var(--text); text-anchor:middle; pointer-events:none}
-.plan-mass{font-size:9px; fill:var(--grau); text-anchor:middle; pointer-events:none}
-.plan-raum.gemessen .plan-mass{fill:var(--gruen)}
-.plan-massstab line{stroke:var(--grau); stroke-width:1.5}
-.plan-massstab text{font-size:8px; fill:var(--grau); text-anchor:middle}
+/* ---------- Grundriss: Originalplan mit Messpunkten ---------- */
+/* Der Plan wird als Bild gezeigt, die Marken liegen prozentual darüber – so
+   sitzen sie auf jeder Bildschirmbreite am selben Punkt im Plan. */
+.plan-bild{position:relative; margin:0 14px 10px; border:1px solid var(--linie);
+  border-radius:var(--r-s); overflow:hidden; background:#fff; line-height:0; min-height:70px}
+.plan-bild img{display:block; width:100%; height:auto}
+.plan-bild.setzt{cursor:crosshair; box-shadow:0 0 0 2px var(--blau-600)}
+.plan-bild.setzt .plan-marke{pointer-events:none}
+.plan-marke{position:absolute; transform:translate(-50%,-50%); display:flex; align-items:center;
+  gap:5px; cursor:pointer; background:#fff; border:1.5px solid var(--blau-900);
+  border-radius:999px; padding:2px 8px 2px 3px; line-height:1.15;
+  box-shadow:0 1px 4px rgba(0,0,0,.22)}
+.plan-marke .nr{display:flex; align-items:center; justify-content:center; width:18px; height:18px;
+  border-radius:50%; background:var(--blau-900); color:#fff; font-size:.66rem; font-weight:700}
+.plan-marke .wert{font-size:.7rem; font-weight:650; white-space:nowrap}
+.plan-marke.gemessen{border-color:var(--gruen)}
+.plan-marke.gemessen .nr{background:var(--gruen)}
+.plan-marke.gemessen .wert{color:var(--gruen)}
 .plan-liste{display:flex; flex-wrap:wrap; gap:6px}
 .plan-chip{display:flex; flex-direction:column; gap:1px; align-items:flex-start; cursor:pointer;
   background:var(--blau-50); border:1px solid var(--linie); border-radius:var(--r-s);

@@ -2,7 +2,7 @@ import { supabase, aufAuthAchten, abmelden, gespeicherteSitzungVorhanden } from 
 import {
   DatenFehler, projekteLaden, mitgliederLaden, budgetLaden, offertenLaden,
   belegeLaden, dokumenteLaden, kostenvergleichLaden, projektAbonnieren,
-  einladungenLaden, einladungInfo, einladungEinloesen, nebenkostenLaden, foerdergelderLaden, anschaffungenLaden, arbeitenLaden, checklisteLaden, raeumeLaden,
+  einladungenLaden, einladungInfo, einladungEinloesen, nebenkostenLaden, foerdergelderLaden, anschaffungenLaden, arbeitenLaden, checklisteLaden, raeumeLaden, plaeneLaden,
 } from "./daten.js";
 import { esc, meldung } from "./format.js";
 import * as Anmeldung from "./ansichten/anmeldung.js";
@@ -19,7 +19,7 @@ export const Z = {
   session: null, benutzer: null,
   projekte: [], projektId: null, projekt: null, mitglieder: [], meineRolle: null,
   budget: [], offerten: [], belege: [], dokumente: [], kostenvergleich: [], nebenkosten: [],
-  foerdergelder: [], anschaffungen: [], arbeiten: [], checkliste: [], raeume: [],
+  foerdergelder: [], anschaffungen: [], arbeiten: [], checkliste: [], raeume: [], plaene: [],
   aktuelleAnsicht: "uebersicht",
   online: navigator.onLine, ladeVorgaenge: 0,
   abmeldeAbo: null,
@@ -83,6 +83,7 @@ async function neuLaden(teile) {
   holen("arbeiten", arbeitenLaden, "arbeiten");
   holen("checkliste", checklisteLaden, "checkliste");
   holen("raeume", raeumeLaden, "raeume");
+  holen("plaene", plaeneLaden, "plaene");
   holen("budget", budgetLaden, "budget");
   holen("offerten", offertenLaden, "offerten");
   holen("belege", belegeLaden, "belege");
@@ -393,7 +394,7 @@ document.addEventListener("click", async (e) => {
     }
     if (!Z.session) return Anmeldung.aktion(a, aktionsKnopf, Z);
     const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
-    if (modul && modul.aktion) return modul.aktion(a, aktionsKnopf, Z);
+    if (modul && modul.aktion) return modul.aktion(a, aktionsKnopf, Z, e);
     return Uebersicht.aktion(a, aktionsKnopf, Z);
   }
   if (e.target.id === "modal-hg") modalSchliessen();

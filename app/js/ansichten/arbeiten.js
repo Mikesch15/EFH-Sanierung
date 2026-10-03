@@ -298,8 +298,8 @@ export function aenderung(e, Z) { Aufnahme.aenderung(e, Z); }
 
 /* ---------------------------------------------------------------- Aktionen */
 
-export function aktion(a, knopf, Z) {
-  if (a.startsWith("chk-") || a.startsWith("raum-") || a.startsWith("plan-")) return Aufnahme.aktion(a, knopf, Z);
+export function aktion(a, knopf, Z, ereignis) {
+  if (a.startsWith("chk-") || a.startsWith("raum-") || a.startsWith("plan-")) return Aufnahme.aktion(a, knopf, Z, ereignis);
   if (a === "arbeit-neu") return formular(Z, null, "arbeit");
   if (a === "pendenz-neu") return formular(Z, null, "pendenz");
   if (a === "arbeit-bearbeiten") {
