@@ -11,10 +11,12 @@ import { esc, zahl, meldung, bestaetigen, heuteISO } from "../format.js";
 import { leerZustand } from "./gemeinsam.js";
 import {
   checklisteAnlegen, checklistePunktAktualisieren, checklistePunktLoeschen,
-  raumAnlegen, raumAktualisieren, raumLoeschen,
+  raumAnlegen, raumAktualisieren, raumLoeschen, raeumeAnlegen,
 } from "../daten.js";
 import { modalOeffnen, neuLaden, neuZeichnen, kannBearbeiten } from "../app.js";
 import { vorlagePunkte, FOTO_REGEL, CHECKLISTE_HINWEIS } from "../checkliste-vorlage.js";
+import { grundrissRaeume } from "../grundriss-vorlage.js";
+export { grundrissAbschnitt } from "./grundriss.js";
 
 let entwurf = null;                  // Raum im Formular
 const offeneGruppen = new Set();     // welche Abschnitte aufgeklappt sind
@@ -183,7 +185,14 @@ function raumFormular(Z, r) {
       '<label class="feld"><span>Türen</span><input data-feld="tueren" value="' + esc(entwurf.tueren) + '" placeholder="1 × 80/200"></label>' +
       "</div>" +
       '<label class="feld"><span>Boden</span><input data-feld="boden" value="' + esc(entwurf.boden) + '" placeholder="Parkett auf Blindboden"></label>' +
-      '<label class="feld"><span>Bemerkungen</span><textarea data-feld="bemerkung" placeholder="Balkenrichtung, Auffälligkeiten …">' + esc(entwurf.bemerkung || "") + "</textarea></label>",
+      '<label class="feld"><span>Bemerkungen</span><textarea data-feld="bemerkung" placeholder="Balkenrichtung, Auffälligkeiten …">' + esc(entwurf.bemerkung || "") + "</textarea></label>" +
+      (entwurf.plan_band
+        ? '<div class="hinweis info"><div>Dieser Raum steht im Grundriss: <b>Breite</b> ist die Seite ' +
+          "quer zum Band (waagrecht in der Skizze), <b>Länge</b> die Tiefe. Sobald beide erfasst sind, " +
+          "zeichnet der Plan mit Ihren Massen" +
+          (entwurf.flaeche_plan ? " statt mit den " + zahl(entwurf.flaeche_plan).toFixed(2) + " m² aus den Verkaufsunterlagen" : "") +
+          ".</div></div>"
+        : ""),
     speichern: () => raumSpeichern(Z),
   });
 }
@@ -300,6 +309,17 @@ export function aktion(a, knopf, Z) {
     }
     return;
   }
+  if (a === "plan-vorlage") {
+    if (vorlageLaeuft) return;
+    vorlageLaeuft = true;
+    knopf.disabled = true;
+    raeumeAnlegen(Z.projektId, grundrissRaeume())
+      .then(() => { meldung("Grundriss angelegt."); return neuLaden(["raeume"]); })
+      .catch((err) => meldung(err.message, true))
+      .finally(() => { vorlageLaeuft = false; });
+    return;
+  }
+  if (a === "plan-raum") return raumFormular(Z, (Z.raeume || []).find((r) => r.id === knopf.dataset.id));
   if (a === "raum-neu") return raumFormular(Z, null);
   if (a === "raum-bearbeiten") return raumFormular(Z, (Z.raeume || []).find((r) => r.id === knopf.dataset.id));
   if (a === "raum-loeschen") {

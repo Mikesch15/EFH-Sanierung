@@ -19,6 +19,7 @@ dieses auch nicht.
 | Anschaffungen ausserhalb des Budgets (Kredit) | fertig, siehe «Anschaffungen» |
 | Zeitplan der Arbeiten, Pendenzen und Mängel | fertig, siehe «Arbeiten» |
 | Besichtigungs-Checkliste und Raum-Messblatt | fertig, siehe «Aufnahme» |
+| Schema-Grundriss, der sich nach den Messungen richtet | fertig, siehe «Grundriss» |
 | Echte Dokumentenanalyse (Gemini) | fertig in der App, siehe «KI-Auswertung»; im Prototyp weiterhin simuliert |
 
 ## Supabase-Projekt
@@ -49,7 +50,7 @@ projekte                 Objekt, Adresse, Kaufpreis, Gesamtbudget, Kreditrahmen
    ├─ foerdergelder      Beiträge von Bund, Kanton, Gemeinde, Werken – mit Stand und Frist
    ├─ arbeiten           Zeitplan der Gewerke sowie Pendenzen und Mängel (mit Foto)
 └─ checkliste            Besichtigung: Punkt, Mass/Feststellung, abgehakt
-└─ raeume                Raum-Messblatt: Länge, Breite, Höhe, Wandstärke, Fenster, Türen
+└─ raeume                Raum-Messblatt und Platz im Schema-Grundriss
    └─ dokumente          Kaufvertrag, Pläne, Bewilligungen, Garantien
 ```
 
@@ -145,8 +146,9 @@ app/
   js/app.js             Start, Navigation, Modal, Realtime
   js/vorschau.js        Vorschaubilder: signierte Adressen gebündelt holen und merken
   js/checkliste-vorlage.js  Besichtigungs-Checkliste als Vorlage (12 Gruppen, 88 Punkte)
+  js/grundriss-vorlage.js   die drei Geschosse aus den Verkaufsunterlagen
   js/ansichten/*.js     Anmeldung, Übersicht, Budget, Fördergelder, Anschaffungen,
-                        Offerten, Belege, Arbeiten, Aufnahme, Dokumente
+                        Offerten, Belege, Arbeiten, Aufnahme, Grundriss, Dokumente
   js/paket/*.js         daraus gebaute Auslieferung (nicht von Hand ändern)
 ```
 
@@ -501,6 +503,30 @@ unverändert in `app/js/checkliste-vorlage.js`.
 Fenster, Türen, Boden und Bemerkungen. Längen in Metern, Wandstärke in Zentimetern – so
 misst man es auch. Die Fläche wird gerechnet, ebenso das Total über alle Räume.
 
+## Grundriss: Skizze, die beim Vermessen die Form annimmt
+
+Im Tab *Arbeiten* steht zwischen Checkliste und Messblatt der Abschnitt *Grundriss*:
+Unter-, Erd- und Obergeschoss als massstäbliche Skizze, 20 Räume mit den Flächen aus den
+Verkaufsunterlagen.
+
+**So wird daraus eine eigene Aufnahme:** Jeder Raum im Plan ist antippbar und öffnet das
+Messblatt-Formular. Sobald Breite und Länge erfasst sind, zeichnet die Skizze mit **Ihren**
+Massen statt mit denen aus dem Verkaufsplan – der Raum wird grün, die Fläche neu gerechnet,
+und je Geschoss steht die Abweichung zur Planfläche (z.B. «48.88 m² (Plan 45.24 m², +3.64
+m²)»). So sieht man beim Messen, wo die Angaben des Verkäufers nicht stimmen.
+
+**Warum waagrechte Bänder und kein echter Grundriss.** Ein Architektenplan müsste Wände,
+Ecken und Versätze kennen; schon eine einzige abweichende Messung bringt eine solche
+Zeichnung zum Kippen – Räume überlappen oder es klaffen Lücken. Hier liegen die Räume
+stattdessen in waagrechten Bändern nebeneinander, wie sie im Plan übereinander liegen. Das
+geht immer sauber auf, bleibt massstäblich (Massstabsbalken unter jeder Zeichnung) und
+lässt sich mit dem Daumen bedienen. Es ist eine ehrliche Skizze statt einer Zeichnung, die
+eine Genauigkeit vortäuscht, die sie nicht hat.
+
+Die Flächen der Verkaufsunterlagen sind dort selbst nur als Richtwert bezeichnet – genau
+deshalb dieser Abschnitt. Gemessene Werte stehen in denselben Feldern wie im Messblatt;
+beides ist dieselbe Tabelle (`raeume`), nur zwei Ansichten darauf.
+
 ## Migrationen anwenden
 
 Die Migrationen sind im Supabase-Projekt bereits eingespielt. Für eine zweite Umgebung
@@ -551,14 +577,17 @@ Am besten auf zwei Geräten (oder einem normalen Fenster und einem privaten Fens
     antippen, einen Punkt abhaken, ein Mass eintragen und die Seite neu laden – beides
     steht noch da. Mit *+ Punkt* einen eigenen Punkt ergänzen, unter *Raum-Messblatt*
     einen Raum erfassen (Fläche wird gerechnet).
-12. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
+12. **Grundriss**: Tab *Arbeiten* → *Grundriss aus Unterlagen anlegen*. Einen Raum in der
+    Skizze antippen, Breite und Länge eintragen – der Raum wird grün und die Zeichnung
+    passt sich an; die Abweichung zur Planfläche steht im Kopf des Geschosses.
+13. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
    Werten passen. Der Kostenvergleich kommt aus der View `v_kostenvergleich`.
-13. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür
+14. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür
     nötigen Tabellen stehen seit Migration 0012 in der Veröffentlichung
     `supabase_realtime` – vorher war sie leer, und es wurde erst beim Tabwechsel
     aktualisiert); beim Zurückkehren
    in den Tab wird zusätzlich neu geladen.
-14. **Prototyp-Sicherung importieren**: im Prototyp *Daten exportieren*, dann in der App
+15. **Prototyp-Sicherung importieren**: im Prototyp *Daten exportieren*, dann in der App
     Übersicht → *Sicherung importieren*. Der erste Klick auf *Importieren* zeigt nur, was
     eingefügt würde; erst der zweite führt den Import aus. Derselbe Export wird pro Projekt
     nur einmal importiert.

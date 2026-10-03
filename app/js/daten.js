@@ -308,6 +308,28 @@ function raumFelder(daten) {
   };
 }
 
+/** Die Räume des Schema-Grundrisses auf einmal anlegen. */
+export function raeumeAnlegen(projektId, liste) {
+  return schreiben(async () =>
+    pruefen(
+      await supabase
+        .from("raeume")
+        .insert(liste.map((r) => ({
+          projekt_id: projektId,
+          name: r.name,
+          geschoss: r.geschoss || "",
+          flaeche_plan: r.flaeche_plan ?? null,
+          soll_breite: r.soll_breite ?? null,
+          soll_tiefe: r.soll_tiefe ?? null,
+          plan_band: r.plan_band ?? null,
+          plan_sort: r.plan_sort ?? 0,
+          sortierung: r.sortierung ?? 0,
+        })))
+        .select()
+    )
+  );
+}
+
 export function raumAnlegen(projektId, daten) {
   return schreiben(async () =>
     pruefen(

@@ -81,13 +81,14 @@ export function render(Z) {
     '<a href="#abschnitt-zeitplan">Zeitplan</a>' +
     '<a href="#abschnitt-pendenzen">Pendenzen &amp; Mängel</a>' +
     '<a href="#abschnitt-checkliste">Checkliste</a>' +
+    '<a href="#abschnitt-grundriss">Grundriss</a>' +
     '<a href="#abschnitt-raeume">Räume</a>' +
     "</nav>";
 
   h += zeitplanAbschnitt(Z, arbeiten) + pendenzAbschnitt(Z, pendenzen);
   // Die Aufnahme gehört in denselben Tab: Es ist dieselbe Hand, dasselbe Haus,
   // derselbe Gang durchs Gebäude – nur früher in der Zeit.
-  h += Aufnahme.checklisteAbschnitt(Z) + Aufnahme.raumAbschnitt(Z);
+  h += Aufnahme.checklisteAbschnitt(Z) + Aufnahme.grundrissAbschnitt(Z) + Aufnahme.raumAbschnitt(Z);
   nachladenBald();
   return h;
 }
@@ -298,7 +299,7 @@ export function aenderung(e, Z) { Aufnahme.aenderung(e, Z); }
 /* ---------------------------------------------------------------- Aktionen */
 
 export function aktion(a, knopf, Z) {
-  if (a.startsWith("chk-") || a.startsWith("raum-")) return Aufnahme.aktion(a, knopf, Z);
+  if (a.startsWith("chk-") || a.startsWith("raum-") || a.startsWith("plan-")) return Aufnahme.aktion(a, knopf, Z);
   if (a === "arbeit-neu") return formular(Z, null, "arbeit");
   if (a === "pendenz-neu") return formular(Z, null, "pendenz");
   if (a === "arbeit-bearbeiten") {
