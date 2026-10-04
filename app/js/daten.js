@@ -297,8 +297,10 @@ function raumFelder(daten) {
   return {
     name: daten.name || "",
     geschoss: daten.geschoss || "",
-    // Umriss: je Wand Länge und Innenwinkel zur nächsten Wand.
-    waende: Array.isArray(daten.waende) ? daten.waende : [],
+    // Umriss aus dem Planbild (Punkte relativ zum Bild) und die mit dem Laser
+    // gemessenen Wandlängen dazu.
+    umriss: Array.isArray(daten.umriss) ? daten.umriss : [],
+    wand_masse: Array.isArray(daten.wand_masse) ? daten.wand_masse : [],
     flaeche: zahlOderNull(daten.flaeche),
     umfang: zahlOderNull(daten.umfang),
     hoehe: zahlOderNull(daten.hoehe),

@@ -34,10 +34,16 @@ export function ausSpeicher(pfad) {
   return eintrag.url;
 }
 
-/** <img>-Markierung mit Platzhalter; die Adresse kommt über nachladen(). */
-export function bildMarkierung(pfad, name) {
+/**
+ * <img>-Markierung mit Platzhalter; die Adresse kommt über nachladen().
+ * `auslesbar` setzt crossorigin: nötig, wenn das Bild später im Canvas
+ * ausgewertet werden soll (Grundriss-Erkennung) – ohne das sperrt der Browser
+ * die Bildpunkte. Es wird dabei nichts gesendet, nur gelesen.
+ */
+export function bildMarkierung(pfad, name, auslesbar) {
   const gespeichert = ausSpeicher(pfad);
   return '<img alt="' + esc(name || "") + '" loading="lazy" data-vorschau="' + esc(pfad) + '"' +
+    (auslesbar ? ' crossorigin="anonymous"' : "") +
     (gespeichert ? ' src="' + esc(gespeichert) + '"' : "") + ">";
 }
 

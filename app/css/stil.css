@@ -147,46 +147,43 @@ tfoot td{font-weight:650; background:#F7F9FB; border-top:2px solid var(--linie-s
 .plan-bild{position:relative; margin:0 14px 10px; border:1px solid var(--linie);
   border-radius:var(--r-s); overflow:hidden; background:#fff; line-height:0; min-height:70px}
 .plan-bild img{display:block; width:100%; height:auto}
-.plan-bild.setzt{cursor:crosshair; box-shadow:0 0 0 2px var(--blau-600)}
-.plan-bild.setzt .plan-marke{pointer-events:none}
+.plan-bild.zeigt-finger{cursor:crosshair; box-shadow:0 0 0 2px var(--blau-600)}
+/* Der Überzug zeigt die erkannten Räume; Klicks gehen durch ihn hindurch ans Bild. */
+.plan-ueberzug{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+.plan-ueberzug .raum-flaeche{fill:rgba(26,91,140,.14); stroke:var(--blau-600); stroke-width:1.5;
+  vector-effect:non-scaling-stroke}
+.plan-ueberzug .raum-flaeche.gemessen{fill:rgba(31,122,74,.16); stroke:var(--gruen)}
+.plan-ueberzug .wand-mass{stroke:var(--blau-600); stroke-width:4; vector-effect:non-scaling-stroke;
+  stroke-linecap:round}
 .plan-marke{position:absolute; transform:translate(-50%,-50%); display:flex; align-items:center;
-  gap:5px; cursor:pointer; background:#fff; border:1.5px solid var(--blau-900);
-  border-radius:999px; padding:2px 8px 2px 3px; line-height:1.15;
+  gap:5px; pointer-events:none; background:#fff; border:1.5px solid var(--blau-900);
+  border-radius:999px; padding:1px 7px 1px 2px; line-height:1.15;
   box-shadow:0 1px 4px rgba(0,0,0,.22)}
-.plan-marke .nr{display:flex; align-items:center; justify-content:center; width:18px; height:18px;
+.plan-marke .nr{display:flex; align-items:center; justify-content:center; width:16px; height:16px;
   border-radius:50%; background:var(--blau-900); color:#fff; font-size:.66rem; font-weight:700}
-.plan-marke .wert{font-size:.7rem; font-weight:650; white-space:nowrap}
+.plan-marke .wert{font-size:.66rem; font-weight:650; white-space:nowrap}
 .plan-marke.gemessen{border-color:var(--gruen)}
 .plan-marke.gemessen .nr{background:var(--gruen)}
 .plan-marke.gemessen .wert{color:var(--gruen)}
-/* ---------- Raum vermessen: Wandliste und Skizze ---------- */
-/* Eine Zeile je Wand, Beschriftung nur einmal darüber: sechs Wände müssen auf
-   einen Handybildschirm passen, sonst sieht man die Rechnung nicht mehr. */
-.wand-kopf, .wand-zeile{display:grid; grid-template-columns:20px 1fr 1fr 34px; gap:7px; align-items:center}
+/* ---------- Raum vermessen: Wände aus dem Plan ---------- */
+.wand-kopf, .wand-zeile{display:grid; grid-template-columns:20px 1fr 1fr 52px; gap:7px; align-items:center}
 .wand-kopf{margin:12px 0 4px; font-size:.7rem; color:var(--grau)}
 .wand-liste{display:flex; flex-direction:column; gap:6px}
 .wand-zeile input{width:100%; padding:7px 9px; font-size:.9rem; border:1px solid var(--linie);
   border-radius:var(--r-s); background:#fff; color:var(--text)}
 .wand-zeile input:focus{outline:none; border-color:var(--blau-600); box-shadow:0 0 0 2px var(--blau-100)}
 .wand-nr{font-size:.75rem; font-weight:700; color:var(--grau); text-align:center}
-.wand-zeile > button{padding:5px 8px}
+.wand-plan{font-size:.86rem; font-variant-numeric:tabular-nums}
+.wand-abw{font-size:.76rem; font-weight:650; text-align:right; font-variant-numeric:tabular-nums}
+.wand-abw.gut{color:var(--gruen)} .wand-abw.schlecht{color:var(--rot)}
 .wand-hinweis{margin:7px 2px 0; font-size:.72rem; color:var(--grau)}
-/* Das Ergebnis steht über der Liste und bleibt beim Scrollen stehen. */
-.geo-box{position:sticky; top:0; z-index:2; margin-top:4px; border:1px solid var(--linie);
-  border-radius:var(--r-s); padding:10px; background:var(--blau-50)}
+.geo-box{margin-top:12px; border:1px solid var(--linie); border-radius:var(--r-s);
+  padding:10px; background:var(--blau-50)}
 .geo-box .hinweis{margin:0}
 .geo-werte{display:flex; flex-wrap:wrap; gap:16px}
 .geo-werte div{display:flex; flex-direction:column}
 .geo-werte span{font-size:.7rem; color:var(--grau)}
 .geo-werte b{font-size:.96rem}
-.geo-werte b.gut{color:var(--gruen)}
-.geo-werte b.schlecht{color:var(--rot)}
-.raum-skizze{display:block; width:100%; max-height:190px; margin-top:8px; background:#fff;
-  border:1px solid var(--linie); border-radius:var(--r-s)}
-.raum-skizze polygon{fill:var(--blau-100); stroke:none}
-.raum-skizze line.wand{stroke:var(--blau-900); stroke-width:2.5; stroke-linecap:round}
-.raum-skizze line.offen{stroke:var(--rot); stroke-width:2.5; stroke-dasharray:5 4}
-.raum-skizze text{font-size:9px; fill:var(--text-2); text-anchor:middle}
 
 .plan-liste{display:flex; flex-wrap:wrap; gap:6px}
 .plan-chip{display:flex; flex-direction:column; gap:1px; align-items:flex-start; cursor:pointer;

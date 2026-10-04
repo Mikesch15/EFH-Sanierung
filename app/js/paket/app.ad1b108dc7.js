@@ -514,8 +514,12 @@ function raumFelder(daten) {
   return {
     name: daten.name || "",
     geschoss: daten.geschoss || "",
-    laenge: zahlOderNull(daten.laenge),
-    breite: zahlOderNull(daten.breite),
+    // Umriss aus dem Planbild (Punkte relativ zum Bild) und die mit dem Laser
+    // gemessenen Wandlängen dazu.
+    umriss: Array.isArray(daten.umriss) ? daten.umriss : [],
+    wand_masse: Array.isArray(daten.wand_masse) ? daten.wand_masse : [],
+    flaeche: zahlOderNull(daten.flaeche),
+    umfang: zahlOderNull(daten.umfang),
     hoehe: zahlOderNull(daten.hoehe),
     wandstaerke: zahlOderNull(daten.wandstaerke),
     fenster: daten.fenster || "",
@@ -1366,9 +1370,9 @@ function ausSpeicher(pfad) {
   if (!eintrag || Date.now() - eintrag.zeit > GUELTIG_MS) return null;
   return eintrag.url;
 }
-function bildMarkierung(pfad, name) {
+function bildMarkierung(pfad, name, auslesbar) {
   const gespeichert = ausSpeicher(pfad);
-  return '<img alt="' + esc(name || "") + '" loading="lazy" data-vorschau="' + esc(pfad) + '"' + (gespeichert ? ' src="' + esc(gespeichert) + '"' : "") + ">";
+  return '<img alt="' + esc(name || "") + '" loading="lazy" data-vorschau="' + esc(pfad) + '"' + (auslesbar ? ' crossorigin="anonymous"' : "") + (gespeichert ? ' src="' + esc(gespeichert) + '"' : "") + ">";
 }
 function ersatz(bild, text2) {
   const halter = bild.parentElement;
@@ -1587,76 +1591,432 @@ var init_checkliste_vorlage = __esm({
 });
 
 // app/js/ansichten/grundriss.js
-function setzModus() {
-  return setzenAuf;
+function planModus() {
+  return modus2;
 }
-function setzModusSetzen(planId) {
-  setzenAuf = planId;
+function planModusSetzen(art, planId) {
+  modus2 = art ? { art, planId } : null;
+  if (!art) letzteWand = null;
+}
+function wandZeigen(strecke) {
+  letzteWand = strecke;
 }
 function istGemessen(r) {
-  return !!(zahl(r.breite) && zahl(r.laenge));
+  return zahl(r.flaeche) > 0;
+}
+function hatMassstab(plan) {
+  return Number(plan.px_pro_meter) > 0;
 }
 function flaeche(r) {
-  return zahl(r.breite) * zahl(r.laenge);
+  return zahl(r.flaeche);
 }
 function markenText(r) {
-  if (istGemessen(r)) return flaeche(r).toFixed(2) + " m²";
-  return r.name || "?";
+  const name = r.name || "?";
+  return istGemessen(r) ? name + " · " + flaeche(r).toFixed(2) + " m²" : name;
 }
-function planZeichnen(plan, raeume, bearbeitbar) {
-  const marken = raeume.filter((r) => r.plan_id === plan.id && r.marke_x !== null && r.marke_x !== void 0);
-  const setzt = setzenAuf === plan.id;
-  let h = '<div class="plan-bild' + (setzt ? " setzt" : "") + '"' + (setzt ? ' data-aktion="plan-tippen" data-plan="' + plan.id + '"' : "") + ">";
-  h += istAnzeigbar(null, plan.datei_name || plan.datei_pfad) ? bildMarkierung(plan.datei_pfad, plan.titel || plan.datei_name) : '<div class="foto-ersatz" style="height:160px">Dieses Format lässt sich nicht anzeigen – bitte als JPG oder PNG hochladen.</div>';
+function ueberzug(plan, raeume) {
+  let h = '<svg class="plan-ueberzug" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true">';
+  raeume.forEach((r) => {
+    const p = r.umriss || [];
+    if (p.length < 3) return;
+    h += '<polygon class="raum-flaeche' + (istGemessen(r) ? " gemessen" : "") + '" points="' + p.map((q) => q[0].toFixed(5) + "," + q[1].toFixed(5)).join(" ") + '"/>';
+  });
+  if (letzteWand && letzteWand.length === 2) {
+    h += '<line class="wand-mass" x1="' + letzteWand[0][0].toFixed(5) + '" y1="' + letzteWand[0][1].toFixed(5) + '" x2="' + letzteWand[1][0].toFixed(5) + '" y2="' + letzteWand[1][1].toFixed(5) + '"/>';
+  }
+  return h + "</svg>";
+}
+function planZeichnen(plan, raeume) {
+  const marken = raeume.filter((r) => r.marke_x !== null && r.marke_x !== void 0);
+  const aktiv = modus2 && modus2.planId === plan.id;
+  let h = '<div class="plan-bild' + (aktiv ? " zeigt-finger" : "") + '" data-aktion="plan-tippen" data-plan="' + plan.id + '">';
+  h += istAnzeigbar(null, plan.datei_name || plan.datei_pfad) ? bildMarkierung(plan.datei_pfad, plan.titel || plan.datei_name, true) : '<div class="foto-ersatz" style="height:160px">Dieses Format lässt sich nicht anzeigen – bitte als JPG oder PNG hochladen.</div>';
+  h += ueberzug(plan, raeume);
   marken.forEach((r, i) => {
-    h += '<button class="plan-marke' + (istGemessen(r) ? " gemessen" : "") + '" type="button" data-aktion="plan-marke" data-id="' + r.id + '" style="left:' + (zahl(r.marke_x) * 100).toFixed(2) + "%;top:" + (zahl(r.marke_y) * 100).toFixed(2) + '%" title="' + esc(r.name) + '"><span class="nr">' + (i + 1) + '</span><span class="wert">' + esc(markenText(r)) + "</span></button>";
+    h += '<span class="plan-marke' + (istGemessen(r) ? " gemessen" : "") + '" style="left:' + (zahl(r.marke_x) * 100).toFixed(2) + "%;top:" + (zahl(r.marke_y) * 100).toFixed(2) + '%"><span class="nr">' + (i + 1) + '</span><span class="wert">' + esc(markenText(r)) + "</span></span>";
   });
   h += "</div>";
-  if (setzt) {
-    h += '<div class="hinweis warn" style="margin:0 14px 12px"><div><b>Messpunkt setzen</b>Tippen Sie im Plan auf den Raum. Danach öffnet sich das Formular für Namen und Masse.<div class="btn-reihe" style="margin-top:9px"><button class="btn still klein" type="button" data-aktion="plan-setzen-aus">Abbrechen</button></div></div></div>';
-  } else if (bearbeitbar) {
-    h += '<div class="karte-pad" style="padding-top:0"><div class="btn-reihe"><button class="btn zweit klein" type="button" data-aktion="plan-setzen" data-plan="' + plan.id + '">+ Messpunkt</button><button class="btn still klein" type="button" data-aktion="plan-umbenennen" data-id="' + plan.id + '">Umbenennen</button><button class="btn still klein" type="button" data-aktion="plan-loeschen" data-id="' + plan.id + '">Plan entfernen</button></div></div>';
-  }
-  return { html: h, marken };
+  return h;
+}
+function anleitung(plan) {
+  if (!modus2 || modus2.planId !== plan.id) return "";
+  const text2 = modus2.art === "massstab" ? "<b>Massstab setzen</b>Tippen Sie auf eine Wand, deren Länge Sie mit dem Laser gemessen haben – am besten eine lange Aussenwand. Danach geben Sie das Mass ein." : "<b>Raum ausmessen</b>Tippen Sie mitten in den Raum. Die App füllt ihn bis an seine Wände aus und rechnet Fläche und Wandlängen.";
+  return '<div class="hinweis warn" style="margin:0 14px 12px"><div>' + text2 + '<div class="btn-reihe" style="margin-top:9px"><button class="btn still klein" type="button" data-aktion="plan-modus-aus">Abbrechen</button></div></div></div>';
+}
+function werkzeuge(plan, bearbeitbar) {
+  if (!bearbeitbar || modus2 && modus2.planId === plan.id) return "";
+  const massstab = hatMassstab(plan);
+  return '<div class="karte-pad" style="padding-top:0"><div class="btn-reihe">' + (massstab ? '<button class="btn zweit klein" type="button" data-aktion="plan-raum-messen" data-plan="' + plan.id + '">+ Raum ausmessen</button>' : '<button class="btn klein" type="button" data-aktion="plan-massstab" data-plan="' + plan.id + '">Massstab setzen</button>') + (massstab ? '<button class="btn still klein" type="button" data-aktion="plan-massstab" data-plan="' + plan.id + '">Massstab ändern</button>' : "") + '<button class="btn still klein" type="button" data-aktion="plan-einstellen" data-id="' + plan.id + '">Erkennung</button><button class="btn still klein" type="button" data-aktion="plan-umbenennen" data-id="' + plan.id + '">Umbenennen</button><button class="btn still klein" type="button" data-aktion="plan-loeschen" data-id="' + plan.id + '">Plan entfernen</button></div></div>';
 }
 function grundrissAbschnitt(Z2) {
   const plaene = Z2.plaene || [];
   const raeume = Z2.raeume || [];
   const bearbeitbar = kannBearbeiten();
-  const mitMarke = raeume.filter((r) => r.plan_id && r.marke_x !== null && r.marke_x !== void 0);
-  let h = '<section class="abschnitt" id="abschnitt-grundriss"><div class="abschnitt-kopf"><div><h2>Grundrisse</h2><p>' + (plaene.length ? plaene.length + (plaene.length === 1 ? " Plan · " : " Pläne · ") + mitMarke.filter(istGemessen).length + " von " + mitMarke.length + " Messpunkten erfasst" : "Originalplan hochladen und darauf messen") + "</p></div>" + (bearbeitbar && plaene.length ? '<button class="btn klein" type="button" data-aktion="plan-neu">+ Plan</button>' : "") + "</div>";
+  let h = '<section class="abschnitt" id="abschnitt-grundriss"><div class="abschnitt-kopf"><div><h2>Grundrisse</h2><p>' + (plaene.length ? plaene.length + (plaene.length === 1 ? " Plan" : " Pläne") + " · Räume durch Antippen ausmessen" : "Plan hochladen, eine Wand messen, Räume antippen") + "</p></div>" + (bearbeitbar && plaene.length ? '<button class="btn klein" type="button" data-aktion="plan-neu">+ Plan</button>' : "") + "</div>";
   if (!plaene.length) {
     h += leerZustand(
       "Noch kein Grundriss",
-      "Laden Sie die Geschosspläne als Bild hoch – Foto, Screenshot oder Ausschnitt aus den Verkaufsunterlagen. Der Plan wird unverändert angezeigt; beim Besuch tippen Sie auf einen Raum, setzen einen Messpunkt und tragen die Lasermasse ein.",
+      "Laden Sie die Geschosspläne als Bild hoch – Foto, Screenshot oder Ausschnitt aus den Verkaufsunterlagen. Die App erkennt die Wände darin: Sie messen mit dem Laser eine einzige Wand, tippen dann in jeden Raum, und Fläche, Umfang und Wandlängen stehen da.",
       bearbeitbar ? '<button class="btn" type="button" data-aktion="plan-neu">Plan hochladen</button>' : ""
     );
     return h + "</section>";
   }
   plaene.forEach((plan) => {
-    const { html, marken } = planZeichnen(plan, raeume, bearbeitbar);
-    const gemessen = marken.filter(istGemessen);
+    const eigene = raeume.filter((r) => r.plan_id === plan.id);
+    const gemessen = eigene.filter(istGemessen);
     const summe = gemessen.reduce((s, r) => s + flaeche(r), 0);
-    h += '<div class="karte abschnitt" style="margin-bottom:12px"><div class="karte-pad" style="padding-bottom:8px"><div class="abschnitt-kopf" style="margin:0"><div><h3>' + esc(plan.titel || plan.datei_name || "Plan") + "</h3><p>" + (marken.length ? gemessen.length + " von " + marken.length + " gemessen" + (summe ? " · " + summe.toFixed(2) + " m²" : "") : "noch keine Messpunkte") + "</p></div></div></div>" + html;
-    if (marken.length) {
-      h += '<div class="karte-pad" style="border-top:1px solid var(--linie);padding-top:10px"><div class="plan-liste">' + marken.map(
-        (r, i) => '<button class="plan-chip' + (istGemessen(r) ? " gemessen" : "") + '" type="button" data-aktion="plan-marke" data-id="' + r.id + '"><b>' + (i + 1) + "</b> " + esc(r.name) + "<span>" + (istGemessen(r) ? zahl(r.breite).toFixed(2) + " × " + zahl(r.laenge).toFixed(2) + " m" : "messen") + "</span></button>"
+    h += '<div class="karte abschnitt" style="margin-bottom:12px"><div class="karte-pad" style="padding-bottom:8px"><div class="abschnitt-kopf" style="margin:0"><div><h3>' + esc(plan.titel || plan.datei_name || "Plan") + "</h3><p>" + (hatMassstab(plan) ? (eigene.length ? eigene.length + (eigene.length === 1 ? " Raum" : " Räume") : "noch kein Raum") + (summe ? " · " + summe.toFixed(2) + " m²" : "") + " · Massstab steht" : "Massstab fehlt – zuerst eine Wand messen") + "</p></div></div></div>" + planZeichnen(plan, eigene) + anleitung(plan) + werkzeuge(plan, bearbeitbar);
+    if (eigene.length) {
+      h += '<div class="karte-pad" style="border-top:1px solid var(--linie);padding-top:10px"><div class="plan-liste">' + eigene.map(
+        (r, i) => '<button class="plan-chip' + (istGemessen(r) ? " gemessen" : "") + '" type="button" data-aktion="plan-marke" data-id="' + r.id + '"><b>' + (i + 1) + "</b> " + esc(r.name) + "<span>" + (istGemessen(r) ? flaeche(r).toFixed(2) + " m²" + (zahl(r.umfang) ? " · " + zahl(r.umfang).toFixed(2) + " m" : "") : "nicht gerechnet") + "</span></button>"
       ).join("") + "</div></div>";
     }
     h += "</div>";
   });
-  h += '<div class="karte karte-pad" style="font-size:.8rem;color:var(--grau)">Die Pläne werden so angezeigt, wie sie hochgeladen wurden – nichts wird nachgezeichnet. Ein Messpunkt gehört zu einem Raum im Messblatt: Was Sie hier eintragen, steht auch dort, und umgekehrt.</div>';
+  h += '<div class="karte karte-pad" style="font-size:.8rem;color:var(--grau)">Der Plan wird gezeigt, wie er hochgeladen wurde – nichts wird nachgezeichnet. Erkannt werden nur die Wände: Alles Dunkle gilt als Wand, alles dazwischen als Raum. Das Bild bleibt dabei auf dem Gerät. Passt die Erkennung nicht, lässt sie sich unter «Erkennung» nachstellen.</div>';
   nachladenBald();
   return h + "</section>";
 }
-var setzenAuf;
+var modus2, letzteWand;
 var init_grundriss = __esm({
   "app/js/ansichten/grundriss.js"() {
     init_format();
     init_gemeinsam();
     init_vorschau();
     init_app();
-    setzenAuf = null;
+    modus2 = null;
+    letzteWand = null;
+  }
+});
+
+// app/js/planerkennung.js
+function maskeBauen(bilddaten, schwelle = 150) {
+  const { data, width, height } = bilddaten;
+  const maske = new Uint8Array(width * height);
+  for (let i = 0, p = 0; i < maske.length; i++, p += 4) {
+    const alpha = data[p + 3];
+    const hell = alpha < 32 ? 255 : (data[p] * 299 + data[p + 1] * 587 + data[p + 2] * 114) / 1e3;
+    maske[i] = hell < schwelle ? 1 : 0;
+  }
+  return maske;
+}
+function fensterX(quelle, ziel, b, h, r, erodieren) {
+  for (let y = 0; y < h; y++) {
+    const z = y * b;
+    let summe = 0;
+    for (let x = 0; x <= r && x < b; x++) summe += quelle[z + x];
+    for (let x = 0; x < b; x++) {
+      if (x > 0) {
+        const rechts = x + r, links = x - r - 1;
+        if (rechts < b) summe += quelle[z + rechts];
+        if (links >= 0) summe -= quelle[z + links];
+      }
+      const imBild = Math.min(x + r, b - 1) - Math.max(x - r, 0) + 1;
+      ziel[z + x] = erodieren ? summe >= imBild ? 1 : 0 : summe > 0 ? 1 : 0;
+    }
+  }
+}
+function fensterY(quelle, ziel, b, h, r, erodieren) {
+  for (let x = 0; x < b; x++) {
+    let summe = 0;
+    for (let y = 0; y <= r && y < h; y++) summe += quelle[y * b + x];
+    for (let y = 0; y < h; y++) {
+      if (y > 0) {
+        const unten = y + r, oben = y - r - 1;
+        if (unten < h) summe += quelle[unten * b + x];
+        if (oben >= 0) summe -= quelle[oben * b + x];
+      }
+      const imBild = Math.min(y + r, h - 1) - Math.max(y - r, 0) + 1;
+      ziel[y * b + x] = erodieren ? summe >= imBild ? 1 : 0 : summe > 0 ? 1 : 0;
+    }
+  }
+}
+function lueckenSchliessen(maske, b, h, radius) {
+  if (!radius) return maske;
+  const hilf = new Uint8Array(maske.length);
+  const waag = new Uint8Array(maske.length);
+  const senk = new Uint8Array(maske.length);
+  fensterX(maske, hilf, b, h, radius, false);
+  fensterX(hilf, waag, b, h, radius, true);
+  fensterY(maske, hilf, b, h, radius, false);
+  fensterY(hilf, senk, b, h, radius, true);
+  for (let i = 0; i < maske.length; i++) waag[i] = waag[i] || senk[i] ? 1 : 0;
+  return waag;
+}
+function raumFuellen(maske, b, h, startX, startY, grenzAnteil = 0.45) {
+  const start2 = startY * b + startX;
+  if (startX < 0 || startY < 0 || startX >= b || startY >= h) return { leer: true };
+  if (maske[start2]) return { aufWand: true };
+  const gefuellt = new Uint8Array(maske.length);
+  const grenze = Math.floor(maske.length * grenzAnteil);
+  const stapel = new Int32Array(maske.length);
+  let spitze = 0, anzahl = 0;
+  let minX = startX, maxX = startX, minY = startY, maxY = startY;
+  stapel[spitze++] = start2;
+  gefuellt[start2] = 1;
+  while (spitze > 0) {
+    const i = stapel[--spitze];
+    const x = i % b, y = (i - x) / b;
+    anzahl++;
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+    if (anzahl > grenze) return { leck: true, anzahl };
+    if (x > 0 && !maske[i - 1] && !gefuellt[i - 1]) {
+      gefuellt[i - 1] = 1;
+      stapel[spitze++] = i - 1;
+    }
+    if (x < b - 1 && !maske[i + 1] && !gefuellt[i + 1]) {
+      gefuellt[i + 1] = 1;
+      stapel[spitze++] = i + 1;
+    }
+    if (y > 0 && !maske[i - b] && !gefuellt[i - b]) {
+      gefuellt[i - b] = 1;
+      stapel[spitze++] = i - b;
+    }
+    if (y < h - 1 && !maske[i + b] && !gefuellt[i + b]) {
+      gefuellt[i + b] = 1;
+      stapel[spitze++] = i + b;
+    }
+  }
+  const amRand = minX === 0 || minY === 0 || maxX === b - 1 || maxY === h - 1;
+  return { gefuellt, anzahl, minX, maxX, minY, maxY, amRand };
+}
+function randVerfolgen(gefuellt, b, h, startX, startY) {
+  const drin = (x2, y2) => x2 >= 0 && y2 >= 0 && x2 < b && y2 < h && gefuellt[y2 * b + x2] === 1;
+  const nachbarn = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
+  const punkte = [[startX, startY]];
+  let x = startX, y = startY, richtung = 6;
+  const maximal = 4 * (b + h) * 4;
+  for (let schritt = 0; schritt < maximal; schritt++) {
+    let gefunden = false;
+    for (let k = 0; k < 8; k++) {
+      const r = (richtung + 5 + k) % 8;
+      const nx = x + nachbarn[r][0], ny = y + nachbarn[r][1];
+      if (drin(nx, ny)) {
+        richtung = r;
+        x = nx;
+        y = ny;
+        gefunden = true;
+        break;
+      }
+    }
+    if (!gefunden) break;
+    if (x === startX && y === startY) break;
+    punkte.push([x, y]);
+  }
+  return punkte;
+}
+function vereinfachen(punkte, toleranz) {
+  if (punkte.length < 3) return punkte;
+  const abstand = (p, a, c) => {
+    const dx = c[0] - a[0], dy = c[1] - a[1];
+    const l = Math.hypot(dx, dy);
+    if (!l) return Math.hypot(p[0] - a[0], p[1] - a[1]);
+    return Math.abs(dy * p[0] - dx * p[1] + c[0] * a[1] - c[1] * a[0]) / l;
+  };
+  const behalten = new Uint8Array(punkte.length);
+  behalten[0] = behalten[punkte.length - 1] = 1;
+  const stapel = [[0, punkte.length - 1]];
+  while (stapel.length) {
+    const [a, c] = stapel.pop();
+    let weitester = -1, weit = toleranz;
+    for (let i = a + 1; i < c; i++) {
+      const d = abstand(punkte[i], punkte[a], punkte[c]);
+      if (d > weit) {
+        weit = d;
+        weitester = i;
+      }
+    }
+    if (weitester > 0) {
+      behalten[weitester] = 1;
+      stapel.push([a, weitester], [weitester, c]);
+    }
+  }
+  return punkte.filter((_, i) => behalten[i]);
+}
+function umrissBestimmen(fuellung, b, h, toleranz = 3) {
+  const { gefuellt, minY, minX } = fuellung;
+  let startX = -1, startY = -1;
+  for (let y = minY; y <= fuellung.maxY && startX < 0; y++) {
+    for (let x = minX; x <= fuellung.maxX; x++) {
+      if (gefuellt[y * b + x]) {
+        startX = x;
+        startY = y;
+        break;
+      }
+    }
+  }
+  if (startX < 0) return [];
+  const roh = randVerfolgen(gefuellt, b, h, startX, startY);
+  const einfach = vereinfachen(roh, toleranz);
+  if (einfach.length > 2) {
+    const a = einfach[0], z = einfach[einfach.length - 1];
+    if (Math.hypot(a[0] - z[0], a[1] - z[1]) < toleranz * 2) einfach.pop();
+  }
+  return einfach;
+}
+function wandSuchen(maske, b, h, x, y, umkreis = 14) {
+  let beste = -1, bx = -1, by = -1;
+  for (let dy = -umkreis; dy <= umkreis; dy++) {
+    for (let dx = -umkreis; dx <= umkreis; dx++) {
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= b || ny >= h || !maske[ny * b + nx]) continue;
+      const d = dx * dx + dy * dy;
+      if (beste < 0 || d < beste) {
+        beste = d;
+        bx = nx;
+        by = ny;
+      }
+    }
+  }
+  if (beste < 0) return null;
+  const laufen = (sx, sy, sr) => {
+    const abweichungMax = 6;
+    let px = sx, py = sy;
+    const quer = sr[0] === 0 ? [1, 0] : [0, 1];
+    for (let schritte = 0; schritte < 5e3; schritte++) {
+      let weiter = false;
+      for (const v of [0, 1, -1, 2, -2]) {
+        const nx = px + sr[0] + quer[0] * v, ny = py + sr[1] + quer[1] * v;
+        if (nx < 0 || ny < 0 || nx >= b || ny >= h || !maske[ny * b + nx]) continue;
+        if (Math.abs((nx - sx) * quer[0] + (ny - sy) * quer[1]) > abweichungMax) continue;
+        px = nx;
+        py = ny;
+        weiter = true;
+        break;
+      }
+      if (!weiter) break;
+    }
+    return [px, py];
+  };
+  const waag = [laufen(bx, by, [-1, 0]), laufen(bx, by, [1, 0])];
+  const senk = [laufen(bx, by, [0, -1]), laufen(bx, by, [0, 1])];
+  const laengeW = Math.hypot(waag[1][0] - waag[0][0], waag[1][1] - waag[0][1]);
+  const laengeS = Math.hypot(senk[1][0] - senk[0][0], senk[1][1] - senk[0][1]);
+  const [a, c] = laengeW >= laengeS ? waag : senk;
+  const laenge = Math.max(laengeW, laengeS);
+  if (laenge < 8) return null;
+  return { x1: a[0], y1: a[1], x2: c[0], y2: c[1], laenge };
+}
+function umfangPixel(punkte) {
+  let u = 0;
+  for (let i = 0; i < punkte.length; i++) {
+    const a = punkte[i], c = punkte[(i + 1) % punkte.length];
+    u += Math.hypot(c[0] - a[0], c[1] - a[1]);
+  }
+  return u;
+}
+var init_planerkennung = __esm({
+  "app/js/planerkennung.js"() {
+  }
+});
+
+// app/js/planbild.js
+function vergessen(planId) {
+  if (planId) gemerkt.delete(planId);
+  else gemerkt.clear();
+}
+function maskeHolen(plan, bildEl) {
+  const schwelle = plan.schwelle ?? 150;
+  const luecken = plan.luecken ?? 18;
+  const alt = gemerkt.get(plan.id);
+  if (alt && alt.schwelle === schwelle && alt.luecken === luecken) return alt;
+  const bb = bildEl.naturalWidth, bh = bildEl.naturalHeight;
+  if (!bb || !bh) return null;
+  const faktor = Math.min(1, MAX_KANTE / Math.max(bb, bh));
+  const b = Math.max(1, Math.round(bb * faktor)), h = Math.max(1, Math.round(bh * faktor));
+  const leinwand = document.createElement("canvas");
+  leinwand.width = b;
+  leinwand.height = h;
+  const stift = leinwand.getContext("2d", { willReadFrequently: true });
+  stift.drawImage(bildEl, 0, 0, b, h);
+  let bilddaten;
+  try {
+    bilddaten = stift.getImageData(0, 0, b, h);
+  } catch (e) {
+    return { fehler: "Dieses Bild lässt sich nicht auslesen. Bitte den Plan neu hochladen." };
+  }
+  const roh = maskeBauen(bilddaten, schwelle);
+  const maske = lueckenSchliessen(roh, b, h, luecken);
+  const stand = { roh, maske, b, h, schwelle, luecken };
+  gemerkt.set(plan.id, stand);
+  return stand;
+}
+function raumMessen(stand, plan, rx, ry) {
+  let x = Math.round(rx * stand.b), y = Math.round(ry * stand.h);
+  if (stand.maske[y * stand.b + x]) {
+    const frei = freiesDaneben(stand, x, y, 16);
+    if (!frei) return { fehler: "Dort ist eine Wand. Bitte in die Raummitte tippen." };
+    x = frei[0];
+    y = frei[1];
+  }
+  const fuellung = raumFuellen(stand.maske, stand.b, stand.h, x, y);
+  if (fuellung.aufWand) return { fehler: "Dort ist eine Wand. Bitte in die Raummitte tippen." };
+  if (fuellung.leck || fuellung.amRand) {
+    return {
+      fehler: "Der Raum ist nicht geschlossen – meist eine Türöffnung, die breiter ist als der eingestellte Wert. Unter «Erkennung einstellen» den Regler «Türöffnungen» erhöhen."
+    };
+  }
+  const punkte = umrissBestimmen(fuellung, stand.b, stand.h, 3);
+  if (punkte.length < 3) return { fehler: "Dort liess sich kein Raum erkennen." };
+  const pxProM = Number(plan.px_pro_meter) || 0;
+  const umriss = punkte.map((p) => [p[0] / stand.b, p[1] / stand.h]);
+  return {
+    umriss,
+    punkte,
+    pixel: fuellung.anzahl,
+    flaeche: pxProM ? fuellung.anzahl / (pxProM * pxProM) : null,
+    umfang: pxProM ? umfangPixel(punkte) / pxProM : null
+  };
+}
+function freiesDaneben(stand, x, y, umkreis) {
+  for (let r = 1; r <= umkreis; r++) {
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+        const nx = x + dx, ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= stand.b || ny >= stand.h) continue;
+        if (!stand.maske[ny * stand.b + nx]) return [nx, ny];
+      }
+    }
+  }
+  return null;
+}
+function wandMessen(stand, rx, ry) {
+  const x = Math.round(rx * stand.b), y = Math.round(ry * stand.h);
+  const wand = wandSuchen(stand.roh, stand.b, stand.h, x, y);
+  if (!wand) return { fehler: "Dort ist keine Wand. Bitte genau auf eine Wandlinie tippen." };
+  return {
+    pixel: wand.laenge,
+    strecke: [[wand.x1 / stand.b, wand.y1 / stand.h], [wand.x2 / stand.b, wand.y2 / stand.h]]
+  };
+}
+function raumWaende(raum, plan) {
+  const pxProM = Number(plan.px_pro_meter) || 0;
+  const bildBreite = Number(plan.bild_breite) || 0;
+  const bildHoehe = Number(plan.bild_hoehe) || 0;
+  if (!bildBreite || !bildHoehe) return [];
+  const punkte = (raum.umriss || []).map((p) => [p[0] * bildBreite, p[1] * bildHoehe]);
+  const masse = raum.wand_masse || [];
+  return punkte.map((a, i) => {
+    const c = punkte[(i + 1) % punkte.length];
+    const gemessen = masse.find((m) => m.kante === i);
+    return {
+      kante: i,
+      plan: pxProM ? Math.hypot(c[0] - a[0], c[1] - a[1]) / pxProM : null,
+      laser: gemessen ? Number(gemessen.laenge) : null,
+      mitte: [(a[0] + c[0]) / 2 / bildBreite, (a[1] + c[1]) / 2 / bildHoehe]
+    };
+  });
+}
+var MAX_KANTE, gemerkt;
+var init_planbild = __esm({
+  "app/js/planbild.js"() {
+    init_planerkennung();
+    MAX_KANTE = 1400;
+    gemerkt = /* @__PURE__ */ new Map();
   }
 });
 
@@ -1704,50 +2064,69 @@ function checklisteAbschnitt(Z2) {
   h += '<div class="karte karte-pad" style="font-size:.8rem;color:var(--grau)"><b style="display:block;color:var(--text-2)">Foto-Regel</b>' + esc(FOTO_REGEL) + '<div style="margin-top:8px">' + esc(CHECKLISTE_HINWEIS) + "</div></div>";
   return h + "</section>";
 }
-function flaeche2(r) {
-  const l = zahl(r.laenge), b = zahl(r.breite);
-  return l && b ? (l * b).toFixed(2).replace(".", ".") + " m²" : "–";
-}
 function mass(wert, einheit) {
   return wert === null || wert === void 0 || wert === "" ? "–" : zahl(wert).toFixed(2) + " " + einheit;
+}
+function umrissStand(r) {
+  const ecken = (r.umriss || []).length;
+  if (!ecken) return '<span style="color:var(--grau)">von Hand</span>';
+  const gemessen = (r.wand_masse || []).length;
+  return ecken + " Wände" + (gemessen ? ' <span class="badge gruen">' + gemessen + " mit Laser</span>" : "");
 }
 function raumAbschnitt(Z2) {
   const liste = Z2.raeume || [];
   const bearbeitbar = kannBearbeiten();
-  const gesamt = liste.reduce((s, r) => s + zahl(r.laenge) * zahl(r.breite), 0);
-  let h = '<section class="abschnitt" id="abschnitt-raeume"><div class="abschnitt-kopf"><div><h2>Raum-Messblatt</h2><p>' + (liste.length ? liste.length + (liste.length === 1 ? " Raum" : " Räume") + (gesamt ? " · " + gesamt.toFixed(1) + " m² erfasst" : "") : "Länge, Breite, Höhe je Raum") + "</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="raum-neu">+ Raum</button>' : "") + "</div>";
+  const gesamt = liste.reduce((s, r) => s + zahl(r.flaeche), 0);
+  let h = '<section class="abschnitt" id="abschnitt-raeume"><div class="abschnitt-kopf"><div><h2>Raum-Messblatt</h2><p>' + (liste.length ? liste.length + (liste.length === 1 ? " Raum" : " Räume") + (gesamt ? " · " + gesamt.toFixed(1) + " m² erfasst" : "") : "Wände rundum, Höhe, Boden je Raum") + "</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="raum-neu">+ Raum</button>' : "") + "</div>";
   if (!liste.length) {
     h += leerZustand(
       "Noch keine Räume vermessen",
-      "Je Raum eine Zeile: Länge, Breite, Höhe, Wandstärke, Fenster, Türen, Boden und Bemerkungen.",
+      "Je Raum die Wände rundum – Länge und Winkel zur nächsten Wand. Daraus rechnet die App Fläche und Umfang, auch bei L-Räumen und Schrägen. Dazu Höhe, Wandstärke, Fenster, Türen, Boden und Bemerkungen.",
       bearbeitbar ? '<button class="btn" type="button" data-aktion="raum-neu">Ersten Raum erfassen</button>' : ""
     );
     return h + "</section>";
   }
-  h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Raum</th><th class="num">Länge</th><th class="num">Breite</th><th class="num">Fläche</th><th class="num">Höhe</th><th class="num">Wand</th><th>Fenster</th><th>Türen</th><th>Boden</th><th></th></tr></thead><tbody>';
+  h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Raum</th><th class="num">Fläche</th><th class="num">Umfang</th><th>Umriss</th><th class="num">Höhe</th><th class="num">Wand</th><th>Fenster</th><th>Türen</th><th>Boden</th><th></th></tr></thead><tbody>';
   liste.forEach((r) => {
-    h += "<tr><td><b>" + esc(r.name || "Ohne Namen") + "</b>" + (r.geschoss ? '<div style="font-size:.76rem;color:var(--grau)">' + esc(r.geschoss) + "</div>" : "") + (r.bemerkung ? '<div style="font-size:.76rem;color:var(--grau);white-space:normal;max-width:220px">' + esc(r.bemerkung) + "</div>" : "") + '</td><td class="num">' + mass(r.laenge, "m") + '</td><td class="num">' + mass(r.breite, "m") + '</td><td class="num"><b>' + flaeche2(r) + '</b></td><td class="num">' + mass(r.hoehe, "m") + '</td><td class="num">' + (r.wandstaerke == null || r.wandstaerke === "" ? "–" : zahl(r.wandstaerke) + " cm") + "</td><td>" + esc(r.fenster || "–") + "</td><td>" + esc(r.tueren || "–") + "</td><td>" + esc(r.boden || "–") + "</td><td>" + (bearbeitbar ? '<div class="zeile-aktion"><button class="btn still klein" type="button" data-aktion="raum-bearbeiten" data-id="' + r.id + '">Bearbeiten</button><button class="btn still klein" type="button" data-aktion="raum-loeschen" data-id="' + r.id + '">Löschen</button></div>' : "") + "</td></tr>";
+    h += "<tr><td><b>" + esc(r.name || "Ohne Namen") + "</b>" + (r.geschoss ? '<div style="font-size:.76rem;color:var(--grau)">' + esc(r.geschoss) + "</div>" : "") + (r.bemerkung ? '<div style="font-size:.76rem;color:var(--grau);white-space:normal;max-width:220px">' + esc(r.bemerkung) + "</div>" : "") + '</td><td class="num"><b>' + (zahl(r.flaeche) ? zahl(r.flaeche).toFixed(2) + " m²" : "–") + '</b></td><td class="num">' + mass(r.umfang, "m") + "</td><td>" + umrissStand(r) + '</td><td class="num">' + mass(r.hoehe, "m") + '</td><td class="num">' + (r.wandstaerke == null || r.wandstaerke === "" ? "–" : zahl(r.wandstaerke) + " cm") + "</td><td>" + esc(r.fenster || "–") + "</td><td>" + esc(r.tueren || "–") + "</td><td>" + esc(r.boden || "–") + "</td><td>" + (bearbeitbar ? '<div class="zeile-aktion"><button class="btn still klein" type="button" data-aktion="raum-bearbeiten" data-id="' + r.id + '">Bearbeiten</button><button class="btn still klein" type="button" data-aktion="raum-loeschen" data-id="' + r.id + '">Löschen</button></div>' : "") + "</td></tr>";
   });
-  h += '</tbody><tfoot><tr><td colspan="3">Total Bodenfläche</td><td class="num">' + (gesamt ? gesamt.toFixed(2) + " m²" : "–") + '</td><td colspan="6"></td></tr></tfoot>';
+  h += '</tbody><tfoot><tr><td>Total Bodenfläche</td><td class="num">' + (gesamt ? gesamt.toFixed(2) + " m²" : "–") + '</td><td colspan="8"></td></tr></tfoot>';
   return h + "</table></div></div></section>";
+}
+function wandZeile(w) {
+  const plan = w.plan === null ? null : w.plan;
+  const laser = w.laser;
+  const abw = plan && laser ? laser - plan : null;
+  return '<div class="wand-zeile"><span class="wand-nr">' + (w.kante + 1) + '</span><span class="wand-plan">' + (plan ? plan.toFixed(2) + " m" : "–") + '</span><input inputmode="decimal" aria-label="Lasermass Wand ' + (w.kante + 1) + '" data-wand="' + w.kante + '" value="' + (laser ? esc(laser) : "") + '" placeholder="Laser"><span class="wand-abw' + (abw === null ? "" : Math.abs(abw) <= 0.03 ? " gut" : " schlecht") + '">' + (abw === null ? "" : (abw >= 0 ? "+" : "−") + Math.abs(abw).toFixed(2)) + "</span></div>";
+}
+function planBlock(Z2) {
+  if (!entwurf.umriss || entwurf.umriss.length < 3) {
+    return '<label class="feld"><span>Fläche (m²)</span><input inputmode="decimal" data-feld="flaeche" value="' + esc(entwurf.flaeche ?? "") + '" placeholder="z.B. 15.40"></label><div class="hinweis info"><div>Dieser Raum stammt nicht aus einem Plan. Mit einem hochgeladenen Grundriss misst die App Fläche und Wände selbst – Sie tippen nur in den Raum.</div></div>';
+  }
+  const plan = (Z2.plaene || []).find((p) => p.id === entwurf.plan_id) || {};
+  const waende = raumWaende(entwurf, plan);
+  return '<div class="geo-box"><div class="geo-werte"><div><span>Fläche</span><b>' + (zahl(entwurf.flaeche) ? zahl(entwurf.flaeche).toFixed(2) + " m²" : "–") + "</b></div><div><span>Umfang</span><b>" + (zahl(entwurf.umfang) ? zahl(entwurf.umfang).toFixed(2) + " m" : "–") + "</b></div><div><span>Wände</span><b>" + entwurf.umriss.length + '</b></div></div><p class="wand-hinweis">Aus dem Plan gerechnet. Wer eine Wand nachmisst, trägt sie rechts ein – die Abweichung zeigt, wie gut der Plan stimmt.</p></div>' + (waende.length ? '<div class="wand-kopf"><span></span><span>Plan</span><span>Laser (m)</span><span>±</span></div><div class="wand-liste" id="raum-waende">' + waende.map(wandZeile).join("") + "</div>" : "");
 }
 function raumFormular(Z2, r, vorgabe) {
   entwurf = r ? JSON.parse(JSON.stringify(r)) : Object.assign({
     id: null,
     name: "",
     geschoss: "",
-    laenge: "",
-    breite: "",
     hoehe: "",
     wandstaerke: "",
     fenster: "",
     tueren: "",
     boden: "",
-    bemerkung: ""
+    bemerkung: "",
+    umriss: [],
+    wand_masse: [],
+    flaeche: "",
+    umfang: ""
   }, vorgabe || {});
+  if (!Array.isArray(entwurf.wand_masse)) entwurf.wand_masse = [];
   modalOeffnen({
     titel: entwurf.id ? "Raum bearbeiten" : "Neuer Raum",
-    koerper: '<div class="feld-paar"><label class="feld"><span>Raum</span><input data-feld="name" value="' + esc(entwurf.name) + '" placeholder="z.B. Wohnzimmer"></label><label class="feld"><span>Geschoss</span><input list="geschoss-liste" data-feld="geschoss" value="' + esc(entwurf.geschoss) + '" placeholder="EG"><datalist id="geschoss-liste"><option value="Keller"><option value="EG"><option value="OG"><option value="Dachstock"><option value="Aussen"></datalist></label></div><div class="feld-paar"><label class="feld"><span>Länge (m)</span><input inputmode="decimal" data-feld="laenge" value="' + esc(entwurf.laenge ?? "") + '" placeholder="4.20"></label><label class="feld"><span>Breite (m)</span><input inputmode="decimal" data-feld="breite" value="' + esc(entwurf.breite ?? "") + '" placeholder="3.60"></label></div><div class="feld-paar"><label class="feld"><span>Höhe (m)</span><input inputmode="decimal" data-feld="hoehe" value="' + esc(entwurf.hoehe ?? "") + '" placeholder="2.40"></label><label class="feld"><span>Wandstärke (cm)</span><input inputmode="decimal" data-feld="wandstaerke" value="' + esc(entwurf.wandstaerke ?? "") + '" placeholder="24"></label></div><div class="feld-paar"><label class="feld"><span>Fenster</span><input data-feld="fenster" value="' + esc(entwurf.fenster) + '" placeholder="2 × 120/140, Brüstung 85"></label><label class="feld"><span>Türen</span><input data-feld="tueren" value="' + esc(entwurf.tueren) + '" placeholder="1 × 80/200"></label></div><label class="feld"><span>Boden</span><input data-feld="boden" value="' + esc(entwurf.boden) + '" placeholder="Parkett auf Blindboden"></label><label class="feld"><span>Bemerkungen</span><textarea data-feld="bemerkung" placeholder="Balkenrichtung, Auffälligkeiten …">' + esc(entwurf.bemerkung || "") + "</textarea></label>" + (entwurf.plan_id ? '<div class="hinweis info"><div>Dieser Raum hängt an einem Messpunkt im Grundriss. Sobald <b>Länge</b> und <b>Breite</b> stehen, zeigt der Punkt im Plan die Fläche.</div></div>' : ""),
+    koerper: '<div class="feld-paar"><label class="feld"><span>Raum</span><input data-feld="name" value="' + esc(entwurf.name) + '" placeholder="z.B. Wohnzimmer"></label><label class="feld"><span>Geschoss</span><input list="geschoss-liste" data-feld="geschoss" value="' + esc(entwurf.geschoss) + '" placeholder="EG"><datalist id="geschoss-liste"><option value="Keller"><option value="EG"><option value="OG"><option value="Dachstock"><option value="Aussen"></datalist></label></div>' + planBlock(Z2) + '<div class="feld-paar" style="margin-top:14px"><label class="feld"><span>Raumhöhe (m)</span><input inputmode="decimal" data-feld="hoehe" value="' + esc(entwurf.hoehe ?? "") + '" placeholder="2.40"></label><label class="feld"><span>Wandstärke (cm)</span><input inputmode="decimal" data-feld="wandstaerke" value="' + esc(entwurf.wandstaerke ?? "") + '" placeholder="24"></label></div><div class="feld-paar"><label class="feld"><span>Fenster</span><input data-feld="fenster" value="' + esc(entwurf.fenster) + '" placeholder="2 × 120/140, Brüstung 85"></label><label class="feld"><span>Türen</span><input data-feld="tueren" value="' + esc(entwurf.tueren) + '" placeholder="1 × 80/200"></label></div><label class="feld"><span>Boden</span><input data-feld="boden" value="' + esc(entwurf.boden) + '" placeholder="Parkett auf Blindboden"></label><label class="feld"><span>Bemerkungen</span><textarea data-feld="bemerkung" placeholder="Balkenrichtung, Auffälligkeiten …">' + esc(entwurf.bemerkung || "") + "</textarea></label>",
     speichern: () => raumSpeichern(Z2)
   });
 }
@@ -1760,8 +2139,10 @@ async function raumSpeichern(Z2) {
   const daten = {
     name: r.name.trim(),
     geschoss: (r.geschoss || "").trim(),
-    laenge: r.laenge === "" ? "" : zahl(r.laenge),
-    breite: r.breite === "" ? "" : zahl(r.breite),
+    umriss: r.umriss || [],
+    wand_masse: (r.wand_masse || []).filter((m) => zahl(m.laenge) > 0),
+    flaeche: r.flaeche === "" || r.flaeche === null ? "" : zahl(r.flaeche),
+    umfang: r.umfang === "" || r.umfang === null ? "" : zahl(r.umfang),
     hoehe: r.hoehe === "" ? "" : zahl(r.hoehe),
     wandstaerke: r.wandstaerke === "" ? "" : zahl(r.wandstaerke),
     fenster: (r.fenster || "").trim(),
@@ -1877,17 +2258,164 @@ function planUmbenennen(Z2, plan) {
     }
   });
 }
-function markeAusTipp(e, flaeche3) {
-  const r = flaeche3.getBoundingClientRect();
+function tippLage(e, bild) {
+  const r = bild.getBoundingClientRect();
   if (!r.width || !r.height) return null;
   const punkt = e.touches && e.touches[0] ? e.touches[0] : e;
   const x = (punkt.clientX - r.left) / r.width;
   const y = (punkt.clientY - r.top) / r.height;
   if (x < 0 || x > 1 || y < 0 || y > 1) return null;
-  return { marke_x: Math.round(x * 1e4) / 1e4, marke_y: Math.round(y * 1e4) / 1e4 };
+  return { x: Math.round(x * 1e5) / 1e5, y: Math.round(y * 1e5) / 1e5 };
 }
-function eingabe(e) {
+function imUmriss(punkte, x, y) {
+  let drin = false;
+  for (let i = 0, j = punkte.length - 1; i < punkte.length; j = i++) {
+    const [xi, yi] = punkte[i], [xj, yj] = punkte[j];
+    if (yi > y !== yj > y && x < (xj - xi) * (y - yi) / (yj - yi) + xi) drin = !drin;
+  }
+  return drin;
+}
+function massstabFormular(Z2, plan, messung) {
+  entwurf = null;
+  const alt = Number(plan.px_pro_meter) || 0;
+  modalOeffnen({
+    titel: "Massstab setzen",
+    koerper: '<div class="hinweis info"><div>Die angetippte Wand ist im Plan <b>' + Math.round(messung.pixel) + ' Bildpunkte</b> lang (im Plan blau markiert). Wie lang ist sie in Wirklichkeit?</div></div><label class="feld"><span>Gemessene Länge (m)</span><input id="ms-laenge" inputmode="decimal" placeholder="z.B. 9.85"' + (alt ? ' value="' + (messung.pixel / alt).toFixed(2) + '"' : "") + "></label>" + (alt ? '<div class="hinweis warn"><div>Der Massstab ist schon gesetzt. Wird er geändert, werden alle bereits gemessenen Räume dieses Plans mitgerechnet.</div></div>' : ""),
+    speichern: async () => {
+      const meter = zahl(document.getElementById("ms-laenge").value);
+      if (!(meter > 0)) {
+        meldung("Bitte die gemessene Länge eingeben.", true);
+        return false;
+      }
+      const neu = messung.pixel / meter;
+      try {
+        await planAktualisieren(plan.id, {
+          px_pro_meter: neu,
+          bild_breite: messung.bildBreite,
+          bild_hoehe: messung.bildHoehe
+        });
+        if (alt && Math.abs(alt - neu) > 1e-4) {
+          const faktor = alt / neu;
+          for (const r of (Z2.raeume || []).filter((x) => x.plan_id === plan.id && zahl(x.flaeche))) {
+            await raumAktualisieren(r.id, Object.assign({}, r, {
+              flaeche: zahl(r.flaeche) * faktor * faktor,
+              umfang: zahl(r.umfang) * faktor
+            }), r.geaendert_am);
+          }
+        }
+        meldung("Massstab gesetzt: 1 m = " + neu.toFixed(1) + " Bildpunkte.");
+        await neuLaden(["plaene", "raeume"]);
+        return true;
+      } catch (err) {
+        meldung(err.message, true);
+        return false;
+      }
+    }
+  });
+}
+function erkennungFormular(Z2, plan) {
+  entwurf = null;
+  modalOeffnen({
+    titel: "Erkennung einstellen",
+    koerper: '<div class="hinweis info"><div>Die App hält alles Dunkle im Plan für eine Wand. Stimmt das nicht, lässt es sich hier nachstellen.</div></div><label class="feld"><span>Wandschwelle: wie dunkel eine Wand sein muss</span><input type="range" id="ek-schwelle" min="60" max="230" step="5" value="' + (plan.schwelle ?? 150) + '"><span style="font-size:.74rem;color:var(--grau)">Höher = auch helle Linien gelten als Wand.</span></label><label class="feld"><span>Türöffnungen überbrücken (Bildpunkte)</span><input type="range" id="ek-luecken" min="0" max="40" step="2" value="' + (plan.luecken ?? 18) + '"><span style="font-size:.74rem;color:var(--grau)">Höher, wenn die Füllung durch eine Türöffnung ausläuft; tiefer, wenn schmale Räume zuwachsen.</span></label>',
+    speichern: async () => {
+      try {
+        await planAktualisieren(plan.id, {
+          schwelle: Number(document.getElementById("ek-schwelle").value),
+          luecken: Number(document.getElementById("ek-luecken").value)
+        });
+        vergessen(plan.id);
+        meldung("Erkennung angepasst.");
+        await neuLaden(["plaene"]);
+        return true;
+      } catch (err) {
+        meldung(err.message, true);
+        return false;
+      }
+    }
+  });
+}
+function planTipp(Z2, knopf, ereignis) {
+  const plan = (Z2.plaene || []).find((p) => p.id === knopf.dataset.plan);
+  const bild = knopf.querySelector("img");
+  if (!plan || !bild) return;
+  const lage = tippLage(ereignis, bild);
+  if (!lage) return;
+  const art = planModus() && planModus().planId === plan.id ? planModus().art : null;
+  if (!art) {
+    const treffer = (Z2.raeume || []).find(
+      (r) => r.plan_id === plan.id && (r.umriss || []).length > 2 && imUmriss(r.umriss, lage.x, lage.y)
+    );
+    if (treffer) return raumFormular(Z2, treffer);
+    return;
+  }
+  const stand = maskeHolen(plan, bild);
+  if (!stand) {
+    meldung("Der Plan ist noch nicht geladen. Einen Moment warten.", true);
+    return;
+  }
+  if (stand.fehler) {
+    meldung(stand.fehler, true);
+    return;
+  }
+  if (art === "massstab") {
+    const messung = wandMessen(stand, lage.x, lage.y);
+    if (messung.fehler) {
+      meldung(messung.fehler, true);
+      return;
+    }
+    wandZeigen(messung.strecke);
+    planModusSetzen(null);
+    neuZeichnen();
+    return massstabFormular(
+      Z2,
+      plan,
+      Object.assign({ bildBreite: stand.b, bildHoehe: stand.h }, messung)
+    );
+  }
+  const raum = raumMessen(stand, plan, lage.x, lage.y);
+  if (raum.fehler) {
+    meldung(raum.fehler, true);
+    return;
+  }
+  planModusSetzen(null);
+  neuZeichnen();
+  return raumFormular(Z2, null, {
+    plan_id: plan.id,
+    marke_x: lage.x,
+    marke_y: lage.y,
+    umriss: raum.umriss,
+    flaeche: raum.flaeche === null ? "" : Math.round(raum.flaeche * 100) / 100,
+    umfang: raum.umfang === null ? "" : Math.round(raum.umfang * 100) / 100
+  });
+}
+function abweichungZeigen(Z2, feld, kante) {
+  const zelle = feld.parentElement && feld.parentElement.querySelector(".wand-abw");
+  const plan = (Z2.plaene || []).find((p) => p.id === entwurf.plan_id);
+  if (!zelle || !plan) return;
+  const wand = raumWaende(entwurf, plan)[kante];
+  const laser = zahl(feld.value);
+  if (!wand || !wand.plan || !laser) {
+    zelle.textContent = "";
+    zelle.className = "wand-abw";
+    return;
+  }
+  const abw = laser - wand.plan;
+  zelle.textContent = (abw >= 0 ? "+" : "−") + Math.abs(abw).toFixed(2);
+  zelle.className = "wand-abw " + (Math.abs(abw) <= 0.03 ? "gut" : "schlecht");
+}
+function eingabe(e, Z2) {
   if (!document.querySelector(".modal") || !entwurf) return;
+  const wand = e.target.closest("[data-wand]");
+  if (wand) {
+    const kante = +wand.dataset.wand;
+    const masse = entwurf.wand_masse || (entwurf.wand_masse = []);
+    const alt = masse.findIndex((m) => m.kante === kante);
+    if (alt >= 0) masse.splice(alt, 1);
+    if (wand.value.trim()) masse.push({ kante, laenge: zahl(wand.value) });
+    abweichungZeigen(Z2, wand, kante);
+    return;
+  }
   const feld = e.target.closest("[data-feld]");
   if (!feld) return;
   entwurf[feld.dataset.feld] = feld.value;
@@ -1949,8 +2477,9 @@ function aktion2(a, knopf, Z2, ereignis) {
     const plan = (Z2.plaene || []).find((p) => p.id === knopf.dataset.id);
     if (!plan) return;
     const marken = (Z2.raeume || []).filter((r) => r.plan_id === plan.id).length;
-    if (!bestaetigen('Plan "' + (plan.titel || "") + '" entfernen?' + (marken ? " Die " + marken + " Messpunkte verlieren ihre Lage, die Räume bleiben im Messblatt." : ""))) return;
-    if (setzModus() === plan.id) setzModusSetzen(null);
+    if (!bestaetigen('Plan "' + (plan.titel || "") + '" entfernen?' + (marken ? " Die " + marken + " gemessenen Räume verlieren ihre Lage, bleiben aber im Messblatt." : ""))) return;
+    if (planModus() && planModus().planId === plan.id) planModusSetzen(null);
+    vergessen(plan.id);
     planLoeschen(plan.id).then(() => loeschen(plan.datei_pfad).catch(() => {
     })).then(() => {
       meldung("Plan entfernt.");
@@ -1958,23 +2487,29 @@ function aktion2(a, knopf, Z2, ereignis) {
     }).catch((err) => meldung(err.message, true));
     return;
   }
-  if (a === "plan-setzen") {
-    setzModusSetzen(knopf.dataset.plan);
+  if (a === "plan-massstab") {
+    planModusSetzen("massstab", knopf.dataset.plan);
     return neuZeichnen();
   }
-  if (a === "plan-setzen-aus") {
-    setzModusSetzen(null);
+  if (a === "plan-raum-messen") {
+    const plan = (Z2.plaene || []).find((p) => p.id === knopf.dataset.plan);
+    if (plan && !hatMassstab(plan)) {
+      meldung("Zuerst den Massstab setzen: eine gemessene Wand antippen.", true);
+      planModusSetzen("massstab", knopf.dataset.plan);
+    } else {
+      planModusSetzen("raum", knopf.dataset.plan);
+    }
     return neuZeichnen();
   }
-  if (a === "plan-tippen") {
-    const planId = knopf.dataset.plan;
-    if (setzModus() !== planId) return;
-    const lage = markeAusTipp(ereignis, knopf);
-    if (!lage) return;
-    setzModusSetzen(null);
-    neuZeichnen();
-    return raumFormular(Z2, null, Object.assign({ plan_id: planId }, lage));
+  if (a === "plan-modus-aus") {
+    planModusSetzen(null);
+    return neuZeichnen();
   }
+  if (a === "plan-einstellen") {
+    const plan = (Z2.plaene || []).find((p) => p.id === knopf.dataset.id);
+    return plan ? erkennungFormular(Z2, plan) : void 0;
+  }
+  if (a === "plan-tippen") return planTipp(Z2, knopf, ereignis);
   if (a === "plan-marke") return raumFormular(Z2, (Z2.raeume || []).find((r) => r.id === knopf.dataset.id));
   if (a === "raum-neu") return raumFormular(Z2, null);
   if (a === "raum-bearbeiten") return raumFormular(Z2, (Z2.raeume || []).find((r) => r.id === knopf.dataset.id));
@@ -1998,6 +2533,7 @@ var init_aufnahme = __esm({
     init_app();
     init_checkliste_vorlage();
     init_grundriss();
+    init_planbild();
     init_grundriss();
     entwurf = null;
     offeneGruppen = /* @__PURE__ */ new Set();
