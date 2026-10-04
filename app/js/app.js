@@ -2,7 +2,7 @@ import { supabase, aufAuthAchten, abmelden, gespeicherteSitzungVorhanden } from 
 import {
   DatenFehler, projekteLaden, mitgliederLaden, budgetLaden, offertenLaden,
   belegeLaden, dokumenteLaden, kostenvergleichLaden, projektAbonnieren,
-  einladungenLaden, einladungInfo, einladungEinloesen, nebenkostenLaden, foerdergelderLaden, anschaffungenLaden, arbeitenLaden, checklisteLaden, raeumeLaden, plaeneLaden,
+  einladungenLaden, einladungInfo, einladungEinloesen, nebenkostenLaden, foerdergelderLaden, anschaffungenLaden, arbeitenLaden, checklisteLaden, raeumeLaden, plaeneLaden, wandmasseLaden,
 } from "./daten.js";
 import { esc, meldung } from "./format.js";
 import * as Anmeldung from "./ansichten/anmeldung.js";
@@ -19,7 +19,7 @@ export const Z = {
   session: null, benutzer: null,
   projekte: [], projektId: null, projekt: null, mitglieder: [], meineRolle: null,
   budget: [], offerten: [], belege: [], dokumente: [], kostenvergleich: [], nebenkosten: [],
-  foerdergelder: [], anschaffungen: [], arbeiten: [], checkliste: [], raeume: [], plaene: [],
+  foerdergelder: [], anschaffungen: [], arbeiten: [], checkliste: [], raeume: [], plaene: [], wandmasse: [],
   aktuelleAnsicht: "uebersicht",
   online: navigator.onLine, ladeVorgaenge: 0,
   abmeldeAbo: null,
@@ -84,6 +84,7 @@ async function neuLaden(teile) {
   holen("checkliste", checklisteLaden, "checkliste");
   holen("raeume", raeumeLaden, "raeume");
   holen("plaene", plaeneLaden, "plaene");
+  holen("wandmasse", wandmasseLaden, "wandmasse");
   holen("budget", budgetLaden, "budget");
   holen("offerten", offertenLaden, "offerten");
   holen("belege", belegeLaden, "belege");

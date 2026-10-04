@@ -13,9 +13,10 @@ import {
   checklisteAnlegen, checklistePunktAktualisieren, checklistePunktLoeschen,
   raumAnlegen, raumAktualisieren, raumLoeschen,
   planAnlegen, planAktualisieren, planLoeschen,
+  wandmassAnlegen, wandmassAktualisieren, wandmassLoeschen,
 } from "../daten.js";
 import { hochladen, loeschen as dateiLoeschen, dateiPruefen } from "../dateien.js";
-import { modalOeffnen, neuLaden, neuZeichnen, kannBearbeiten } from "../app.js";
+import { modalOeffnen, modalSchliessen, neuLaden, neuZeichnen, kannBearbeiten } from "../app.js";
 import { vorlagePunkte, FOTO_REGEL, CHECKLISTE_HINWEIS } from "../checkliste-vorlage.js";
 import { planModus, planModusSetzen, wandZeigen, hatMassstab } from "./grundriss.js";
 import { maskeHolen, raumMessen, wandMessen, raumWaende, vergessen } from "../planbild.js";
@@ -446,6 +447,84 @@ function erkennungFormular(Z, plan) {
   });
 }
 
+/**
+ * Mass für eine angetippte Wand. Steht beim Plan noch kein Massstab, wird er
+ * aus dieser Messung gesetzt: Die Wand ist im Bild so und so viele Punkte lang,
+ * in Wirklichkeit so und so viele Meter – mehr braucht es nicht.
+ */
+function wandmassFormular(Z, plan, vorgabe, bestehend) {
+  entwurf = null;
+  const raumNamen = [...new Set((Z.raeume || []).map((r) => r.name).filter(Boolean))];
+  const pxProM = Number(plan.px_pro_meter) || 0;
+  const ausPlan = pxProM && vorgabe && vorgabe.pixel ? vorgabe.pixel / pxProM : null;
+  modalOeffnen({
+    titel: bestehend ? "Wandmass bearbeiten" : "Wand vermassen",
+    koerper:
+      (ausPlan
+        ? '<div class="hinweis info"><div>Nach dem Plan ist diese Wand <b>' + ausPlan.toFixed(2) +
+          " m</b> lang. Tragen Sie ein, was der Laser zeigt.</div></div>"
+        : !pxProM
+          ? '<div class="hinweis info"><div>Dies ist das erste Mass auf diesem Plan – daraus ergibt ' +
+            "sich zugleich der Massstab für alles Weitere.</div></div>"
+          : "") +
+      '<div class="feld-paar">' +
+      '<label class="feld"><span>Länge (m)</span><input id="wm-laenge" inputmode="decimal" value="' +
+      esc(bestehend && bestehend.laenge !== null ? bestehend.laenge : "") + '" placeholder="4.21"></label>' +
+      '<label class="feld"><span>Höhe (m), optional</span><input id="wm-hoehe" inputmode="decimal" value="' +
+      esc(bestehend && bestehend.hoehe !== null ? bestehend.hoehe : "") + '" placeholder="2.44"></label>' +
+      "</div>" +
+      '<div class="feld-paar">' +
+      '<label class="feld"><span>Bezeichnung</span><input id="wm-bez" list="wm-raeume" value="' +
+      esc(bestehend ? bestehend.bezeichnung : "") + '" placeholder="z.B. Küche Nordwand">' +
+      '<datalist id="wm-raeume">' + raumNamen.map((n) => '<option value="' + esc(n) + '">').join("") + "</datalist></label>" +
+      '<label class="feld"><span>Art</span><input id="wm-art" list="wm-arten" value="' +
+      esc(bestehend ? bestehend.art : "Wand") + '">' +
+      '<datalist id="wm-arten"><option value="Wand"><option value="Fenster"><option value="Tür">' +
+      '<option value="Nische"><option value="Durchgang"></datalist></label>' +
+      "</div>" +
+      '<label class="feld"><span>Bemerkung</span><input id="wm-bem" value="' +
+      esc(bestehend ? bestehend.bemerkung : "") + '" placeholder="z.B. Brüstung 85, Leitung in der Wand"></label>' +
+      (bestehend
+        ? '<div class="btn-reihe" style="margin-top:12px">' +
+          '<button class="btn gefahr klein" type="button" data-aktion="wandmass-loeschen" data-id="' +
+          bestehend.id + '">Mass löschen</button></div>'
+        : ""),
+    speichern: async () => {
+      const laenge = zahl(document.getElementById("wm-laenge").value);
+      if (!(laenge > 0)) { meldung("Bitte die gemessene Länge eingeben.", true); return false; }
+      const daten = {
+        plan_id: plan.id,
+        laenge,
+        hoehe: document.getElementById("wm-hoehe").value.trim() ? zahl(document.getElementById("wm-hoehe").value) : "",
+        bezeichnung: document.getElementById("wm-bez").value.trim(),
+        art: document.getElementById("wm-art").value.trim() || "Wand",
+        bemerkung: document.getElementById("wm-bem").value.trim(),
+      };
+      try {
+        if (bestehend) {
+          await wandmassAktualisieren(bestehend.id, Object.assign({}, bestehend, daten), bestehend.geaendert_am);
+        } else {
+          const [a, c] = vorgabe.strecke;
+          await wandmassAnlegen(Z.projektId, Object.assign(daten, {
+            x1: a[0], y1: a[1], x2: c[0], y2: c[1],
+          }));
+          // Erstes Mass auf diesem Plan: Massstab daraus setzen.
+          if (!pxProM && vorgabe.pixel) {
+            await planAktualisieren(plan.id, {
+              px_pro_meter: vorgabe.pixel / laenge,
+              bild_breite: vorgabe.bildBreite, bild_hoehe: vorgabe.bildHoehe,
+            });
+          }
+        }
+        wandZeigen(null);
+        meldung("Mass gespeichert.");
+        await neuLaden(["wandmasse", "plaene"]);
+        return true;
+      } catch (err) { meldung(err.message, true); return false; }
+    },
+  });
+}
+
 /** Ein Tipp auf den Plan – je nach Modus Massstab, Raum ausmessen oder öffnen. */
 function planTipp(Z, knopf, ereignis) {
   const plan = (Z.plaene || []).find((p) => p.id === knopf.dataset.plan);
@@ -466,6 +545,16 @@ function planTipp(Z, knopf, ereignis) {
   const stand = maskeHolen(plan, bild);
   if (!stand) { meldung("Der Plan ist noch nicht geladen. Einen Moment warten.", true); return; }
   if (stand.fehler) { meldung(stand.fehler, true); return; }
+
+  if (art === "wand") {
+    const messung = wandMessen(stand, lage.x, lage.y);
+    if (messung.fehler) { meldung(messung.fehler, true); return; }
+    wandZeigen(messung.strecke);
+    planModusSetzen(null);
+    neuZeichnen();
+    return wandmassFormular(Z, plan,
+      Object.assign({ bildBreite: stand.b, bildHoehe: stand.h }, messung), null);
+  }
 
   if (art === "massstab") {
     const messung = wandMessen(stand, lage.x, lage.y);
@@ -597,6 +686,29 @@ export function aktion(a, knopf, Z, ereignis) {
     return;
   }
   if (a === "plan-massstab") { planModusSetzen("massstab", knopf.dataset.plan); return neuZeichnen(); }
+  if (a === "plan-wand-messen") { planModusSetzen("wand", knopf.dataset.plan); return neuZeichnen(); }
+  if (a === "wandmass-bearbeiten") {
+    const m = (Z.wandmasse || []).find((x) => x.id === knopf.dataset.id);
+    if (!m) return;
+    const plan = (Z.plaene || []).find((p) => p.id === m.plan_id);
+    if (!plan) return;
+    const pxProM = Number(plan.px_pro_meter) || 0;
+    const bb = Number(plan.bild_breite) || 0, bh = Number(plan.bild_hoehe) || 0;
+    const pixel = bb && bh
+      ? Math.hypot((zahl(m.x2) - zahl(m.x1)) * bb, (zahl(m.y2) - zahl(m.y1)) * bh)
+      : 0;
+    wandZeigen([[zahl(m.x1), zahl(m.y1)], [zahl(m.x2), zahl(m.y2)]]);
+    neuZeichnen();
+    return wandmassFormular(Z, plan, { pixel, strecke: null }, m);
+  }
+  if (a === "wandmass-loeschen") {
+    const m = (Z.wandmasse || []).find((x) => x.id === knopf.dataset.id);
+    if (!m || !bestaetigen("Dieses Wandmass löschen?")) return;
+    wandmassLoeschen(m.id)
+      .then(() => { modalSchliessen(); wandZeigen(null); meldung("Mass gelöscht."); return neuLaden(["wandmasse"]); })
+      .catch((err) => meldung(err.message, true));
+    return;
+  }
   if (a === "plan-raum-messen") {
     const plan = (Z.plaene || []).find((p) => p.id === knopf.dataset.plan);
     if (plan && !hatMassstab(plan)) {

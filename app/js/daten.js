@@ -369,6 +369,58 @@ export function planLoeschen(id) {
   return schreiben(async () => pruefen(await supabase.from("plaene").delete().eq("id", id)));
 }
 
+/* ----------------------------------------------------------- Wandmasse */
+// Was an welcher Wand gemessen wurde – als Masslinie auf dem Plan.
+
+export function wandmasseLaden(projektId) {
+  return lesen(async () =>
+    pruefen(
+      await supabase
+        .from("wandmasse")
+        .select("*")
+        .eq("projekt_id", projektId)
+        .order("erstellt_am")
+    )
+  );
+}
+
+function wandmassFelder(daten) {
+  const zahlOderNull = (wert) => (wert === "" || wert === null || wert === undefined ? null : wert);
+  return {
+    plan_id: daten.plan_id,
+    raum_id: daten.raum_id || null,
+    bezeichnung: daten.bezeichnung || "",
+    laenge: zahlOderNull(daten.laenge),
+    hoehe: zahlOderNull(daten.hoehe),
+    art: daten.art || "Wand",
+    bemerkung: daten.bemerkung || "",
+    x1: daten.x1, y1: daten.y1, x2: daten.x2, y2: daten.y2,
+  };
+}
+
+export function wandmassAnlegen(projektId, daten) {
+  return schreiben(async () =>
+    pruefen(
+      await supabase
+        .from("wandmasse")
+        .insert(Object.assign({ projekt_id: projektId }, wandmassFelder(daten)))
+        .select()
+        .single()
+    )
+  );
+}
+
+export function wandmassAktualisieren(id, daten, geladenAm) {
+  return schreiben(async () => {
+    await konfliktPruefen("wandmasse", id, geladenAm);
+    return pruefen(await supabase.from("wandmasse").update(wandmassFelder(daten)).eq("id", id).select().single());
+  });
+}
+
+export function wandmassLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("wandmasse").delete().eq("id", id)));
+}
+
 export function raumAktualisieren(id, daten, geladenAm) {
   return schreiben(async () => {
     await konfliktPruefen("raeume", id, geladenAm);
@@ -781,6 +833,7 @@ export function projektAbonnieren(projektId, aufAenderung) {
     .on("postgres_changes", { event: "*", schema: "public", table: "checkliste", filter: "projekt_id=eq." + projektId }, () => aufAenderung("checkliste"))
     .on("postgres_changes", { event: "*", schema: "public", table: "raeume", filter: "projekt_id=eq." + projektId }, () => aufAenderung("raeume"))
     .on("postgres_changes", { event: "*", schema: "public", table: "plaene", filter: "projekt_id=eq." + projektId }, () => aufAenderung("plaene"))
+    .on("postgres_changes", { event: "*", schema: "public", table: "wandmasse", filter: "projekt_id=eq." + projektId }, () => aufAenderung("wandmasse"))
     .on("postgres_changes", { event: "*", schema: "public", table: "projekt_mitglieder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("mitglieder"))
     .subscribe();
   return () => supabase.removeChannel(kanal);

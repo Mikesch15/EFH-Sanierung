@@ -19,7 +19,7 @@ dieses auch nicht.
 | Anschaffungen ausserhalb des Budgets (Kredit) | fertig, siehe «Anschaffungen» |
 | Zeitplan der Arbeiten, Pendenzen und Mängel | fertig, siehe «Arbeiten» |
 | Besichtigungs-Checkliste und Raum-Messblatt | fertig, siehe «Aufnahme» |
-| Räume durch Antippen im Plan ausmessen | fertig, siehe «Grundriss» |
+| Wände im Plan antippen und vermassen | fertig, siehe «Grundriss» |
 | Echte Dokumentenanalyse (Gemini) | fertig in der App, siehe «KI-Auswertung»; im Prototyp weiterhin simuliert |
 
 ## Supabase-Projekt
@@ -51,6 +51,7 @@ projekte                 Objekt, Adresse, Kaufpreis, Gesamtbudget, Kreditrahmen
    ├─ arbeiten           Zeitplan der Gewerke sowie Pendenzen und Mängel (mit Foto)
 └─ checkliste            Besichtigung: Punkt, Mass/Feststellung, abgehakt
 └─ plaene                hochgeladene Grundrisse mit Massstab und Erkennungswerten
+   └─ wandmasse          gemessene Wände: Lage im Plan, Länge, Höhe, Art, Bezeichnung
 └─ raeume                Raum-Messblatt: Umriss aus dem Plan, Fläche, Umfang, Lasermasse
    └─ dokumente          Kaufvertrag, Pläne, Bewilligungen, Garantien
 ```
@@ -507,24 +508,35 @@ misst man es auch. Fläche und Umfang kommen aus dem Grundriss (siehe unten), da
 über alle Räume steht am Fuss der Tabelle. Räume ohne Plan lassen sich von Hand erfassen;
 dort gibt man die Fläche selbst ein.
 
-## Grundriss: die App erkennt die Wände im Plan
+## Grundriss: jedes Mass steht an seiner Wand
 
-Im Tab *Arbeiten* steht zwischen Checkliste und Messblatt der Abschnitt *Grundriss*.
+Beim Vermessen zählt eine Frage: **Welche Wand hat welches Mass?** Eine Liste «Wand 1 …
+Wand 6» beantwortet sie nicht, solange man am Plan nicht sieht, welche Wand gemeint ist.
+Darum steht das Mass dort, wo es hingehört – an der Wand im Plan, wie auf einem Bauplan.
+
+Im Tab *Arbeiten* → Abschnitt *Grundriss*:
 
 1. **Plan hochladen** – Foto, Screenshot oder Ausschnitt aus den Verkaufsunterlagen. Der
    Plan wird gezeigt, wie er ist; nichts wird nachgezeichnet.
-2. **Massstab setzen** – eine Wand antippen, die Sie mit dem Laser gemessen haben (am
-   besten eine lange Aussenwand), und das Mass eingeben. Die App markiert die erkannte
-   Wand blau, damit Sie sehen, was sie gemessen hat.
-3. **Räume antippen** – ein Tipp mitten in den Raum, und die App füllt ihn bis an seine
-   Wände aus. Fläche, Umfang und die einzelnen Wandlängen stehen sofort da – bei jeder
-   Form: rechteckig, L-förmig, mit Erker oder Schräge.
-4. **Nachmessen, wo es drauf ankommt** – im Raumformular steht je Wand der Planwert und
-   daneben ein Feld für das Lasermass. Die Abweichung erscheint sofort, grün bis 3 cm,
-   sonst rot. So sieht man, wo die Verkaufsunterlagen nicht stimmen.
+2. **+ Wand vermassen** – die Wand im Plan antippen, die Sie gerade gemessen haben. Die
+   App erkennt die Wandlinie im Bild, markiert sie, und Sie geben ein: Länge, bei Bedarf
+   Höhe, eine Bezeichnung («Küche Nordwand»), die Art (Wand, Fenster, Tür, Nische,
+   Durchgang) und eine Bemerkung. Danach ist diese Wand im Plan orange markiert und trägt
+   ihr Mass.
+3. **Weiter so durchs Haus.** Am Schluss ist der Plan vermasst: Jede gemessene Wand ist
+   beschriftet, darunter steht die Liste mit Bezeichnung, Länge und Höhe.
+4. Ein Tipp auf ein Schild (oder auf die Kachel darunter) öffnet das Mass wieder – ändern
+   oder löschen.
 
-Ein Tipp auf einen schon gemessenen Raum öffnet ihn wieder. Die erkannten Umrisse liegen
-als Überzug auf dem Plan, grün sobald gerechnet.
+Das **erste Mass setzt zugleich den Massstab**: Die App weiss, wie viele Bildpunkte die
+Wand lang ist, Sie sagen, wie viele Meter – ab da kennt sie den Plan. Bei jeder weiteren
+Wand steht deshalb schon im Dialog, wie lang sie laut Plan sein müsste; Sie sehen sofort,
+ob die Verkaufsunterlagen stimmen.
+
+**+ Raum ausmessen** gibt es zusätzlich: ein Tipp mitten in den Raum, und die App füllt
+ihn bis an seine Wände aus und rechnet Fläche und Umfang – für jede Form, auch L-Räume
+und Schrägen. Das ist für Bodenbeläge und Mengen; fürs Vermassen einzelner Wände ist der
+Weg oben der direktere.
 
 ### Wie die Erkennung arbeitet
 
@@ -617,10 +629,11 @@ Am besten auf zwei Geräten (oder einem normalen Fenster und einem privaten Fens
     steht noch da. Mit *+ Punkt* einen eigenen Punkt ergänzen, unter *Raum-Messblatt*
     einen Raum erfassen (Fläche wird gerechnet).
 12. **Grundriss**: Tab *Arbeiten* → *Plan hochladen* (Bild eines Geschosses) →
-    *Massstab setzen* und eine gemessene Wand antippen → *+ Raum ausmessen* und
-    mitten in einen Raum tippen. Fläche und Wandlängen stehen da, der Umriss liegt
-    grün auf dem Plan. Läuft die Füllung aus, meldet die App das; dann unter
-    *Erkennung* den Regler *Türöffnungen* erhöhen.
+    *+ Wand vermassen*, eine Wand antippen, Mass eingeben. Die Wand wird orange und
+    trägt ihre Zahl; die Liste darunter nennt Bezeichnung, Länge und Höhe. Mit
+    *+ Raum ausmessen* zusätzlich in einen Raum tippen: Fläche und Umfang. Läuft
+    die Füllung aus, meldet die App das; dann unter *Erkennung* den Regler
+    *Türöffnungen* erhöhen.
 13. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
    Werten passen. Der Kostenvergleich kommt aus der View `v_kostenvergleich`.
 14. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür
