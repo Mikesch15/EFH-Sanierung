@@ -297,10 +297,6 @@ function raumFelder(daten) {
   return {
     name: daten.name || "",
     geschoss: daten.geschoss || "",
-    // Umriss aus dem Planbild (Punkte relativ zum Bild) und die mit dem Laser
-    // gemessenen Wandlängen dazu.
-    umriss: Array.isArray(daten.umriss) ? daten.umriss : [],
-    wand_masse: Array.isArray(daten.wand_masse) ? daten.wand_masse : [],
     flaeche: zahlOderNull(daten.flaeche),
     umfang: zahlOderNull(daten.umfang),
     hoehe: zahlOderNull(daten.hoehe),
@@ -309,10 +305,6 @@ function raumFelder(daten) {
     tueren: daten.tueren || "",
     boden: daten.boden || "",
     bemerkung: daten.bemerkung || "",
-    // Messpunkt auf dem Plan: Lage relativ zum Bild (0 bis 1).
-    plan_id: daten.plan_id || null,
-    marke_x: zahlOderNull(daten.marke_x),
-    marke_y: zahlOderNull(daten.marke_y),
   };
 }
 
@@ -326,99 +318,6 @@ export function raumAnlegen(projektId, daten) {
         .single()
     )
   );
-}
-
-export function plaeneLaden(projektId) {
-  return lesen(async () =>
-    pruefen(
-      await supabase
-        .from("plaene")
-        .select("*")
-        .eq("projekt_id", projektId)
-        .order("sortierung")
-        .order("erstellt_am")
-    )
-  );
-}
-
-export function planAnlegen(projektId, daten) {
-  return schreiben(async () =>
-    pruefen(
-      await supabase
-        .from("plaene")
-        .insert({
-          projekt_id: projektId,
-          titel: daten.titel || "",
-          datei_pfad: daten.datei_pfad,
-          datei_name: daten.datei_name || "",
-          sortierung: daten.sortierung ?? 0,
-        })
-        .select()
-        .single()
-    )
-  );
-}
-
-export function planAktualisieren(id, daten) {
-  return schreiben(async () =>
-    pruefen(await supabase.from("plaene").update(daten).eq("id", id).select().single())
-  );
-}
-
-export function planLoeschen(id) {
-  return schreiben(async () => pruefen(await supabase.from("plaene").delete().eq("id", id)));
-}
-
-/* ----------------------------------------------------------- Wandmasse */
-// Was an welcher Wand gemessen wurde – als Masslinie auf dem Plan.
-
-export function wandmasseLaden(projektId) {
-  return lesen(async () =>
-    pruefen(
-      await supabase
-        .from("wandmasse")
-        .select("*")
-        .eq("projekt_id", projektId)
-        .order("erstellt_am")
-    )
-  );
-}
-
-function wandmassFelder(daten) {
-  const zahlOderNull = (wert) => (wert === "" || wert === null || wert === undefined ? null : wert);
-  return {
-    plan_id: daten.plan_id,
-    raum_id: daten.raum_id || null,
-    bezeichnung: daten.bezeichnung || "",
-    laenge: zahlOderNull(daten.laenge),
-    hoehe: zahlOderNull(daten.hoehe),
-    art: daten.art || "Wand",
-    bemerkung: daten.bemerkung || "",
-    x1: daten.x1, y1: daten.y1, x2: daten.x2, y2: daten.y2,
-  };
-}
-
-export function wandmassAnlegen(projektId, daten) {
-  return schreiben(async () =>
-    pruefen(
-      await supabase
-        .from("wandmasse")
-        .insert(Object.assign({ projekt_id: projektId }, wandmassFelder(daten)))
-        .select()
-        .single()
-    )
-  );
-}
-
-export function wandmassAktualisieren(id, daten, geladenAm) {
-  return schreiben(async () => {
-    await konfliktPruefen("wandmasse", id, geladenAm);
-    return pruefen(await supabase.from("wandmasse").update(wandmassFelder(daten)).eq("id", id).select().single());
-  });
-}
-
-export function wandmassLoeschen(id) {
-  return schreiben(async () => pruefen(await supabase.from("wandmasse").delete().eq("id", id)));
 }
 
 export function raumAktualisieren(id, daten, geladenAm) {
@@ -832,8 +731,6 @@ export function projektAbonnieren(projektId, aufAenderung) {
     .on("postgres_changes", { event: "*", schema: "public", table: "arbeiten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("arbeiten"))
     .on("postgres_changes", { event: "*", schema: "public", table: "checkliste", filter: "projekt_id=eq." + projektId }, () => aufAenderung("checkliste"))
     .on("postgres_changes", { event: "*", schema: "public", table: "raeume", filter: "projekt_id=eq." + projektId }, () => aufAenderung("raeume"))
-    .on("postgres_changes", { event: "*", schema: "public", table: "plaene", filter: "projekt_id=eq." + projektId }, () => aufAenderung("plaene"))
-    .on("postgres_changes", { event: "*", schema: "public", table: "wandmasse", filter: "projekt_id=eq." + projektId }, () => aufAenderung("wandmasse"))
     .on("postgres_changes", { event: "*", schema: "public", table: "projekt_mitglieder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("mitglieder"))
     .subscribe();
   return () => supabase.removeChannel(kanal);

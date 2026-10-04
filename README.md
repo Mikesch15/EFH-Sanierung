@@ -19,7 +19,6 @@ dieses auch nicht.
 | Anschaffungen ausserhalb des Budgets (Kredit) | fertig, siehe «Anschaffungen» |
 | Zeitplan der Arbeiten, Pendenzen und Mängel | fertig, siehe «Arbeiten» |
 | Besichtigungs-Checkliste und Raum-Messblatt | fertig, siehe «Aufnahme» |
-| Wände im Plan antippen und vermassen | fertig, siehe «Grundriss» |
 | Echte Dokumentenanalyse (Gemini) | fertig in der App, siehe «KI-Auswertung»; im Prototyp weiterhin simuliert |
 
 ## Supabase-Projekt
@@ -50,9 +49,7 @@ projekte                 Objekt, Adresse, Kaufpreis, Gesamtbudget, Kreditrahmen
    ├─ foerdergelder      Beiträge von Bund, Kanton, Gemeinde, Werken – mit Stand und Frist
    ├─ arbeiten           Zeitplan der Gewerke sowie Pendenzen und Mängel (mit Foto)
 └─ checkliste            Besichtigung: Punkt, Mass/Feststellung, abgehakt
-└─ plaene                hochgeladene Grundrisse mit Massstab und Erkennungswerten
-   └─ wandmasse          gemessene Wände: Lage im Plan, Länge, Höhe, Art, Bezeichnung
-└─ raeume                Raum-Messblatt: Umriss aus dem Plan, Fläche, Umfang, Lasermasse
+└─ raeume                Raum-Messblatt: Fläche, Umfang, Höhe, Fenster, Türen, Boden
    └─ dokumente          Kaufvertrag, Pläne, Bewilligungen, Garantien
 ```
 
@@ -147,11 +144,9 @@ app/
   js/import.js          Übernahme der Prototyp-Sicherung
   js/app.js             Start, Navigation, Modal, Realtime
   js/vorschau.js        Vorschaubilder: signierte Adressen gebündelt holen und merken
-  js/planerkennung.js   Wände im Planbild erkennen, Raum füllen, Umriss bestimmen
-  js/planbild.js        Planbild auslesen, Maske merken, Raum und Wand messen
   js/checkliste-vorlage.js  Besichtigungs-Checkliste als Vorlage (12 Gruppen, 88 Punkte)
   js/ansichten/*.js     Anmeldung, Übersicht, Budget, Fördergelder, Anschaffungen,
-                        Offerten, Belege, Arbeiten, Aufnahme, Grundriss, Dokumente
+                        Offerten, Belege, Arbeiten, Aufnahme, Dokumente
   js/paket/*.js         daraus gebaute Auslieferung (nicht von Hand ändern)
 ```
 
@@ -504,79 +499,16 @@ unverändert in `app/js/checkliste-vorlage.js`.
 
 **Raum-Messblatt.** Je Raum eine Zeile mit Geschoss, Fläche, Umfang, Höhe, Wandstärke,
 Fenster, Türen, Boden und Bemerkungen. Längen in Metern, Wandstärke in Zentimetern – so
-misst man es auch. Fläche und Umfang kommen aus dem Grundriss (siehe unten), das Total
-über alle Räume steht am Fuss der Tabelle. Räume ohne Plan lassen sich von Hand erfassen;
-dort gibt man die Fläche selbst ein.
+misst man es auch. Das Total der Flächen steht am Fuss der Tabelle.
 
-## Grundriss: jedes Mass steht an seiner Wand
-
-Beim Vermessen zählt eine Frage: **Welche Wand hat welches Mass?** Eine Liste «Wand 1 …
-Wand 6» beantwortet sie nicht, solange man am Plan nicht sieht, welche Wand gemeint ist.
-Darum steht das Mass dort, wo es hingehört – an der Wand im Plan, wie auf einem Bauplan.
-
-Im Tab *Arbeiten* → Abschnitt *Grundriss*:
-
-1. **Plan hochladen** – Foto, Screenshot oder Ausschnitt aus den Verkaufsunterlagen. Der
-   Plan wird gezeigt, wie er ist; nichts wird nachgezeichnet.
-2. **+ Wand vermassen** – die Wand im Plan antippen, die Sie gerade gemessen haben. Die
-   App erkennt die Wandlinie im Bild, markiert sie, und Sie geben ein: Länge, bei Bedarf
-   Höhe, eine Bezeichnung («Küche Nordwand»), die Art (Wand, Fenster, Tür, Nische,
-   Durchgang) und eine Bemerkung. Danach ist diese Wand im Plan orange markiert und trägt
-   ihr Mass.
-3. **Weiter so durchs Haus.** Am Schluss ist der Plan vermasst: Jede gemessene Wand ist
-   beschriftet, darunter steht die Liste mit Bezeichnung, Länge und Höhe.
-4. Ein Tipp auf ein Schild (oder auf die Kachel darunter) öffnet das Mass wieder – ändern
-   oder löschen.
-
-Das **erste Mass setzt zugleich den Massstab**: Die App weiss, wie viele Bildpunkte die
-Wand lang ist, Sie sagen, wie viele Meter – ab da kennt sie den Plan. Bei jeder weiteren
-Wand steht deshalb schon im Dialog, wie lang sie laut Plan sein müsste; Sie sehen sofort,
-ob die Verkaufsunterlagen stimmen.
-
-**+ Raum ausmessen** gibt es zusätzlich: ein Tipp mitten in den Raum, und die App füllt
-ihn bis an seine Wände aus und rechnet Fläche und Umfang – für jede Form, auch L-Räume
-und Schrägen. Das ist für Bodenbeläge und Mengen; fürs Vermassen einzelner Wände ist der
-Weg oben der direktere.
-
-### Wie die Erkennung arbeitet
-
-Alles Dunkle im Bild gilt als Wand, alles dazwischen als Raum (`app/js/planerkennung.js`):
-
-- **Wandmaske**: Helligkeit je Bildpunkt gegen eine Schwelle (Vorgabe 150).
-- **Türöffnungen überbrücken**: Lücken werden richtungsweise geschlossen – einmal nur
-  waagrecht, einmal nur senkrecht, danach beides zusammen. Eine Türöffnung in einer
-  senkrechten Wand ist eine senkrechte Lücke; so wird sie überbrückt, ohne dass die Wände
-  quer dazu dicker werden und die Räume auffressen.
-- **Raum füllen**: Flächenfüllung ab dem angetippten Punkt. Läuft sie aus oder erreicht
-  sie den Bildrand, bricht sie ab und meldet *«Der Raum ist nicht geschlossen»* – lieber
-  ehrlich als eine erfundene Fläche. Dann hilft der Regler *Türöffnungen*. Wer eine
-  Beschriftung oder ein Möbelsymbol trifft, wird nicht abgewiesen: die App sucht daneben
-  weiter.
-- **Umriss**: Randverfolgung (Moore-Nachbarschaft), danach Douglas-Peucker – aus
-  Tausenden Treppenstufen werden die paar Ecken, die der Raum wirklich hat.
-- **Fläche**: aus der Zahl der gefüllten Bildpunkte und dem Massstab. Der Umriss dient
-  der Anzeige und den Wandlängen; die Fläche kommt aus den Punkten selbst und stimmt
-  deshalb auch bei runden oder schrägen Wänden.
-- **Wand antippen** (für den Massstab) läuft auf dem *rohen* Bild, nicht auf dem
-  geschlossenen – sonst springt die Verfolgung über eine überbrückte Lücke auf eine
-  Masslinie und misst etwas ganz anderes.
-
-Passt die Erkennung bei einem Plan nicht, lassen sich unter *Erkennung* Schwelle und
-Überbrückung einstellen; beides wird beim Plan gespeichert.
-
-**Alles rechnet im Browser auf dem Gerät.** Das Planbild wird dafür nirgendwohin
-geschickt – es wird nur aus dem schon angezeigten Bild ausgelesen (deshalb `crossorigin`
-am `<img>`). Gespeichert werden in `raeume`: `umriss` (Punkte relativ zum Bild, 0 bis 1),
-`flaeche`, `umfang` und `wand_masse` (Lasermasse je Wand); beim Plan stehen
-`px_pro_meter`, `bild_breite`/`bild_hoehe` und die beiden Regler.
-
-Wird der Massstab später geändert, rechnet die App alle Räume dieses Plans mit – Fläche
-quadratisch, Umfang linear.
-
-**Warum nicht anders.** Drei Anläufe davor waren unbrauchbar: mitwachsende Bänder, feste
-Rechtecke und zuletzt von Hand eingetippte Wandlängen mit Winkeln. Die ersten beiden
-sahen dem Haus nicht ähnlich, der dritte war Handarbeit für jeden Raum – und echte Räume
-sind nun einmal nicht rechtwinklig. Der Plan weiss es besser: Er zeigt die Wände bereits.
+Einen Grundriss gibt es in der App bewusst nicht mehr. Vier Anläufe – nachgezeichnete
+Bänder, feste Rechtecke, eingetippte Wandlängen und zuletzt Wanderkennung im hochgeladenen
+Planbild – waren am Bau umständlicher als das, was dort tatsächlich funktioniert: den Plan
+ausdrucken und die Masse von Hand hineinschreiben. Die Pläne gehören darum unter
+*Dokumente* (Typ «Grundriss»), von wo sie sich öffnen und ausdrucken lassen. Was danach
+digital festgehalten werden soll, kommt ins Messblatt oder in die Checkliste.
+Die Migrationen 0016–0021 bleiben als Herkunft im Verzeichnis stehen; ihre Tabellen und
+Spalten werden von der App nicht mehr gelesen oder beschrieben.
 
 ## Migrationen anwenden
 
@@ -627,21 +559,15 @@ Am besten auf zwei Geräten (oder einem normalen Fenster und einem privaten Fens
 11. **Aufnahme**: Tab *Arbeiten* → *Checkliste aus Vorlage anlegen*. Eine Gruppe
     antippen, einen Punkt abhaken, ein Mass eintragen und die Seite neu laden – beides
     steht noch da. Mit *+ Punkt* einen eigenen Punkt ergänzen, unter *Raum-Messblatt*
-    einen Raum erfassen (Fläche wird gerechnet).
-12. **Grundriss**: Tab *Arbeiten* → *Plan hochladen* (Bild eines Geschosses) →
-    *+ Wand vermassen*, eine Wand antippen, Mass eingeben. Die Wand wird orange und
-    trägt ihre Zahl; die Liste darunter nennt Bezeichnung, Länge und Höhe. Mit
-    *+ Raum ausmessen* zusätzlich in einen Raum tippen: Fläche und Umfang. Läuft
-    die Füllung aus, meldet die App das; dann unter *Erkennung* den Regler
-    *Türöffnungen* erhöhen.
-13. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
+    einen Raum mit Fläche, Höhe und Boden erfassen.
+12. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
    Werten passen. Der Kostenvergleich kommt aus der View `v_kostenvergleich`.
-14. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür
+13. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür
     nötigen Tabellen stehen seit Migration 0012 in der Veröffentlichung
     `supabase_realtime` – vorher war sie leer, und es wurde erst beim Tabwechsel
     aktualisiert); beim Zurückkehren
    in den Tab wird zusätzlich neu geladen.
-15. **Prototyp-Sicherung importieren**: im Prototyp *Daten exportieren*, dann in der App
+14. **Prototyp-Sicherung importieren**: im Prototyp *Daten exportieren*, dann in der App
     Übersicht → *Sicherung importieren*. Der erste Klick auf *Importieren* zeigt nur, was
     eingefügt würde; erst der zweite führt den Import aus. Derselbe Export wird pro Projekt
     nur einmal importiert.
