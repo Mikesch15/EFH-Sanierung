@@ -142,12 +142,12 @@ function sichererSpeicher() {
     removeItem: (k) => merker.delete(k)
   };
 }
-function fetchMitZeitlimit(eingabe7, optionen) {
-  const adresse = typeof eingabe7 === "string" ? eingabe7 : eingabe7 && eingabe7.url || "";
+function fetchMitZeitlimit(eingabe8, optionen) {
+  const adresse = typeof eingabe8 === "string" ? eingabe8 : eingabe8 && eingabe8.url || "";
   const grenze = adresse.includes("/storage/v1/object") ? ZEITLIMIT_UPLOAD_MS : adresse.includes("/functions/v1/") ? ZEITLIMIT_FUNKTION_MS : ZEITLIMIT_MS;
   const abbruch = new AbortController();
   const uhr = setTimeout(() => abbruch.abort(), grenze);
-  return fetch(eingabe7, Object.assign({}, optionen, { signal: abbruch.signal })).finally(() => clearTimeout(uhr));
+  return fetch(eingabe8, Object.assign({}, optionen, { signal: abbruch.signal })).finally(() => clearTimeout(uhr));
 }
 function eigeneSperre(name, dauer, fn) {
   const vorher = sperrKette;
@@ -273,6 +273,10 @@ __export(daten_exports, {
   budgetAnlegen: () => budgetAnlegen,
   budgetLaden: () => budgetLaden,
   budgetLoeschen: () => budgetLoeschen,
+  checklisteAnlegen: () => checklisteAnlegen,
+  checklisteLaden: () => checklisteLaden,
+  checklistePunktAktualisieren: () => checklistePunktAktualisieren,
+  checklistePunktLoeschen: () => checklistePunktLoeschen,
   dokumentAktualisieren: () => dokumentAktualisieren,
   dokumentAnalysieren: () => dokumentAnalysieren,
   dokumentLoeschen: () => dokumentLoeschen,
@@ -302,10 +306,18 @@ __export(daten_exports, {
   offerteLoeschen: () => offerteLoeschen,
   offerteSpeichern: () => offerteSpeichern,
   offertenLaden: () => offertenLaden,
+  plaeneLaden: () => plaeneLaden,
+  planAktualisieren: () => planAktualisieren,
+  planAnlegen: () => planAnlegen,
+  planLoeschen: () => planLoeschen,
   projektAbonnieren: () => projektAbonnieren,
   projektAktualisieren: () => projektAktualisieren,
   projektAnlegen: () => projektAnlegen,
-  projekteLaden: () => projekteLaden
+  projekteLaden: () => projekteLaden,
+  raeumeLaden: () => raeumeLaden,
+  raumAktualisieren: () => raumAktualisieren,
+  raumAnlegen: () => raumAnlegen,
+  raumLoeschen: () => raumLoeschen
 });
 function mitZeitlimit(versprechen, grenze = VORGANG_ZEITLIMIT_MS) {
   let uhr;
@@ -461,6 +473,106 @@ function nebenkostenAktualisieren(id, daten, geladenAm) {
 }
 function nebenkostenLoeschen(id) {
   return schreiben(async () => pruefen(await supabase.from("kaufnebenkosten").delete().eq("id", id)));
+}
+function checklisteLaden(projektId) {
+  return lesen(
+    async () => pruefen(
+      await supabase.from("checkliste").select("*").eq("projekt_id", projektId).order("sortierung").order("erstellt_am")
+    )
+  );
+}
+function checklisteAnlegen(projektId, punkte) {
+  return schreiben(
+    async () => pruefen(
+      await supabase.from("checkliste").insert(punkte.map((p) => ({
+        projekt_id: projektId,
+        gruppe: p.gruppe,
+        titel: p.titel,
+        sortierung: p.sortierung || 0,
+        eigen: !!p.eigen
+      }))).select()
+    )
+  );
+}
+function checklistePunktAktualisieren(id, daten) {
+  return schreiben(
+    async () => pruefen(await supabase.from("checkliste").update(daten).eq("id", id).select().single())
+  );
+}
+function checklistePunktLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("checkliste").delete().eq("id", id)));
+}
+function raeumeLaden(projektId) {
+  return lesen(
+    async () => pruefen(
+      await supabase.from("raeume").select("*").eq("projekt_id", projektId).order("sortierung").order("erstellt_am")
+    )
+  );
+}
+function raumFelder(daten) {
+  const zahlOderNull = (wert) => wert === "" || wert === null || wert === void 0 ? null : wert;
+  return {
+    name: daten.name || "",
+    geschoss: daten.geschoss || "",
+    // Umriss: je Wand Länge und Innenwinkel zur nächsten Wand.
+    waende: Array.isArray(daten.waende) ? daten.waende : [],
+    flaeche: zahlOderNull(daten.flaeche),
+    umfang: zahlOderNull(daten.umfang),
+    hoehe: zahlOderNull(daten.hoehe),
+    wandstaerke: zahlOderNull(daten.wandstaerke),
+    fenster: daten.fenster || "",
+    tueren: daten.tueren || "",
+    boden: daten.boden || "",
+    bemerkung: daten.bemerkung || "",
+    // Messpunkt auf dem Plan: Lage relativ zum Bild (0 bis 1).
+    plan_id: daten.plan_id || null,
+    marke_x: zahlOderNull(daten.marke_x),
+    marke_y: zahlOderNull(daten.marke_y)
+  };
+}
+function raumAnlegen(projektId, daten) {
+  return schreiben(
+    async () => pruefen(
+      await supabase.from("raeume").insert(Object.assign({ projekt_id: projektId, sortierung: daten.sortierung ?? 0 }, raumFelder(daten))).select().single()
+    )
+  );
+}
+function plaeneLaden(projektId) {
+  return lesen(
+    async () => pruefen(
+      await supabase.from("plaene").select("*").eq("projekt_id", projektId).order("sortierung").order("erstellt_am")
+    )
+  );
+}
+function planAnlegen(projektId, daten) {
+  return schreiben(
+    async () => pruefen(
+      await supabase.from("plaene").insert({
+        projekt_id: projektId,
+        titel: daten.titel || "",
+        datei_pfad: daten.datei_pfad,
+        datei_name: daten.datei_name || "",
+        sortierung: daten.sortierung ?? 0
+      }).select().single()
+    )
+  );
+}
+function planAktualisieren(id, daten) {
+  return schreiben(
+    async () => pruefen(await supabase.from("plaene").update(daten).eq("id", id).select().single())
+  );
+}
+function planLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("plaene").delete().eq("id", id)));
+}
+function raumAktualisieren(id, daten, geladenAm) {
+  return schreiben(async () => {
+    await konfliktPruefen("raeume", id, geladenAm);
+    return pruefen(await supabase.from("raeume").update(raumFelder(daten)).eq("id", id).select().single());
+  });
+}
+function raumLoeschen(id) {
+  return schreiben(async () => pruefen(await supabase.from("raeume").delete().eq("id", id)));
 }
 function arbeitenLaden(projektId) {
   return lesen(
@@ -743,7 +855,7 @@ function kostenvergleichLaden(projektId) {
   );
 }
 function projektAbonnieren(projektId, aufAenderung) {
-  const kanal = supabase.channel("projekt-" + projektId).on("postgres_changes", { event: "*", schema: "public", table: "budgetpositionen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("budget")).on("postgres_changes", { event: "*", schema: "public", table: "offerten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "offert_positionen" }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "belege", filter: "projekt_id=eq." + projektId }, () => aufAenderung("belege")).on("postgres_changes", { event: "*", schema: "public", table: "dokumente", filter: "projekt_id=eq." + projektId }, () => aufAenderung("dokumente")).on("postgres_changes", { event: "*", schema: "public", table: "kaufnebenkosten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("nebenkosten")).on("postgres_changes", { event: "*", schema: "public", table: "foerdergelder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("foerdergelder")).on("postgres_changes", { event: "*", schema: "public", table: "anschaffungen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("anschaffungen")).on("postgres_changes", { event: "*", schema: "public", table: "arbeiten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("arbeiten")).on("postgres_changes", { event: "*", schema: "public", table: "projekt_mitglieder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("mitglieder")).subscribe();
+  const kanal = supabase.channel("projekt-" + projektId).on("postgres_changes", { event: "*", schema: "public", table: "budgetpositionen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("budget")).on("postgres_changes", { event: "*", schema: "public", table: "offerten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "offert_positionen" }, () => aufAenderung("offerten")).on("postgres_changes", { event: "*", schema: "public", table: "belege", filter: "projekt_id=eq." + projektId }, () => aufAenderung("belege")).on("postgres_changes", { event: "*", schema: "public", table: "dokumente", filter: "projekt_id=eq." + projektId }, () => aufAenderung("dokumente")).on("postgres_changes", { event: "*", schema: "public", table: "kaufnebenkosten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("nebenkosten")).on("postgres_changes", { event: "*", schema: "public", table: "foerdergelder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("foerdergelder")).on("postgres_changes", { event: "*", schema: "public", table: "anschaffungen", filter: "projekt_id=eq." + projektId }, () => aufAenderung("anschaffungen")).on("postgres_changes", { event: "*", schema: "public", table: "arbeiten", filter: "projekt_id=eq." + projektId }, () => aufAenderung("arbeiten")).on("postgres_changes", { event: "*", schema: "public", table: "checkliste", filter: "projekt_id=eq." + projektId }, () => aufAenderung("checkliste")).on("postgres_changes", { event: "*", schema: "public", table: "raeume", filter: "projekt_id=eq." + projektId }, () => aufAenderung("raeume")).on("postgres_changes", { event: "*", schema: "public", table: "plaene", filter: "projekt_id=eq." + projektId }, () => aufAenderung("plaene")).on("postgres_changes", { event: "*", schema: "public", table: "projekt_mitglieder", filter: "projekt_id=eq." + projektId }, () => aufAenderung("mitglieder")).subscribe();
   return () => supabase.removeChannel(kanal);
 }
 var DatenFehler, VORGANG_ZEITLIMIT_MS, UPLOAD_ZEITLIMIT_MS, lesen, ANALYSE_ZEITLIMIT_MS;
@@ -1308,11 +1420,735 @@ var init_vorschau = __esm({
   }
 });
 
+// app/js/checkliste-vorlage.js
+function vorlagePunkte() {
+  const alle = [];
+  CHECKLISTE_VORLAGE.forEach((abschnitt) => {
+    abschnitt.punkte.forEach((titel) => {
+      alle.push({ gruppe: abschnitt.gruppe, titel, sortierung: alle.length });
+    });
+  });
+  return alle;
+}
+var CHECKLISTE_VORLAGE, FOTO_REGEL, CHECKLISTE_HINWEIS;
+var init_checkliste_vorlage = __esm({
+  "app/js/checkliste-vorlage.js"() {
+    CHECKLISTE_VORLAGE = [
+      {
+        gruppe: "1. Grundmasse & Räume",
+        punkte: [
+          "Jeden Raum Länge × Breite messen",
+          "Raumhöhe messen",
+          "Wandstärken messen",
+          "Türen: Breite/Höhe und Abstand zu Ecken",
+          "Fenster: Breite/Höhe/Brüstung und Abstand zu Ecken",
+          "Treppenbreite, Steigung und Auftritt",
+          "Kellerhöhe",
+          "Geschosshöhen"
+        ]
+      },
+      {
+        gruppe: "2. Böden & Decken",
+        punkte: [
+          "EG: Bodenbelag und Unterboden dokumentieren",
+          "OG: Bodenbelag und Unterboden dokumentieren",
+          "Balkenrichtung feststellen",
+          "Wenn möglich: Balkenquerschnitt und Balkenabstand an Sondage messen",
+          "Schüttung/Dämmung zwischen Balken feststellen",
+          "Weiche/knarrende Stellen und Höhenunterschiede notieren",
+          "Foto jeder Sondage mit Massstab"
+        ]
+      },
+      {
+        gruppe: "3. Tragende Wände",
+        punkte: [
+          "Jede Innenwand: Stärke + Material",
+          "Prüfen, ob Wand im Geschoss darüber weiterläuft",
+          "Prüfen, ob darunter im Keller eine Wand/Fundament liegt",
+          "Balkenrichtung relativ zur Wand dokumentieren",
+          "Küche/Wohnzimmer-Wand besonders genau aufnehmen",
+          "Keine Wand ohne statische Prüfung abbrechen"
+        ]
+      },
+      {
+        gruppe: "4. Keller & Feuchtigkeit",
+        punkte: [
+          "Jede Kellerwand fotografieren",
+          "Decke fotografieren",
+          "Feuchte/Salzausblühungen/Schimmel",
+          "Risse und Wasserflecken",
+          "Kellerfenster/Lüftung",
+          "Boden und Entwässerung",
+          "Wasser-Hauptanschluss und Zähler",
+          "Elektro-Hauptverteilung"
+        ]
+      },
+      {
+        gruppe: "5. Heizung / Wärmepumpe",
+        punkte: [
+          "Heizkessel: Typenschild, Leistung, Baujahr fotografieren",
+          "Öltank: Typ, Volumen, Zustand fotografieren",
+          "Warmwasserspeicher: Volumen/Baujahr",
+          "Heizungsrohre und Leitungsdurchmesser",
+          "Jeden Heizkörper: Foto + Breite/Höhe/Typ",
+          "Vorlauf-/Rücklaufdaten falls ablesbar",
+          "Kamin/Abgasführung dokumentieren"
+        ]
+      },
+      {
+        gruppe: "6. Wasser & Abwasser",
+        punkte: [
+          "Material der Wasserleitungen",
+          "Durchmesser soweit sichtbar",
+          "Absperrventile",
+          "Warmwasserführung",
+          "Fallleitungen lokalisieren",
+          "Abwasser-Durchmesser/Material",
+          "Küche, EG-Bad und OG-Bad: Zu-/Abläufe fotografieren",
+          "Revisionsöffnungen"
+        ]
+      },
+      {
+        gruppe: "7. Elektro",
+        punkte: [
+          "Sicherungskasten komplett fotografieren",
+          "FI/RCD vorhanden?",
+          "Zähler/Hauptsicherung",
+          "Leitungsart/-querschnitt soweit sichtbar",
+          "Jede Steckdose/Schalter/Lichtstelle fotografieren",
+          "Kellerinstallation",
+          "Erdung/Potentialausgleich soweit erkennbar"
+        ]
+      },
+      {
+        gruppe: "8. Fenster & Fassade",
+        punkte: [
+          "Jedes Fenster innen + aussen fotografieren",
+          "Rahmenmaterial/Verglasung",
+          "Zustand/Dichtungen",
+          "Rollläden/Jalousien",
+          "Aussenfassade rundum fotografieren",
+          "Risse/Feuchte/Sockel/Putz",
+          "Wegen Gartenstadt-Schutz: geplante Änderungen separat abklären"
+        ]
+      },
+      {
+        gruppe: "9. Dach & Dachstock",
+        punkte: [
+          "Dachdeckung/Zustand",
+          "Unterdach",
+          "Sparrenquerschnitt/Abstände soweit zugänglich",
+          "Dämmstärke",
+          "Feuchtigkeit/Holzschäden",
+          "Kamin",
+          "Dachfenster/Lukarnen"
+        ]
+      },
+      {
+        gruppe: "10. Bäder & Küche",
+        punkte: [
+          "EG-Bad komplett vermessen + Anschlüsse fotografieren",
+          "OG-Bad komplett vermessen + Anschlüsse fotografieren",
+          "Fallstränge/Leitungswege",
+          "Küche: Wasser/Abwasser",
+          "Herd-/Backofenanschluss",
+          "Geschirrspüler/Dunstabzug",
+          "Alle Anschlusspunkte mit Abstandsmassen"
+        ]
+      },
+      {
+        gruppe: "11. Carport / Aussenbereich",
+        punkte: [
+          "Zufahrt Breite + Länge messen",
+          "Abstand Haus/Grundstücksgrenzen",
+          "Bereich für geplanten Carport vermessen",
+          "Höhenunterschiede/Entwässerung",
+          "Bestehende Garage/Nebenbau exakt aufnehmen",
+          "Nachbar-/Grenzsituation fotografieren"
+        ]
+      },
+      {
+        gruppe: "12. Unterlagen vom Verkäufer/Makler",
+        punkte: [
+          "Alle Baupläne und späteren Baugesuche",
+          "Baubewilligungen",
+          "Heizungsunterlagen",
+          "Kaminfegerberichte",
+          "Elektro-Sicherheitsnachweis (SiNa) falls vorhanden",
+          "Unterlagen zur erneuerten Abwasserleitung",
+          "Rechnungen grösserer Renovationen",
+          "Fensterunterlagen",
+          "Versicherungs-/Schadensunterlagen",
+          "Grundbuchauszug + Dienstbarkeiten"
+        ]
+      }
+    ];
+    FOTO_REGEL = "Pro Raum mindestens eine Gesamtaufnahme, jede Wand, Boden, Decke, Fenster, Tür und technische Anschlüsse. Zusätzlich Detailfotos von Typenschildern, Leitungen und Sondagen.";
+    CHECKLISTE_HINWEIS = "Diese Checkliste dient der Sanierungsvorplanung. Tragende Bauteile, Elektroinstallation, Heizung und bewilligungspflichtige Änderungen müssen vor Ausführung fachlich geprüft werden.";
+  }
+});
+
+// app/js/ansichten/grundriss.js
+function setzModus() {
+  return setzenAuf;
+}
+function setzModusSetzen(planId) {
+  setzenAuf = planId;
+}
+function istGemessen(r) {
+  return zahl(r.flaeche) > 0;
+}
+function flaeche(r) {
+  return zahl(r.flaeche);
+}
+function markenText(r) {
+  const name = r.name || "?";
+  return istGemessen(r) ? name + " · " + flaeche(r).toFixed(2) + " m²" : name;
+}
+function planZeichnen(plan, raeume, bearbeitbar) {
+  const marken = raeume.filter((r) => r.plan_id === plan.id && r.marke_x !== null && r.marke_x !== void 0);
+  const setzt = setzenAuf === plan.id;
+  let h = '<div class="plan-bild' + (setzt ? " setzt" : "") + '"' + (setzt ? ' data-aktion="plan-tippen" data-plan="' + plan.id + '"' : "") + ">";
+  h += istAnzeigbar(null, plan.datei_name || plan.datei_pfad) ? bildMarkierung(plan.datei_pfad, plan.titel || plan.datei_name) : '<div class="foto-ersatz" style="height:160px">Dieses Format lässt sich nicht anzeigen – bitte als JPG oder PNG hochladen.</div>';
+  marken.forEach((r, i) => {
+    h += '<button class="plan-marke' + (istGemessen(r) ? " gemessen" : "") + '" type="button" data-aktion="plan-marke" data-id="' + r.id + '" style="left:' + (zahl(r.marke_x) * 100).toFixed(2) + "%;top:" + (zahl(r.marke_y) * 100).toFixed(2) + '%" title="' + esc(r.name) + '"><span class="nr">' + (i + 1) + '</span><span class="wert">' + esc(markenText(r)) + "</span></button>";
+  });
+  h += "</div>";
+  if (setzt) {
+    h += '<div class="hinweis warn" style="margin:0 14px 12px"><div><b>Messpunkt setzen</b>Tippen Sie im Plan auf den Raum. Danach öffnet sich das Formular für Namen und Masse.<div class="btn-reihe" style="margin-top:9px"><button class="btn still klein" type="button" data-aktion="plan-setzen-aus">Abbrechen</button></div></div></div>';
+  } else if (bearbeitbar) {
+    h += '<div class="karte-pad" style="padding-top:0"><div class="btn-reihe"><button class="btn zweit klein" type="button" data-aktion="plan-setzen" data-plan="' + plan.id + '">+ Messpunkt</button><button class="btn still klein" type="button" data-aktion="plan-umbenennen" data-id="' + plan.id + '">Umbenennen</button><button class="btn still klein" type="button" data-aktion="plan-loeschen" data-id="' + plan.id + '">Plan entfernen</button></div></div>';
+  }
+  return { html: h, marken };
+}
+function grundrissAbschnitt(Z2) {
+  const plaene = Z2.plaene || [];
+  const raeume = Z2.raeume || [];
+  const bearbeitbar = kannBearbeiten();
+  const mitMarke = raeume.filter((r) => r.plan_id && r.marke_x !== null && r.marke_x !== void 0);
+  let h = '<section class="abschnitt" id="abschnitt-grundriss"><div class="abschnitt-kopf"><div><h2>Grundrisse</h2><p>' + (plaene.length ? plaene.length + (plaene.length === 1 ? " Plan · " : " Pläne · ") + mitMarke.filter(istGemessen).length + " von " + mitMarke.length + " Messpunkten erfasst" : "Originalplan hochladen und darauf messen") + "</p></div>" + (bearbeitbar && plaene.length ? '<button class="btn klein" type="button" data-aktion="plan-neu">+ Plan</button>' : "") + "</div>";
+  if (!plaene.length) {
+    h += leerZustand(
+      "Noch kein Grundriss",
+      "Laden Sie die Geschosspläne als Bild hoch – Foto, Screenshot oder Ausschnitt aus den Verkaufsunterlagen. Der Plan wird unverändert angezeigt; beim Besuch tippen Sie auf einen Raum, setzen einen Messpunkt und tragen die Lasermasse ein.",
+      bearbeitbar ? '<button class="btn" type="button" data-aktion="plan-neu">Plan hochladen</button>' : ""
+    );
+    return h + "</section>";
+  }
+  plaene.forEach((plan) => {
+    const { html, marken } = planZeichnen(plan, raeume, bearbeitbar);
+    const gemessen = marken.filter(istGemessen);
+    const summe = gemessen.reduce((s, r) => s + flaeche(r), 0);
+    h += '<div class="karte abschnitt" style="margin-bottom:12px"><div class="karte-pad" style="padding-bottom:8px"><div class="abschnitt-kopf" style="margin:0"><div><h3>' + esc(plan.titel || plan.datei_name || "Plan") + "</h3><p>" + (marken.length ? gemessen.length + " von " + marken.length + " gemessen" + (summe ? " · " + summe.toFixed(2) + " m²" : "") : "noch keine Messpunkte") + "</p></div></div></div>" + html;
+    if (marken.length) {
+      h += '<div class="karte-pad" style="border-top:1px solid var(--linie);padding-top:10px"><div class="plan-liste">' + marken.map(
+        (r, i) => '<button class="plan-chip' + (istGemessen(r) ? " gemessen" : "") + '" type="button" data-aktion="plan-marke" data-id="' + r.id + '"><b>' + (i + 1) + "</b> " + esc(r.name) + "<span>" + (istGemessen(r) ? zahl(r.breite).toFixed(2) + " × " + zahl(r.laenge).toFixed(2) + " m" : "messen") + "</span></button>"
+      ).join("") + "</div></div>";
+    }
+    h += "</div>";
+  });
+  h += '<div class="karte karte-pad" style="font-size:.8rem;color:var(--grau)">Die Pläne werden so angezeigt, wie sie hochgeladen wurden – nichts wird nachgezeichnet. Ein Messpunkt gehört zu einem Raum im Messblatt: Was Sie hier eintragen, steht auch dort, und umgekehrt.</div>';
+  nachladenBald();
+  return h + "</section>";
+}
+var setzenAuf;
+var init_grundriss = __esm({
+  "app/js/ansichten/grundriss.js"() {
+    init_format();
+    init_gemeinsam();
+    init_vorschau();
+    init_app();
+    setzenAuf = null;
+  }
+});
+
+// app/js/raumgeometrie.js
+function gemesseneWaende(waende) {
+  return (waende || []).filter((w) => Number(w.laenge) > 0);
+}
+function umrissRechnen(waende) {
+  const liste = gemesseneWaende(waende);
+  const punkte = [];
+  let x = 0, y = 0, richtung = 0, umfang = 0;
+  liste.forEach((w) => {
+    punkte.push([x, y]);
+    const l = Number(w.laenge);
+    const bogen = richtung * Math.PI / 180;
+    x += l * Math.cos(bogen);
+    y += l * Math.sin(bogen);
+    umfang += l;
+    const winkel = Number(w.winkel);
+    richtung += 180 - (Number.isFinite(winkel) && winkel > 0 ? winkel : STANDARD_WINKEL);
+  });
+  const luecke = punkte.length ? Math.hypot(x - punkte[0][0], y - punkte[0][1]) : 0;
+  let flaeche2 = 0;
+  if (punkte.length >= 3) {
+    for (let i = 0; i < punkte.length; i++) {
+      const [ax, ay] = punkte[i];
+      const [bx, by] = punkte[(i + 1) % punkte.length];
+      flaeche2 += ax * by - bx * ay;
+    }
+    flaeche2 = Math.abs(flaeche2) / 2;
+  }
+  return {
+    punkte,
+    flaeche: Math.round(flaeche2 * 100) / 100,
+    umfang: Math.round(umfang * 100) / 100,
+    luecke: Math.round(luecke * 1e3) / 1e3,
+    vollstaendig: punkte.length >= 3
+  };
+}
+function schliesst(umriss) {
+  return umriss.vollstaendig && umriss.luecke <= LUECKE_GRENZE;
+}
+function skizzeSvg(waende, breite = 300, hoehe = 200) {
+  const umriss = umrissRechnen(waende);
+  const liste = gemesseneWaende(waende);
+  const p = umriss.punkte;
+  if (p.length < 2) return "";
+  const xs = p.map((q) => q[0]), ys = p.map((q) => q[1]);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const spanX = Math.max(maxX - minX, 0.1), spanY = Math.max(maxY - minY, 0.1);
+  const rand = 26;
+  const faktor = Math.min((breite - 2 * rand) / spanX, (hoehe - 2 * rand) / spanY);
+  const versatzX = (breite - spanX * faktor) / 2 - minX * faktor;
+  const versatzY = (hoehe - spanY * faktor) / 2 - minY * faktor;
+  const bild = (q) => [q[0] * faktor + versatzX, q[1] * faktor + versatzY];
+  const ecken = p.map(bild);
+  const offen = !schliesst(umriss);
+  let h = '<svg class="raum-skizze" viewBox="0 0 ' + breite + " " + hoehe + '" role="img" aria-label="Skizze des gemessenen Raums">';
+  h += '<polygon points="' + ecken.map((q) => q[0].toFixed(1) + "," + q[1].toFixed(1)).join(" ") + '"/>';
+  const mitteX = ecken.reduce((s2, q) => s2 + q[0], 0) / ecken.length;
+  const mitteY = ecken.reduce((s2, q) => s2 + q[1], 0) / ecken.length;
+  ecken.forEach((a, i) => {
+    const b = ecken[(i + 1) % ecken.length];
+    const letzte = i === ecken.length - 1;
+    h += '<line x1="' + a[0].toFixed(1) + '" y1="' + a[1].toFixed(1) + '" x2="' + b[0].toFixed(1) + '" y2="' + b[1].toFixed(1) + '" class="' + (letzte && offen ? "offen" : "wand") + '"/>';
+    const wand = liste[i];
+    const text2 = wand ? Number(wand.laenge).toFixed(2) : "";
+    if (!text2) return;
+    const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+    const dx = b[0] - a[0], dy = b[1] - a[1];
+    const laenge = Math.hypot(dx, dy) || 1;
+    let nx = -dy / laenge, ny = dx / laenge;
+    if ((mx - mitteX) * nx + (my - mitteY) * ny < 0) {
+      nx = -nx;
+      ny = -ny;
+    }
+    h += '<text x="' + (mx + nx * 11).toFixed(1) + '" y="' + (my + ny * 11).toFixed(1) + '" dy="3.5">' + (i + 1) + ": " + text2 + "</text>";
+  });
+  return h + "</svg>";
+}
+var STANDARD_WINKEL, LUECKE_GRENZE;
+var init_raumgeometrie = __esm({
+  "app/js/raumgeometrie.js"() {
+    STANDARD_WINKEL = 90;
+    LUECKE_GRENZE = 0.05;
+  }
+});
+
+// app/js/ansichten/aufnahme.js
+function nachGruppen(liste) {
+  const gruppen = [];
+  liste.forEach((p) => {
+    let g = gruppen.find((x) => x.name === p.gruppe);
+    if (!g) {
+      g = { name: p.gruppe, punkte: [] };
+      gruppen.push(g);
+    }
+    g.punkte.push(p);
+  });
+  return gruppen;
+}
+function checklisteAbschnitt(Z2) {
+  const liste = Z2.checkliste || [];
+  const bearbeitbar = kannBearbeiten();
+  const erledigt = liste.filter((p) => p.erledigt).length;
+  let h = '<section class="abschnitt" id="abschnitt-checkliste"><div class="abschnitt-kopf"><div><h2>Checkliste</h2><p>' + (liste.length ? erledigt + " von " + liste.length + " erledigt" : "Besichtigung und Bestandsaufnahme") + "</p></div>" + (bearbeitbar && liste.length ? '<button class="btn klein" type="button" data-aktion="chk-neu">+ Punkt</button>' : "") + "</div>";
+  if (!liste.length) {
+    h += leerZustand(
+      "Noch keine Checkliste",
+      "Die Vorlage aus der Besichtigungs-Checkliste umfasst 12 Gruppen mit 88 Punkten – von Grundmassen über Keller und Heizung bis zu den Unterlagen des Verkäufers. Danach lässt sich jeder Punkt ändern, löschen oder ergänzen.",
+      bearbeitbar ? '<button class="btn" type="button" data-aktion="chk-vorlage">Checkliste aus Vorlage anlegen</button> <button class="btn zweit" type="button" data-aktion="chk-neu">Eigenen Punkt erfassen</button>' : ""
+    );
+    return h + "</section>";
+  }
+  const anteil = liste.length ? Math.round(erledigt / liste.length * 100) : 0;
+  h += '<div class="karte karte-pad abschnitt" style="margin-bottom:12px"><div class="balken"><i class="b-bezahlt" style="width:' + anteil + '%"></i></div><div class="legende"><span>' + anteil + " % aufgenommen</span></div></div>";
+  nachGruppen(liste).forEach((g) => {
+    const fertig = g.punkte.filter((p) => p.erledigt).length;
+    const offen = offeneGruppen.has(g.name);
+    h += '<div class="karte abschnitt" style="margin-bottom:10px"><button class="gruppe-kopf" type="button" data-aktion="chk-gruppe" data-gruppe="' + esc(g.name) + '"><b>' + esc(g.name) + '</b><span class="badge' + (fertig === g.punkte.length ? " gruen" : "") + '">' + fertig + "/" + g.punkte.length + '</span><span class="pfeil">' + (offen ? "▾" : "▸") + "</span></button>";
+    if (offen) {
+      h += '<ul class="chk-liste">';
+      g.punkte.forEach((p) => {
+        h += '<li class="chk' + (p.erledigt ? " fertig" : "") + '"><button class="chk-haken" type="button" data-aktion="chk-haken" data-id="' + p.id + '" aria-pressed="' + (p.erledigt ? "true" : "false") + '" title="Abhaken">' + (p.erledigt ? "✓" : "") + '</button><div class="chk-text"><span>' + esc(p.titel) + "</span>" + (p.eigen ? ' <span class="badge">eigener Punkt</span>' : "") + (bearbeitbar ? '<input class="chk-wert" data-chk-wert="' + p.id + '" value="' + esc(p.wert || "") + '" placeholder="Mass oder Feststellung">' : p.wert ? '<div class="chk-wert-fest">' + esc(p.wert) + "</div>" : "") + "</div>" + (bearbeitbar ? '<button class="btn still klein" type="button" data-aktion="chk-loeschen" data-id="' + p.id + '">✕</button>' : "") + "</li>";
+      });
+      h += "</ul>";
+    }
+    h += "</div>";
+  });
+  h += '<div class="karte karte-pad" style="font-size:.8rem;color:var(--grau)"><b style="display:block;color:var(--text-2)">Foto-Regel</b>' + esc(FOTO_REGEL) + '<div style="margin-top:8px">' + esc(CHECKLISTE_HINWEIS) + "</div></div>";
+  return h + "</section>";
+}
+function mass(wert, einheit) {
+  return wert === null || wert === void 0 || wert === "" ? "–" : zahl(wert).toFixed(2) + " " + einheit;
+}
+function umrissStand(r) {
+  const u = umrissRechnen(r.waende);
+  if (!u.vollstaendig) return '<span style="color:var(--grau)">offen</span>';
+  const n = u.punkte.length;
+  return n + " Wände" + (schliesst(u) ? "" : ' <span class="badge rot" title="Umriss geht nicht auf">Lücke ' + (u.luecke * 100).toFixed(0) + " cm</span>");
+}
+function raumAbschnitt(Z2) {
+  const liste = Z2.raeume || [];
+  const bearbeitbar = kannBearbeiten();
+  const gesamt = liste.reduce((s, r) => s + zahl(r.flaeche), 0);
+  let h = '<section class="abschnitt" id="abschnitt-raeume"><div class="abschnitt-kopf"><div><h2>Raum-Messblatt</h2><p>' + (liste.length ? liste.length + (liste.length === 1 ? " Raum" : " Räume") + (gesamt ? " · " + gesamt.toFixed(1) + " m² erfasst" : "") : "Wände rundum, Höhe, Boden je Raum") + "</p></div>" + (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="raum-neu">+ Raum</button>' : "") + "</div>";
+  if (!liste.length) {
+    h += leerZustand(
+      "Noch keine Räume vermessen",
+      "Je Raum die Wände rundum – Länge und Winkel zur nächsten Wand. Daraus rechnet die App Fläche und Umfang, auch bei L-Räumen und Schrägen. Dazu Höhe, Wandstärke, Fenster, Türen, Boden und Bemerkungen.",
+      bearbeitbar ? '<button class="btn" type="button" data-aktion="raum-neu">Ersten Raum erfassen</button>' : ""
+    );
+    return h + "</section>";
+  }
+  h += '<div class="karte"><div class="tab-scroll"><table><thead><tr><th>Raum</th><th class="num">Fläche</th><th class="num">Umfang</th><th>Umriss</th><th class="num">Höhe</th><th class="num">Wand</th><th>Fenster</th><th>Türen</th><th>Boden</th><th></th></tr></thead><tbody>';
+  liste.forEach((r) => {
+    h += "<tr><td><b>" + esc(r.name || "Ohne Namen") + "</b>" + (r.geschoss ? '<div style="font-size:.76rem;color:var(--grau)">' + esc(r.geschoss) + "</div>" : "") + (r.bemerkung ? '<div style="font-size:.76rem;color:var(--grau);white-space:normal;max-width:220px">' + esc(r.bemerkung) + "</div>" : "") + '</td><td class="num"><b>' + (zahl(r.flaeche) ? zahl(r.flaeche).toFixed(2) + " m²" : "–") + '</b></td><td class="num">' + mass(r.umfang, "m") + "</td><td>" + umrissStand(r) + '</td><td class="num">' + mass(r.hoehe, "m") + '</td><td class="num">' + (r.wandstaerke == null || r.wandstaerke === "" ? "–" : zahl(r.wandstaerke) + " cm") + "</td><td>" + esc(r.fenster || "–") + "</td><td>" + esc(r.tueren || "–") + "</td><td>" + esc(r.boden || "–") + "</td><td>" + (bearbeitbar ? '<div class="zeile-aktion"><button class="btn still klein" type="button" data-aktion="raum-bearbeiten" data-id="' + r.id + '">Bearbeiten</button><button class="btn still klein" type="button" data-aktion="raum-loeschen" data-id="' + r.id + '">Löschen</button></div>' : "") + "</td></tr>";
+  });
+  h += '</tbody><tfoot><tr><td>Total Bodenfläche</td><td class="num">' + (gesamt ? gesamt.toFixed(2) + " m²" : "–") + '</td><td colspan="8"></td></tr></tfoot>';
+  return h + "</table></div></div></section>";
+}
+function neueWand(winkel) {
+  return { laenge: "", winkel: winkel === void 0 ? STANDARD_WINKEL : winkel, bezeichnung: "" };
+}
+function wandZeile(w, i) {
+  return '<div class="wand-zeile"><span class="wand-nr">' + (i + 1) + '</span><input inputmode="decimal" aria-label="Länge Wand ' + (i + 1) + '" data-wand="' + i + '" data-wfeld="laenge" value="' + esc(w.laenge ?? "") + '" placeholder="4.20"><input inputmode="decimal" aria-label="Ecke nach Wand ' + (i + 1) + '" list="winkel-liste" data-wand="' + i + '" data-wfeld="winkel" value="' + esc(w.winkel ?? STANDARD_WINKEL) + '"><button class="btn still klein" type="button" data-aktion="raum-wand-weg" data-wand="' + i + '" aria-label="Wand ' + (i + 1) + ' entfernen">✕</button></div>';
+}
+function geometrieHtml() {
+  const u = umrissRechnen(entwurf.waende);
+  if (!u.vollstaendig) {
+    return '<div class="hinweis info"><div>Mindestens drei Wände mit Mass eintragen, dann rechnet die App Fläche und Umfang.</div></div>';
+  }
+  const zu = schliesst(u);
+  return '<div class="geo-werte"><div><span>Fläche</span><b>' + u.flaeche.toFixed(2) + " m²</b></div><div><span>Umfang</span><b>" + u.umfang.toFixed(2) + ' m</b></div><div><span>Kontrolle</span><b class="' + (zu ? "gut" : "schlecht") + '">' + (zu ? "Umriss geht auf" : "Lücke " + (u.luecke * 100).toFixed(0) + " cm") + "</b></div></div>" + skizzeSvg(entwurf.waende) + (zu ? "" : '<div class="hinweis warn"><div>Der Umriss schliesst nicht. Meist stimmt eine Wandlänge nicht oder eine Ecke ist keine 90° – z.B. 270° bei einer einspringenden Ecke, 135° bei einer Schräge. Die Fläche wird trotzdem gerechnet, der Umriss dafür geschlossen.</div></div>');
+}
+function geometrieAktualisieren() {
+  const kasten = document.getElementById("raum-geo");
+  if (kasten) kasten.innerHTML = geometrieHtml();
+}
+function waendeAktualisieren() {
+  const liste = document.getElementById("raum-waende");
+  if (liste) liste.innerHTML = entwurf.waende.map(wandZeile).join("");
+  geometrieAktualisieren();
+}
+function raumFormular(Z2, r, vorgabe) {
+  entwurf = r ? JSON.parse(JSON.stringify(r)) : Object.assign({
+    id: null,
+    name: "",
+    geschoss: "",
+    hoehe: "",
+    wandstaerke: "",
+    fenster: "",
+    tueren: "",
+    boden: "",
+    bemerkung: ""
+  }, vorgabe || {});
+  if (!Array.isArray(entwurf.waende) || !entwurf.waende.length) {
+    entwurf.waende = [neueWand(), neueWand(), neueWand(), neueWand()];
+  }
+  modalOeffnen({
+    titel: entwurf.id ? "Raum bearbeiten" : "Neuer Raum",
+    koerper: '<div class="feld-paar"><label class="feld"><span>Raum</span><input data-feld="name" value="' + esc(entwurf.name) + '" placeholder="z.B. Wohnzimmer"></label><label class="feld"><span>Geschoss</span><input list="geschoss-liste" data-feld="geschoss" value="' + esc(entwurf.geschoss) + '" placeholder="EG"><datalist id="geschoss-liste"><option value="Keller"><option value="EG"><option value="OG"><option value="Dachstock"><option value="Aussen"></datalist></label></div><div class="abschnitt-kopf" style="margin:16px 2px 8px"><div><h3>Wände rundum</h3><p>Der Reihe nach messen: Länge der Wand, dann der Winkel zur nächsten</p></div><button class="btn zweit klein" type="button" data-aktion="raum-wand-neu">+ Wand</button></div><datalist id="winkel-liste"><option value="90" label="rechtwinklig"><option value="270" label="einspringende Ecke"><option value="135"><option value="225"><option value="45"><option value="315"></datalist><div class="geo-box" id="raum-geo">' + geometrieHtml() + '</div><div class="wand-kopf"><span></span><span>Länge (m)</span><span>Ecke danach (°)</span><span></span></div><div class="wand-liste" id="raum-waende">' + entwurf.waende.map(wandZeile).join("") + '</div><p class="wand-hinweis">90° = rechtwinklig · 270° = einspringende Ecke (L-Raum) · 135°/225° = Schräge</p><div class="feld-paar" style="margin-top:14px"><label class="feld"><span>Raumhöhe (m)</span><input inputmode="decimal" data-feld="hoehe" value="' + esc(entwurf.hoehe ?? "") + '" placeholder="2.40"></label><label class="feld"><span>Wandstärke (cm)</span><input inputmode="decimal" data-feld="wandstaerke" value="' + esc(entwurf.wandstaerke ?? "") + '" placeholder="24"></label></div><div class="feld-paar"><label class="feld"><span>Fenster</span><input data-feld="fenster" value="' + esc(entwurf.fenster) + '" placeholder="2 × 120/140, Brüstung 85"></label><label class="feld"><span>Türen</span><input data-feld="tueren" value="' + esc(entwurf.tueren) + '" placeholder="1 × 80/200"></label></div><label class="feld"><span>Boden</span><input data-feld="boden" value="' + esc(entwurf.boden) + '" placeholder="Parkett auf Blindboden"></label><label class="feld"><span>Bemerkungen</span><textarea data-feld="bemerkung" placeholder="Balkenrichtung, Auffälligkeiten …">' + esc(entwurf.bemerkung || "") + "</textarea></label>" + (entwurf.plan_id ? '<div class="hinweis info"><div>Dieser Raum hängt an einem Messpunkt im Grundriss. Sobald der Umriss steht, zeigt der Punkt im Plan die Fläche.</div></div>' : ""),
+    speichern: () => raumSpeichern(Z2)
+  });
+}
+async function raumSpeichern(Z2) {
+  const r = entwurf;
+  if (!r.name.trim()) {
+    meldung("Bitte einen Raumnamen angeben.", true);
+    return false;
+  }
+  const waende = gemesseneWaende(r.waende).map((w) => ({
+    laenge: zahl(w.laenge),
+    winkel: zahl(w.winkel) > 0 ? zahl(w.winkel) : STANDARD_WINKEL,
+    bezeichnung: (w.bezeichnung || "").trim()
+  }));
+  const u = umrissRechnen(waende);
+  const daten = {
+    name: r.name.trim(),
+    geschoss: (r.geschoss || "").trim(),
+    waende,
+    flaeche: u.vollstaendig ? u.flaeche : "",
+    umfang: waende.length ? u.umfang : "",
+    hoehe: r.hoehe === "" ? "" : zahl(r.hoehe),
+    wandstaerke: r.wandstaerke === "" ? "" : zahl(r.wandstaerke),
+    fenster: (r.fenster || "").trim(),
+    tueren: (r.tueren || "").trim(),
+    boden: (r.boden || "").trim(),
+    bemerkung: (r.bemerkung || "").trim(),
+    plan_id: r.plan_id || null,
+    marke_x: r.marke_x === null || r.marke_x === void 0 ? "" : zahl(r.marke_x),
+    marke_y: r.marke_y === null || r.marke_y === void 0 ? "" : zahl(r.marke_y)
+  };
+  try {
+    if (r.id) await raumAktualisieren(r.id, daten, r.geaendert_am);
+    else await raumAnlegen(Z2.projektId, daten);
+    meldung(r.id ? "Raum aktualisiert." : "Raum erfasst.");
+    await neuLaden(["raeume"]);
+    return true;
+  } catch (err) {
+    meldung(err.message, true);
+    return false;
+  }
+}
+function punktFormular(Z2) {
+  const gruppen = [...new Set((Z2.checkliste || []).map((p) => p.gruppe))];
+  entwurf = null;
+  modalOeffnen({
+    titel: "Eigener Punkt",
+    koerper: '<label class="feld"><span>Punkt</span><input id="chk-titel" placeholder="z.B. Wasserdruck im OG messen"></label><label class="feld"><span>Gruppe</span><input id="chk-gruppe" list="chk-gruppen" value="' + esc(gruppen[0] || "Eigene Punkte") + '" placeholder="Eigene Punkte"><datalist id="chk-gruppen">' + gruppen.map((g) => '<option value="' + esc(g) + '">').join("") + '<option value="Eigene Punkte"></datalist></label>',
+    speichern: async () => {
+      const titel = document.getElementById("chk-titel").value.trim();
+      if (!titel) {
+        meldung("Bitte den Punkt benennen.", true);
+        return false;
+      }
+      const gruppe = document.getElementById("chk-gruppe").value.trim() || "Eigene Punkte";
+      try {
+        await checklisteAnlegen(Z2.projektId, [{
+          gruppe,
+          titel,
+          eigen: true,
+          sortierung: (Z2.checkliste || []).length + 1e3
+        }]);
+        offeneGruppen.add(gruppe);
+        meldung("Punkt hinzugefügt.");
+        await neuLaden(["checkliste"]);
+        return true;
+      } catch (err) {
+        meldung(err.message, true);
+        return false;
+      }
+    }
+  });
+}
+function planFormular(Z2) {
+  entwurf = null;
+  modalOeffnen({
+    titel: "Grundriss hochladen",
+    koerper: '<div class="datei-feld" style="margin-bottom:14px"><p>Plan als Bild – Foto, Screenshot oder Ausschnitt aus den Verkaufsunterlagen (JPG, PNG, WEBP, max. 25 MB)</p><input type="file" id="p-datei" accept=".jpg,.jpeg,.png,.webp"></div><label class="feld"><span>Bezeichnung</span><input id="p-titel" placeholder="z.B. Erdgeschoss"></label>',
+    knopfText: "Hochladen",
+    speichern: async () => {
+      const feld = document.getElementById("p-datei");
+      const datei = feld && feld.files && feld.files[0];
+      if (!datei) {
+        meldung("Bitte eine Datei auswählen.", true);
+        return false;
+      }
+      const fehler = dateiPruefen(datei);
+      if (fehler) {
+        meldung(fehler, true);
+        return false;
+      }
+      const titel = document.getElementById("p-titel").value.trim() || datei.name;
+      let pfad = null;
+      try {
+        const info = await hochladen(datei, Z2.projektId, "plaene");
+        pfad = info.datei_pfad;
+        await planAnlegen(Z2.projektId, {
+          titel,
+          datei_pfad: pfad,
+          datei_name: datei.name,
+          sortierung: (Z2.plaene || []).length + 1
+        });
+        meldung("Plan gespeichert.");
+        await neuLaden(["plaene"]);
+        return true;
+      } catch (err) {
+        if (pfad) await loeschen(pfad).catch(() => {
+        });
+        meldung(err.message, true);
+        return false;
+      }
+    }
+  });
+}
+function planUmbenennen(Z2, plan) {
+  entwurf = null;
+  modalOeffnen({
+    titel: "Plan umbenennen",
+    koerper: '<label class="feld"><span>Bezeichnung</span><input id="p-titel" value="' + esc(plan.titel || "") + '"></label>',
+    speichern: async () => {
+      const titel = document.getElementById("p-titel").value.trim();
+      if (!titel) {
+        meldung("Bitte eine Bezeichnung angeben.", true);
+        return false;
+      }
+      try {
+        await planAktualisieren(plan.id, { titel });
+        await neuLaden(["plaene"]);
+        return true;
+      } catch (err) {
+        meldung(err.message, true);
+        return false;
+      }
+    }
+  });
+}
+function markeAusTipp(e, flaeche2) {
+  const r = flaeche2.getBoundingClientRect();
+  if (!r.width || !r.height) return null;
+  const punkt = e.touches && e.touches[0] ? e.touches[0] : e;
+  const x = (punkt.clientX - r.left) / r.width;
+  const y = (punkt.clientY - r.top) / r.height;
+  if (x < 0 || x > 1 || y < 0 || y > 1) return null;
+  return { marke_x: Math.round(x * 1e4) / 1e4, marke_y: Math.round(y * 1e4) / 1e4 };
+}
+function eingabe(e) {
+  if (!document.querySelector(".modal") || !entwurf) return;
+  const wand = e.target.closest("[data-wand][data-wfeld]");
+  if (wand) {
+    entwurf.waende[+wand.dataset.wand][wand.dataset.wfeld] = wand.value;
+    geometrieAktualisieren();
+    return;
+  }
+  const feld = e.target.closest("[data-feld]");
+  if (!feld) return;
+  entwurf[feld.dataset.feld] = feld.value;
+}
+function aenderung(e, Z2) {
+  const feld = e.target.closest("[data-chk-wert]");
+  if (!feld) return;
+  const id = feld.dataset.chkWert;
+  const punkt = (Z2.checkliste || []).find((p) => p.id === id);
+  if (!punkt || punkt.wert === feld.value) return;
+  const wert = feld.value;
+  punkt.wert = wert;
+  checklistePunktAktualisieren(id, { wert }).catch((err) => meldung(err.message, true));
+}
+function aktion2(a, knopf, Z2, ereignis) {
+  if (a === "chk-gruppe") {
+    const name = knopf.dataset.gruppe;
+    if (offeneGruppen.has(name)) offeneGruppen.delete(name);
+    else offeneGruppen.add(name);
+    return neuZeichnen();
+  }
+  if (a === "chk-vorlage") {
+    if (vorlageLaeuft) return;
+    vorlageLaeuft = true;
+    knopf.disabled = true;
+    checklisteAnlegen(Z2.projektId, vorlagePunkte()).then(() => {
+      meldung("Checkliste angelegt.");
+      return neuLaden(["checkliste"]);
+    }).catch((err) => meldung(err.message, true)).finally(() => {
+      vorlageLaeuft = false;
+    });
+    return;
+  }
+  if (a === "chk-neu") return punktFormular(Z2);
+  if (a === "chk-haken") {
+    const punkt = (Z2.checkliste || []).find((p) => p.id === knopf.dataset.id);
+    if (!punkt) return;
+    const erledigt = !punkt.erledigt;
+    punkt.erledigt = erledigt;
+    knopf.setAttribute("aria-pressed", erledigt ? "true" : "false");
+    knopf.textContent = erledigt ? "✓" : "";
+    knopf.closest(".chk").classList.toggle("fertig", erledigt);
+    checklistePunktAktualisieren(punkt.id, { erledigt, erledigt_am: erledigt ? heuteISO() : null }).then(() => neuLaden(["checkliste"])).catch((err) => meldung(err.message, true));
+    return;
+  }
+  if (a === "chk-loeschen") {
+    const punkt = (Z2.checkliste || []).find((p) => p.id === knopf.dataset.id);
+    if (punkt && bestaetigen('Punkt "' + punkt.titel + '" löschen?')) {
+      checklistePunktLoeschen(punkt.id).then(() => neuLaden(["checkliste"])).catch((err) => meldung(err.message, true));
+    }
+    return;
+  }
+  if (a === "plan-neu") return planFormular(Z2);
+  if (a === "plan-umbenennen") {
+    const plan = (Z2.plaene || []).find((p) => p.id === knopf.dataset.id);
+    return plan ? planUmbenennen(Z2, plan) : void 0;
+  }
+  if (a === "plan-loeschen") {
+    const plan = (Z2.plaene || []).find((p) => p.id === knopf.dataset.id);
+    if (!plan) return;
+    const marken = (Z2.raeume || []).filter((r) => r.plan_id === plan.id).length;
+    if (!bestaetigen('Plan "' + (plan.titel || "") + '" entfernen?' + (marken ? " Die " + marken + " Messpunkte verlieren ihre Lage, die Räume bleiben im Messblatt." : ""))) return;
+    if (setzModus() === plan.id) setzModusSetzen(null);
+    planLoeschen(plan.id).then(() => loeschen(plan.datei_pfad).catch(() => {
+    })).then(() => {
+      meldung("Plan entfernt.");
+      return neuLaden(["plaene", "raeume"]);
+    }).catch((err) => meldung(err.message, true));
+    return;
+  }
+  if (a === "plan-setzen") {
+    setzModusSetzen(knopf.dataset.plan);
+    return neuZeichnen();
+  }
+  if (a === "plan-setzen-aus") {
+    setzModusSetzen(null);
+    return neuZeichnen();
+  }
+  if (a === "plan-tippen") {
+    const planId = knopf.dataset.plan;
+    if (setzModus() !== planId) return;
+    const lage = markeAusTipp(ereignis, knopf);
+    if (!lage) return;
+    setzModusSetzen(null);
+    neuZeichnen();
+    return raumFormular(Z2, null, Object.assign({ plan_id: planId }, lage));
+  }
+  if (a === "plan-marke") return raumFormular(Z2, (Z2.raeume || []).find((r) => r.id === knopf.dataset.id));
+  if (a === "raum-wand-neu") {
+    const letzte = entwurf.waende[entwurf.waende.length - 1];
+    entwurf.waende.push(neueWand(letzte ? letzte.winkel : void 0));
+    return waendeAktualisieren();
+  }
+  if (a === "raum-wand-weg") {
+    entwurf.waende.splice(+knopf.dataset.wand, 1);
+    if (!entwurf.waende.length) entwurf.waende.push(neueWand());
+    return waendeAktualisieren();
+  }
+  if (a === "raum-neu") return raumFormular(Z2, null);
+  if (a === "raum-bearbeiten") return raumFormular(Z2, (Z2.raeume || []).find((r) => r.id === knopf.dataset.id));
+  if (a === "raum-loeschen") {
+    const r = (Z2.raeume || []).find((x) => x.id === knopf.dataset.id);
+    if (r && bestaetigen('Raum "' + (r.name || "") + '" löschen?')) {
+      raumLoeschen(r.id).then(() => {
+        meldung("Raum gelöscht.");
+        return neuLaden(["raeume"]);
+      }).catch((err) => meldung(err.message, true));
+    }
+  }
+}
+var entwurf, offeneGruppen, vorlageLaeuft;
+var init_aufnahme = __esm({
+  "app/js/ansichten/aufnahme.js"() {
+    init_format();
+    init_gemeinsam();
+    init_daten();
+    init_dateien();
+    init_app();
+    init_checkliste_vorlage();
+    init_grundriss();
+    init_raumgeometrie();
+    init_grundriss();
+    entwurf = null;
+    offeneGruppen = /* @__PURE__ */ new Set();
+    vorlageLaeuft = false;
+  }
+});
+
 // app/js/ansichten/arbeiten.js
 var arbeiten_exports = {};
 __export(arbeiten_exports, {
-  aktion: () => aktion2,
-  eingabe: () => eingabe,
+  aenderung: () => aenderung2,
+  aktion: () => aktion3,
+  eingabe: () => eingabe2,
   istDieseWoche: () => istDieseWoche,
   istOffen: () => istOffen,
   istUeberfaellig: () => istUeberfaellig,
@@ -1362,8 +2198,9 @@ function render2(Z2) {
   const alle = Z2.arbeiten || [];
   const arbeiten = sortiert(alle.filter((a) => a.art !== "pendenz"));
   const pendenzen = sortiert(alle.filter((a) => a.art === "pendenz"));
-  let h = '<nav class="sprungleiste"><a href="#abschnitt-zeitplan">Zeitplan</a><a href="#abschnitt-pendenzen">Pendenzen &amp; Mängel</a></nav>';
+  let h = '<nav class="sprungleiste"><a href="#abschnitt-zeitplan">Zeitplan</a><a href="#abschnitt-pendenzen">Pendenzen &amp; Mängel</a><a href="#abschnitt-checkliste">Checkliste</a><a href="#abschnitt-grundriss">Grundriss</a><a href="#abschnitt-raeume">Räume</a></nav>';
   h += zeitplanAbschnitt(Z2, arbeiten) + pendenzAbschnitt(Z2, pendenzen);
+  h += checklisteAbschnitt(Z2) + grundrissAbschnitt(Z2) + raumAbschnitt(Z2);
   nachladenBald();
   return h;
 }
@@ -1410,7 +2247,7 @@ function pendenzAbschnitt(Z2, liste) {
 }
 function formular(Z2, a, art) {
   dateiWartend = null;
-  entwurf = a ? JSON.parse(JSON.stringify(a)) : {
+  entwurf2 = a ? JSON.parse(JSON.stringify(a)) : {
     id: null,
     art,
     titel: "",
@@ -1426,13 +2263,13 @@ function formular(Z2, a, art) {
     datei_name: null
   };
   modalOeffnen({
-    titel: (entwurf.id ? "Bearbeiten: " : "Neu: ") + (entwurf.art === "pendenz" ? "Pendenz / Mangel" : "Arbeit"),
+    titel: (entwurf2.id ? "Bearbeiten: " : "Neu: ") + (entwurf2.art === "pendenz" ? "Pendenz / Mangel" : "Arbeit"),
     koerper: koerper(Z2),
     speichern: () => speichern(Z2)
   });
 }
 function koerper(Z2) {
-  const a = entwurf;
+  const a = entwurf2;
   const pendenz = a.art === "pendenz";
   let h = '<label class="feld"><span>' + (pendenz ? "Was fehlt oder ist mangelhaft" : "Arbeit") + '</span><input data-feld="titel" value="' + esc(a.titel) + '" placeholder="' + (pendenz ? "z.B. Steckdose Küche fehlt" : "z.B. Elektroinstallation EG") + '"></label><div class="feld-paar"><label class="feld"><span>Gewerk / Kategorie</span><select data-feld="budgetposition_id">' + kategorieOptionen(Z2.budget, a.budgetposition_id) + '</select></label><label class="feld"><span>Raum / Ort</span><input data-feld="ort" value="' + esc(a.ort) + '" placeholder="z.B. Küche"></label></div><label class="feld"><span>Firma</span><input data-feld="firma" value="' + esc(a.firma) + '" placeholder="z.B. Meier Elektro AG"></label>';
   h += '<div class="feld-paar">' + (pendenz ? '<label class="feld"><span>Frist</span><input type="date" data-feld="bis" value="' + esc(a.bis || "") + '"></label>' : '<label class="feld"><span>Beginn</span><input type="date" data-feld="von" value="' + esc(a.von || "") + '"></label><label class="feld"><span>Ende</span><input type="date" data-feld="bis" value="' + esc(a.bis || "") + '"></label>') + '<label class="feld"><span>Stand</span><select data-feld="status">' + ARBEIT_STATUS.map((s) => "<option" + (s === a.status ? " selected" : "") + ">" + s + "</option>").join("") + "</select></label></div>";
@@ -1441,14 +2278,14 @@ function koerper(Z2) {
   return h;
 }
 function fotoBlock() {
-  const a = entwurf;
+  const a = entwurf2;
   if (a.datei_pfad) {
     return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Foto: ' + esc(a.datei_name || "") + '</b><div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(a.datei_pfad) + '">Foto öffnen</button><button class="btn still klein" type="button" data-aktion="pendenz-foto-weg">Foto entfernen</button></div></div></div>';
   }
   return '<div class="datei-feld" style="margin-bottom:14px"><p>Foto aufnehmen oder wählen (optional)</p><input type="file" id="p-foto" accept="image/*" capture="environment"></div>';
 }
 async function speichern(Z2) {
-  const a = entwurf;
+  const a = entwurf2;
   if (!a.titel.trim()) {
     meldung("Bitte eine Bezeichnung angeben.", true);
     return false;
@@ -1487,18 +2324,23 @@ async function speichern(Z2) {
     return false;
   }
 }
-function eingabe(e) {
-  if (!document.querySelector(".modal") || !entwurf) return;
+function eingabe2(e, Z2) {
+  eingabe(e, Z2);
+  if (!document.querySelector(".modal") || !entwurf2) return;
   const feld = e.target.closest("[data-feld]");
   if (!feld) return;
   const name = feld.dataset.feld;
   if (name === "budgetposition_id") {
-    entwurf.budgetposition_id = feld.value || null;
+    entwurf2.budgetposition_id = feld.value || null;
     return;
   }
-  entwurf[name] = feld.value;
+  entwurf2[name] = feld.value;
 }
-function aktion2(a, knopf, Z2) {
+function aenderung2(e, Z2) {
+  aenderung(e, Z2);
+}
+function aktion3(a, knopf, Z2, ereignis) {
+  if (a.startsWith("chk-") || a.startsWith("raum-") || a.startsWith("plan-")) return aktion2(a, knopf, Z2, ereignis);
   if (a === "arbeit-neu") return formular(Z2, null, "arbeit");
   if (a === "pendenz-neu") return formular(Z2, null, "pendenz");
   if (a === "arbeit-bearbeiten") {
@@ -1536,10 +2378,10 @@ function aktion2(a, knopf, Z2) {
     return;
   }
   if (a === "pendenz-foto-weg") {
-    if (entwurf.datei_pfad) loeschen(entwurf.datei_pfad).catch(() => {
+    if (entwurf2.datei_pfad) loeschen(entwurf2.datei_pfad).catch(() => {
     });
-    entwurf.datei_pfad = null;
-    entwurf.datei_name = null;
+    entwurf2.datei_pfad = null;
+    entwurf2.datei_name = null;
     dateiWartend = null;
     const koerperEl = document.querySelector(".modal-koerper");
     if (koerperEl) koerperEl.innerHTML = koerper(Z2);
@@ -1551,7 +2393,7 @@ function aktion2(a, knopf, Z2) {
     }).catch((e) => meldung(e.message, true));
   }
 }
-var entwurf, dateiWartend;
+var entwurf2, dateiWartend;
 var init_arbeiten = __esm({
   "app/js/ansichten/arbeiten.js"() {
     init_format();
@@ -1561,7 +2403,8 @@ var init_arbeiten = __esm({
     init_vorschau();
     init_app();
     init_konfig();
-    entwurf = null;
+    init_aufnahme();
+    entwurf2 = null;
     dateiWartend = null;
   }
 });
@@ -1569,8 +2412,8 @@ var init_arbeiten = __esm({
 // app/js/ansichten/uebersicht.js
 var uebersicht_exports = {};
 __export(uebersicht_exports, {
-  aenderung: () => aenderung,
-  aktion: () => aktion3,
+  aenderung: () => aenderung3,
+  aktion: () => aktion4,
   render: () => render3,
   renderProjektAnlegen: () => renderProjektAnlegen
 });
@@ -1725,7 +2568,7 @@ function einladungenListe(Z2) {
 function datenAbschnitt() {
   return '<section class="abschnitt"><div class="karte karte-pad"><h3>Prototyp-Sicherung übernehmen</h3><p style="margin:5px 0 12px;font-size:.84rem;color:var(--grau)">JSON-Export aus dem lokalen Prototyp (prototyp/index.html) einmalig in dieses Projekt einlesen. Hochgeladene Dateien sind darin nicht enthalten.</p><div class="btn-reihe"><button class="btn zweit" type="button" data-aktion="import">Sicherung importieren</button></div></div></section>';
 }
-function aenderung(e, Z2) {
+function aenderung3(e, Z2) {
   if (e.target.dataset.aenderung === "mitglied-rolle") {
     mitgliedRolleAendern(Z2.projektId, e.target.dataset.id, e.target.value).then(async () => {
       meldung("Rolle geändert.");
@@ -1737,7 +2580,7 @@ function aenderung(e, Z2) {
     });
   }
 }
-async function aktion3(a, knopf, Z2) {
+async function aktion4(a, knopf, Z2) {
   const el2 = (id) => document.getElementById(id);
   if (a === "projekt-anlegen") {
     const fehlerFeld = el2("p-fehler");
@@ -2033,7 +2876,7 @@ function render4(Z2) {
 }
 function formular2(Z2, f) {
   dateiWartend2 = null;
-  entwurf2 = f ? JSON.parse(JSON.stringify(f)) : {
+  entwurf3 = f ? JSON.parse(JSON.stringify(f)) : {
     id: null,
     bezeichnung: "",
     stelle: "",
@@ -2050,30 +2893,30 @@ function formular2(Z2, f) {
     datei_name: null
   };
   modalOeffnen({
-    titel: entwurf2.id ? "Fördergeld bearbeiten" : "Neues Fördergeld",
+    titel: entwurf3.id ? "Fördergeld bearbeiten" : "Neues Fördergeld",
     koerper: koerper2(Z2),
     speichern: () => speichern2(Z2)
   });
 }
 function koerper2(Z2) {
-  const f = entwurf2;
+  const f = entwurf3;
   return '<label class="feld"><span>Förderung / Massnahme</span><input data-feld="bezeichnung" value="' + esc(f.bezeichnung) + '" placeholder="z.B. Ersatz Ölheizung durch Wärmepumpe"></label><div class="feld-paar"><label class="feld"><span>Fördergeber</span><input list="foerder-stellen" data-feld="stelle" value="' + esc(f.stelle) + '" placeholder="z.B. Das Gebäudeprogramm"><datalist id="foerder-stellen">' + FOERDER_STELLEN.map((s) => '<option value="' + esc(s) + '">').join("") + '</datalist></label><label class="feld"><span>Gesuchsnummer</span><input data-feld="gesuchsnummer" value="' + esc(f.gesuchsnummer) + '" placeholder="optional"></label></div><div class="feld-paar"><label class="feld"><span>Betrag (CHF)</span><input inputmode="decimal" data-feld="betrag" value="' + zahl(f.betrag) + '" placeholder="8000"></label><label class="feld"><span>Stand</span><select data-feld="status">' + FOERDER_STATUS.map((s) => "<option" + (s === f.status ? " selected" : "") + ">" + s + "</option>").join("") + '</select></label></div><p style="margin:-6px 0 12px;font-size:.78rem;color:var(--grau)">Bis zur Zusicherung ist das der erwartete Beitrag, danach der verfügte. Erst ab «Zugesichert» zählt er zum verfügbaren Geld.</p><label class="feld"><span>Budgetkategorie</span><select data-feld="budgetposition_id">' + kategorieOptionen(Z2.budget, f.budgetposition_id) + '</select></label><div class="feld-paar"><label class="feld"><span>Eingabefrist</span><input type="date" data-feld="frist" value="' + esc(f.frist || "") + '"></label><label class="feld"><span>Eingereicht am</span><input type="date" data-feld="eingereicht_am" value="' + esc(f.eingereicht_am || "") + '"></label></div><div class="feld-paar"><label class="feld"><span>Entscheid am</span><input type="date" data-feld="entscheid_am" value="' + esc(f.entscheid_am || "") + '"></label><label class="feld"><span>Ausbezahlt am</span><input type="date" data-feld="auszahlung_am" value="' + esc(f.auszahlung_am || "") + '"></label></div>' + dateiBlock() + '<label class="feld"><span>Bemerkung</span><textarea data-feld="bemerkung" placeholder="optional">' + esc(f.bemerkung || "") + "</textarea></label>";
 }
 function dateiBlock() {
-  const f = entwurf2;
+  const f = entwurf3;
   if (f.datei_pfad) {
     return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Datei: ' + esc(f.datei_name || "") + '</b><div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(f.datei_pfad) + '">Datei öffnen</button><button class="btn still klein" type="button" data-aktion="foerder-datei-entfernen">Datei entfernen</button></div></div></div>';
   }
   return '<div class="datei-feld" style="margin-bottom:14px"><p>Zusicherung, Verfügung oder Gesuch anhängen (optional)</p><input type="file" id="foerder-datei" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"></div>';
 }
 function datumNachziehen() {
-  const f = entwurf2;
+  const f = entwurf3;
   if (f.status === "Beantragt" && !f.eingereicht_am) f.eingereicht_am = heuteISO();
   if ((f.status === "Zugesichert" || f.status === "Abgelehnt") && !f.entscheid_am) f.entscheid_am = heuteISO();
   if (f.status === "Ausbezahlt" && !f.auszahlung_am) f.auszahlung_am = heuteISO();
 }
 async function speichern2(Z2) {
-  const f = entwurf2;
+  const f = entwurf3;
   if (!f.bezeichnung.trim() && !f.stelle.trim()) {
     meldung("Bitte mindestens eine Bezeichnung oder den Fördergeber angeben.", true);
     return false;
@@ -2112,23 +2955,23 @@ async function speichern2(Z2) {
     return false;
   }
 }
-function eingabe2(e, Z2) {
-  if (!document.querySelector(".modal") || !entwurf2) return;
+function eingabe3(e, Z2) {
+  if (!document.querySelector(".modal") || !entwurf3) return;
   const feld = e.target.closest("[data-feld]");
   if (!feld) return;
   const name = feld.dataset.feld;
   if (name === "budgetposition_id") {
-    entwurf2.budgetposition_id = feld.value || null;
+    entwurf3.budgetposition_id = feld.value || null;
     return;
   }
-  entwurf2[name] = feld.value;
+  entwurf3[name] = feld.value;
   if (name === "status") {
     datumNachziehen();
     const koerperEl = document.querySelector(".modal-koerper");
     if (koerperEl) koerperEl.innerHTML = koerper2(Z2);
   }
 }
-function aktion4(a, knopf, Z2) {
+function aktion5(a, knopf, Z2) {
   if (a === "foerder-neu") return formular2(Z2, null);
   if (a === "foerder-bearbeiten") return formular2(Z2, (Z2.foerdergelder || []).find((f) => f.id === knopf.dataset.id));
   if (a === "foerder-loeschen") {
@@ -2148,10 +2991,10 @@ function aktion4(a, knopf, Z2) {
     return;
   }
   if (a === "foerder-datei-entfernen") {
-    if (entwurf2.datei_pfad) loeschen(entwurf2.datei_pfad).catch(() => {
+    if (entwurf3.datei_pfad) loeschen(entwurf3.datei_pfad).catch(() => {
     });
-    entwurf2.datei_pfad = null;
-    entwurf2.datei_name = null;
+    entwurf3.datei_pfad = null;
+    entwurf3.datei_name = null;
     dateiWartend2 = null;
     const koerperEl = document.querySelector(".modal-koerper");
     if (koerperEl) koerperEl.innerHTML = koerper2(Z2);
@@ -2163,7 +3006,7 @@ function aktion4(a, knopf, Z2) {
     }).catch((e) => meldung(e.message, true));
   }
 }
-var entwurf2, dateiWartend2;
+var entwurf3, dateiWartend2;
 var init_foerdergelder = __esm({
   "app/js/ansichten/foerdergelder.js"() {
     init_format();
@@ -2172,7 +3015,7 @@ var init_foerdergelder = __esm({
     init_dateien();
     init_app();
     init_konfig();
-    entwurf2 = null;
+    entwurf3 = null;
     dateiWartend2 = null;
   }
 });
@@ -2206,7 +3049,7 @@ function render5(Z2) {
   return h + "</section>";
 }
 function formular3(Z2, a) {
-  entwurf3 = a ? JSON.parse(JSON.stringify(a)) : {
+  entwurf4 = a ? JSON.parse(JSON.stringify(a)) : {
     id: null,
     bezeichnung: "",
     kategorie: "",
@@ -2217,17 +3060,17 @@ function formular3(Z2, a) {
     bemerkung: ""
   };
   modalOeffnen({
-    titel: entwurf3.id ? "Anschaffung bearbeiten" : "Neue Anschaffung",
+    titel: entwurf4.id ? "Anschaffung bearbeiten" : "Neue Anschaffung",
     koerper: koerper3(),
     speichern: () => speichern3(Z2)
   });
 }
 function koerper3() {
-  const a = entwurf3;
+  const a = entwurf4;
   return '<label class="feld"><span>Anschaffung</span><input data-feld="bezeichnung" value="' + esc(a.bezeichnung) + '" placeholder="z.B. Waschmaschine"></label><div class="feld-paar"><label class="feld"><span>Art</span><input list="ansch-arten" data-feld="kategorie" value="' + esc(a.kategorie) + '" placeholder="z.B. Haushaltgeräte"><datalist id="ansch-arten">' + ANSCHAFFUNG_ARTEN.map((x) => '<option value="' + esc(x) + '">').join("") + '</datalist></label><label class="feld"><span>Betrag (CHF)</span><input inputmode="decimal" data-feld="betrag" value="' + zahl(a.betrag) + '" placeholder="1200"></label></div><div class="feld-paar"><label class="feld"><span>Datum</span><input type="date" data-feld="datum" value="' + esc(a.datum || "") + '"></label><label class="feld"><span>Finanzierung</span><select data-feld="finanzierung">' + FINANZIERUNGEN.map((x) => "<option" + (x === a.finanzierung ? " selected" : "") + ">" + x + "</option>").join("") + '</select></label></div><label class="check"><input type="checkbox" data-feld="bezahlt"' + (a.bezahlt ? " checked" : "") + '> Bereits bezahlt</label><label class="feld"><span>Bemerkung</span><textarea data-feld="bemerkung" placeholder="optional">' + esc(a.bemerkung || "") + '</textarea></label><div class="hinweis info"><div>Diese Kosten bleiben ausserhalb des Sanierungsbudgets und verändern den verfügbaren Betrag nicht.</div></div>';
 }
 async function speichern3(Z2) {
-  const a = entwurf3;
+  const a = entwurf4;
   if (!a.bezeichnung.trim()) {
     meldung("Bitte eine Bezeichnung angeben.", true);
     return false;
@@ -2252,13 +3095,13 @@ async function speichern3(Z2) {
     return false;
   }
 }
-function eingabe3(e) {
-  if (!document.querySelector(".modal") || !entwurf3) return;
+function eingabe4(e) {
+  if (!document.querySelector(".modal") || !entwurf4) return;
   const feld = e.target.closest("[data-feld]");
   if (!feld) return;
-  entwurf3[feld.dataset.feld] = feld.type === "checkbox" ? feld.checked : feld.value;
+  entwurf4[feld.dataset.feld] = feld.type === "checkbox" ? feld.checked : feld.value;
 }
-function aktion5(a, knopf, Z2) {
+function aktion6(a, knopf, Z2) {
   if (a === "ansch-neu") return formular3(Z2, null);
   if (a === "ansch-bearbeiten") return formular3(Z2, (Z2.anschaffungen || []).find((x) => x.id === knopf.dataset.id));
   if (a === "ansch-loeschen") {
@@ -2296,7 +3139,7 @@ function kreditFormular(Z2) {
     }
   });
 }
-var entwurf3;
+var entwurf4;
 var init_anschaffungen = __esm({
   "app/js/ansichten/anschaffungen.js"() {
     init_format();
@@ -2304,15 +3147,15 @@ var init_anschaffungen = __esm({
     init_daten();
     init_app();
     init_konfig();
-    entwurf3 = null;
+    entwurf4 = null;
   }
 });
 
 // app/js/ansichten/budget.js
 var budget_exports = {};
 __export(budget_exports, {
-  aktion: () => aktion6,
-  eingabe: () => eingabe4,
+  aktion: () => aktion7,
+  eingabe: () => eingabe5,
   render: () => render6
 });
 function render6(Z2) {
@@ -2394,13 +3237,13 @@ function formular4(Z2, p) {
     }
   });
 }
-function eingabe4(e, Z2) {
-  eingabe2(e, Z2);
+function eingabe5(e, Z2) {
   eingabe3(e, Z2);
+  eingabe4(e, Z2);
 }
-function aktion6(a, knopf, Z2) {
-  if (a.startsWith("foerder-") || a === "datei-oeffnen") return aktion4(a, knopf, Z2);
-  if (a.startsWith("ansch-") || a === "kredit-rahmen") return aktion5(a, knopf, Z2);
+function aktion7(a, knopf, Z2) {
+  if (a.startsWith("foerder-") || a === "datei-oeffnen") return aktion5(a, knopf, Z2);
+  if (a.startsWith("ansch-") || a === "kredit-rahmen") return aktion6(a, knopf, Z2);
   if (a === "budget-neu") return formular4(Z2, null);
   if (a === "budget-bearbeiten") return formular4(Z2, Z2.budget.find((p) => p.id === knopf.dataset.id));
   if (a === "budget-umschalten") {
@@ -2548,9 +3391,9 @@ var init_ki = __esm({
 // app/js/ansichten/offerten.js
 var offerten_exports = {};
 __export(offerten_exports, {
-  aenderung: () => aenderung2,
-  aktion: () => aktion7,
-  eingabe: () => eingabe5,
+  aenderung: () => aenderung4,
+  aktion: () => aktion8,
+  eingabe: () => eingabe6,
   render: () => render7
 });
 function render7(Z2) {
@@ -2575,15 +3418,15 @@ function neuePosition() {
   return { nr: "", beschreibung: "", menge: 1, einheit: "pauschal", einzelpreis: 0 };
 }
 function entwurfNetto() {
-  return (entwurf4.offert_positionen || []).reduce((s, p) => s + zahl(p.menge) * zahl(p.einzelpreis), 0);
+  return (entwurf5.offert_positionen || []).reduce((s, p) => s + zahl(p.menge) * zahl(p.einzelpreis), 0);
 }
 function entwurfMwst() {
-  return entwurf4.mwst_satz == null ? 0 : entwurfNetto() * (zahl(entwurf4.mwst_satz) / 100);
+  return entwurf5.mwst_satz == null ? 0 : entwurfNetto() * (zahl(entwurf5.mwst_satz) / 100);
 }
 function formular5(Z2, o) {
   dateiWartend3 = null;
   letzterHinweis = "";
-  entwurf4 = o ? JSON.parse(JSON.stringify(o)) : {
+  entwurf5 = o ? JSON.parse(JSON.stringify(o)) : {
     id: null,
     budgetposition_id: null,
     lieferant: "",
@@ -2598,15 +3441,15 @@ function formular5(Z2, o) {
     handwerker_id: null,
     offert_positionen: [neuePosition()]
   };
-  if (!entwurf4.offert_positionen || !entwurf4.offert_positionen.length) entwurf4.offert_positionen = [neuePosition()];
+  if (!entwurf5.offert_positionen || !entwurf5.offert_positionen.length) entwurf5.offert_positionen = [neuePosition()];
   modalOeffnen({
-    titel: entwurf4.id ? "Offerte bearbeiten" : "Neue Offerte",
+    titel: entwurf5.id ? "Offerte bearbeiten" : "Neue Offerte",
     koerper: koerper4(Z2),
     speichern: () => speichern4(Z2)
   });
 }
 function koerper4(Z2) {
-  const o = entwurf4;
+  const o = entwurf5;
   let h = '<div id="o-analyse">' + analyseBlock() + "</div>";
   if (o.ki_erkannt) {
     h += '<div class="hinweis demo" style="margin-bottom:14px"><div><b>Von der KI ausgelesen – bitte prüfen</b>Automatisch erkannte Werte können falsch sein. Beträge, Mengen und das Datum bitte mit der Offerte vergleichen.' + (letzterHinweis ? "<br>Hinweis der Auswertung: " + esc(letzterHinweis) : "") + "</div></div>";
@@ -2622,7 +3465,7 @@ function koerper4(Z2) {
   return h;
 }
 function analyseBlock() {
-  const o = entwurf4;
+  const o = entwurf5;
   if (o.datei_pfad) {
     return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Datei: ' + esc(o.datei_name || "") + '</b><div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(o.datei_pfad) + '">Datei öffnen</button><button class="btn zweit klein" type="button" data-aktion="o-analysieren">Offerte auslesen</button><button class="btn still klein" type="button" data-aktion="o-datei-entfernen">Datei entfernen</button></div></div></div>';
   }
@@ -2635,7 +3478,7 @@ function positionHtml(p, i) {
   return '<div class="pos-zeile" data-zeile="' + i + '"><div class="pos-grid"><div class="pos-mini"><label class="feld"><span>Nr.</span><input class="p-nr" data-pos="' + i + '" data-feld="nr" value="' + esc(p.nr) + '"></label><label class="feld" style="grid-column:span 2"><span>Beschreibung</span><input data-pos="' + i + '" data-feld="beschreibung" value="' + esc(p.beschreibung) + '" placeholder="Leistung"></label></div><label class="feld"><span>Menge</span><input inputmode="decimal" data-pos="' + i + '" data-feld="menge" value="' + esc(p.menge) + '"></label><label class="feld"><span>Einheit</span><input list="einheit-liste" data-pos="' + i + '" data-feld="einheit" value="' + esc(p.einheit) + '"></label><label class="feld"><span>Einzelpreis CHF</span><input inputmode="decimal" data-pos="' + i + '" data-feld="einzelpreis" value="' + esc(p.einzelpreis) + '"></label><label class="feld"><span>Entfernen</span><button class="btn gefahr klein" type="button" data-aktion="o-pos-weg" data-pos="' + i + '">✕</button></label></div><div class="pos-fuss"><span style="color:var(--grau)">Zeilentotal</span><b class="zahl" data-zeilen-total="' + i + '">' + chf(zahl(p.menge) * zahl(p.einzelpreis)) + "</b></div></div>";
 }
 function summeHtml() {
-  const o = entwurf4;
+  const o = entwurf5;
   const netto = entwurfNetto(), mwst = entwurfMwst();
   const ohneMwst = o.mwst_satz == null;
   return '<div class="check"><input type="checkbox" id="o-ohne-mwst"' + (ohneMwst ? " checked" : "") + '> <label for="o-ohne-mwst" style="margin:0">Ohne MWST führen</label></div><div class="summe-zeile"><span>Zwischentotal (netto)</span><b class="zahl" id="o-netto">' + chf(netto) + '</b></div><div class="summe-zeile"><span>MWST <input inputmode="decimal" data-feld="mwst_satz" value="' + (ohneMwst ? "" : esc(o.mwst_satz)) + '" ' + (ohneMwst ? "disabled" : "") + ' style="width:74px;display:inline-block;min-height:34px;padding:4px 7px;text-align:right"> %</span><b class="zahl" id="o-mwst">' + chf(mwst) + '</b></div><div class="summe-zeile total"><span>Total inkl. MWST</span><b class="zahl" id="o-total">' + chf(netto + mwst) + "</b></div>";
@@ -2645,7 +3488,7 @@ function neuZeichnenKoerper(Z2) {
   if (koerperEl) koerperEl.innerHTML = koerper4(Z2);
 }
 function summeAktualisieren() {
-  if (!entwurf4) return;
+  if (!entwurf5) return;
   const netto = entwurfNetto(), mwst = entwurfMwst();
   const setze = (id, wert) => {
     const x = document.getElementById(id);
@@ -2654,7 +3497,7 @@ function summeAktualisieren() {
   setze("o-netto", chf(netto));
   setze("o-mwst", chf(mwst));
   setze("o-total", chf(netto + mwst));
-  entwurf4.offert_positionen.forEach((p, i) => {
+  entwurf5.offert_positionen.forEach((p, i) => {
     const ziel = document.querySelector('[data-zeilen-total="' + i + '"]');
     if (ziel) ziel.textContent = chf(zahl(p.menge) * zahl(p.einzelpreis));
   });
@@ -2662,7 +3505,7 @@ function summeAktualisieren() {
 async function analysieren(Z2) {
   const dateiFeld = document.getElementById("o-datei");
   if (dateiFeld && dateiFeld.files && dateiFeld.files[0]) dateiWartend3 = dateiFeld.files[0];
-  if (!dateiWartend3 && !entwurf4.datei_pfad) {
+  if (!dateiWartend3 && !entwurf5.datei_pfad) {
     meldung("Bitte zuerst eine Datei auswählen.", true);
     return;
   }
@@ -2672,7 +3515,7 @@ async function analysieren(Z2) {
   let ergebnis;
   try {
     ergebnis = await analysiereDokument(
-      { datei: dateiWartend3, pfad: entwurf4.datei_pfad, name: entwurf4.datei_name, projektId: Z2.projektId, bereich: "offerten" },
+      { datei: dateiWartend3, pfad: entwurf5.datei_pfad, name: entwurf5.datei_name, projektId: Z2.projektId, bereich: "offerten" },
       "offerte",
       (i) => {
         const liste = block.querySelector(".lade-schritte");
@@ -2684,25 +3527,25 @@ async function analysieren(Z2) {
     meldung(analyseFehlerText(e), true);
     return;
   }
-  if (!document.querySelector(".modal") || !entwurf4) return;
-  entwurf4.datei_pfad = ergebnis.datei_pfad;
-  entwurf4.datei_name = ergebnis.datei_name;
+  if (!document.querySelector(".modal") || !entwurf5) return;
+  entwurf5.datei_pfad = ergebnis.datei_pfad;
+  entwurf5.datei_name = ergebnis.datei_name;
   dateiWartend3 = null;
   letzterHinweis = ergebnis.hinweis || "";
-  entwurf4.ki_erkannt = true;
-  if (ergebnis.lieferant) entwurf4.lieferant = ergebnis.lieferant;
-  if (ergebnis.nummer) entwurf4.nummer = ergebnis.nummer;
-  if (ergebnis.datum) entwurf4.datum = ergebnis.datum;
-  entwurf4.mwst_satz = ergebnis.mwstSatz;
-  entwurf4.status = entwurf4.status === "Entwurf" ? "Erfasst" : entwurf4.status;
-  if (ergebnis.positionen.length) entwurf4.offert_positionen = ergebnis.positionen;
+  entwurf5.ki_erkannt = true;
+  if (ergebnis.lieferant) entwurf5.lieferant = ergebnis.lieferant;
+  if (ergebnis.nummer) entwurf5.nummer = ergebnis.nummer;
+  if (ergebnis.datum) entwurf5.datum = ergebnis.datum;
+  entwurf5.mwst_satz = ergebnis.mwstSatz;
+  entwurf5.status = entwurf5.status === "Entwurf" ? "Erfasst" : entwurf5.status;
+  if (ergebnis.positionen.length) entwurf5.offert_positionen = ergebnis.positionen;
   neuZeichnenKoerper(Z2);
   meldung(
     ergebnis.positionen.length ? "Offerte ausgelesen (" + ergebnis.positionen.length + " Positionen) – bitte prüfen." : "Es konnten keine Positionen erkannt werden. Bitte von Hand erfassen."
   );
 }
 async function speichern4(Z2) {
-  const o = entwurf4;
+  const o = entwurf5;
   if (!o.lieferant.trim() && !o.nummer.trim()) {
     meldung("Bitte mindestens Lieferant oder Offertnummer angeben.", true);
     return false;
@@ -2727,36 +3570,36 @@ async function speichern4(Z2) {
     return false;
   }
 }
-function eingabe5(e, Z2) {
-  if (!document.querySelector(".modal") || !entwurf4) return;
+function eingabe6(e, Z2) {
+  if (!document.querySelector(".modal") || !entwurf5) return;
   const feld = e.target.closest("[data-feld]");
   if (!feld) return;
   const name = feld.dataset.feld;
   if (feld.dataset.pos !== void 0) {
-    const p = entwurf4.offert_positionen[+feld.dataset.pos];
+    const p = entwurf5.offert_positionen[+feld.dataset.pos];
     if (!p) return;
     p[name] = feld.value;
     summeAktualisieren();
     return;
   }
   if (name === "handwerker_id") {
-    entwurf4.handwerker_id = feld.value || null;
+    entwurf5.handwerker_id = feld.value || null;
     return;
   }
   if (name === "budgetposition_id") {
-    entwurf4.budgetposition_id = feld.value || null;
+    entwurf5.budgetposition_id = feld.value || null;
     return;
   }
-  entwurf4[name] = feld.value;
+  entwurf5[name] = feld.value;
   if (name === "mwst_satz") summeAktualisieren();
 }
-function aenderung2(e, Z2) {
-  if (e.target.id === "o-ohne-mwst" && entwurf4) {
-    entwurf4.mwst_satz = e.target.checked ? null : 8.1;
+function aenderung4(e, Z2) {
+  if (e.target.id === "o-ohne-mwst" && entwurf5) {
+    entwurf5.mwst_satz = e.target.checked ? null : 8.1;
     neuZeichnenKoerper(Z2);
   }
 }
-function aktion7(a, knopf, Z2) {
+function aktion8(a, knopf, Z2) {
   if (a === "offerte-neu") return formular5(Z2, null);
   if (a === "offerte-bearbeiten") return formular5(Z2, Z2.offerten.find((o) => o.id === knopf.dataset.id));
   if (a === "offerte-loeschen") {
@@ -2777,24 +3620,24 @@ function aktion7(a, knopf, Z2) {
   }
   if (a === "o-analysieren") return analysieren(Z2);
   if (a === "o-pos-neu") {
-    entwurf4.offert_positionen.push(neuePosition());
-    entwurf4.offert_positionen[entwurf4.offert_positionen.length - 1].nr = String(entwurf4.offert_positionen.length);
-    document.getElementById("o-positionen").innerHTML = entwurf4.offert_positionen.map(positionHtml).join("");
+    entwurf5.offert_positionen.push(neuePosition());
+    entwurf5.offert_positionen[entwurf5.offert_positionen.length - 1].nr = String(entwurf5.offert_positionen.length);
+    document.getElementById("o-positionen").innerHTML = entwurf5.offert_positionen.map(positionHtml).join("");
     summeAktualisieren();
     return;
   }
   if (a === "o-pos-weg") {
-    entwurf4.offert_positionen.splice(+knopf.dataset.pos, 1);
-    if (!entwurf4.offert_positionen.length) entwurf4.offert_positionen.push(neuePosition());
-    document.getElementById("o-positionen").innerHTML = entwurf4.offert_positionen.map(positionHtml).join("");
+    entwurf5.offert_positionen.splice(+knopf.dataset.pos, 1);
+    if (!entwurf5.offert_positionen.length) entwurf5.offert_positionen.push(neuePosition());
+    document.getElementById("o-positionen").innerHTML = entwurf5.offert_positionen.map(positionHtml).join("");
     summeAktualisieren();
     return;
   }
   if (a === "o-datei-entfernen") {
-    if (entwurf4.datei_pfad) loeschen(entwurf4.datei_pfad).catch(() => {
+    if (entwurf5.datei_pfad) loeschen(entwurf5.datei_pfad).catch(() => {
     });
-    entwurf4.datei_pfad = null;
-    entwurf4.datei_name = null;
+    entwurf5.datei_pfad = null;
+    entwurf5.datei_name = null;
     dateiWartend3 = null;
     document.getElementById("o-analyse").innerHTML = analyseBlock();
     return;
@@ -2805,7 +3648,7 @@ function aktion7(a, knopf, Z2) {
     }).catch((e) => meldung(e.message, true));
   }
 }
-var entwurf4, dateiWartend3, letzterHinweis;
+var entwurf5, dateiWartend3, letzterHinweis;
 var init_offerten = __esm({
   "app/js/ansichten/offerten.js"() {
     init_format();
@@ -2815,7 +3658,7 @@ var init_offerten = __esm({
     init_ki();
     init_app();
     init_konfig();
-    entwurf4 = null;
+    entwurf5 = null;
     dateiWartend3 = null;
     letzterHinweis = "";
   }
@@ -2824,9 +3667,9 @@ var init_offerten = __esm({
 // app/js/ansichten/belege.js
 var belege_exports = {};
 __export(belege_exports, {
-  aenderung: () => aenderung3,
-  aktion: () => aktion8,
-  eingabe: () => eingabe6,
+  aenderung: () => aenderung5,
+  aktion: () => aktion9,
+  eingabe: () => eingabe7,
   render: () => render8
 });
 function render8(Z2) {
@@ -2854,7 +3697,7 @@ function formular6(Z2, b) {
   dateiWartend4 = null;
   letzterHinweis2 = "";
   mwstManuell = false;
-  entwurf5 = b ? JSON.parse(JSON.stringify(b)) : {
+  entwurf6 = b ? JSON.parse(JSON.stringify(b)) : {
     id: null,
     budgetposition_id: null,
     offerte_id: null,
@@ -2871,10 +3714,10 @@ function formular6(Z2, b) {
     datei_name: null,
     ki_erkannt: false
   };
-  modalOeffnen({ titel: entwurf5.id ? "Beleg bearbeiten" : "Neuer Beleg", koerper: koerper5(Z2), speichern: () => speichern5(Z2) });
+  modalOeffnen({ titel: entwurf6.id ? "Beleg bearbeiten" : "Neuer Beleg", koerper: koerper5(Z2), speichern: () => speichern5(Z2) });
 }
 function koerper5(Z2) {
-  const b = entwurf5;
+  const b = entwurf6;
   const ohneMwst = b.mwst == null;
   let h = '<div id="b-analyse">' + analyseBlock2() + "</div>";
   if (b.ki_erkannt) {
@@ -2884,7 +3727,7 @@ function koerper5(Z2) {
   return h;
 }
 function analyseBlock2() {
-  const b = entwurf5;
+  const b = entwurf6;
   if (b.datei_pfad) {
     return '<div class="hinweis info" style="margin-bottom:14px"><div style="flex:1"><b>Datei: ' + esc(b.datei_name || "") + '</b><div class="btn-reihe" style="margin-top:9px"><button class="btn zweit klein" type="button" data-aktion="datei-oeffnen" data-pfad="' + esc(b.datei_pfad) + '">Datei öffnen</button><button class="btn zweit klein" type="button" data-aktion="b-analysieren">Beleg auslesen</button><button class="btn still klein" type="button" data-aktion="b-datei-entfernen">Datei entfernen</button></div></div></div>';
   }
@@ -2894,7 +3737,7 @@ function analyseBlock2() {
   return '<div class="datei-feld" style="margin-bottom:14px"><p>Rechnung oder Quittung als PDF, JPG oder PNG hochladen</p><input type="file" id="b-datei" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><div class="btn-reihe" style="margin-top:11px;justify-content:center"><button class="btn klein" type="button" data-aktion="b-analysieren">Beleg auslesen</button></div><p style="margin:9px 0 0;font-size:.76rem">Beim Auslesen wird die Datei gespeichert und einmalig an den KI-Dienst (Google Gemini) übermittelt. Ohne Klick auf diesen Knopf passiert das nicht.</p></div>';
 }
 function betraegeAbgleichen(zuletzt) {
-  const b = entwurf5;
+  const b = entwurf6;
   if (b.mwst == null) {
     b.netto = zahl(b.brutto);
     return;
@@ -2917,7 +3760,7 @@ function betraegeAbgleichen(zuletzt) {
 async function analysieren2(Z2) {
   const feld = document.getElementById("b-datei");
   if (feld && feld.files && feld.files[0]) dateiWartend4 = feld.files[0];
-  if (!dateiWartend4 && !entwurf5.datei_pfad) {
+  if (!dateiWartend4 && !entwurf6.datei_pfad) {
     meldung("Bitte zuerst eine Datei auswählen.", true);
     return;
   }
@@ -2927,7 +3770,7 @@ async function analysieren2(Z2) {
   let e;
   try {
     e = await analysiereDokument(
-      { datei: dateiWartend4, pfad: entwurf5.datei_pfad, name: entwurf5.datei_name, projektId: Z2.projektId, bereich: "belege" },
+      { datei: dateiWartend4, pfad: entwurf6.datei_pfad, name: entwurf6.datei_name, projektId: Z2.projektId, bereich: "belege" },
       "beleg",
       (i) => {
         const liste = block.querySelector(".lade-schritte");
@@ -2940,27 +3783,27 @@ async function analysieren2(Z2) {
     meldung(analyseFehlerText(fehler), true);
     return;
   }
-  if (!document.querySelector(".modal") || !entwurf5) return;
-  entwurf5.datei_pfad = e.datei_pfad;
-  entwurf5.datei_name = e.datei_name;
+  if (!document.querySelector(".modal") || !entwurf6) return;
+  entwurf6.datei_pfad = e.datei_pfad;
+  entwurf6.datei_name = e.datei_name;
   dateiWartend4 = null;
   letzterHinweis2 = e.hinweis || "";
   mwstManuell = false;
-  Object.assign(entwurf5, {
+  Object.assign(entwurf6, {
     ki_erkannt: true,
-    lieferant: e.lieferant || entwurf5.lieferant,
-    nummer: e.nummer || entwurf5.nummer,
-    datum: e.datum || entwurf5.datum,
+    lieferant: e.lieferant || entwurf6.lieferant,
+    nummer: e.nummer || entwurf6.nummer,
+    datum: e.datum || entwurf6.datum,
     netto: e.netto,
     mwst: e.mwst,
     brutto: e.brutto,
-    bezahlt: e.bezahlt || entwurf5.bezahlt,
-    zahlungsdatum: e.zahlungsdatum || entwurf5.zahlungsdatum
+    bezahlt: e.bezahlt || entwurf6.bezahlt,
+    zahlungsdatum: e.zahlungsdatum || entwurf6.zahlungsdatum
   });
-  if (!entwurf5.offerte_id && entwurf5.lieferant) {
-    const gesucht = entwurf5.lieferant.toLowerCase();
+  if (!entwurf6.offerte_id && entwurf6.lieferant) {
+    const gesucht = entwurf6.lieferant.toLowerCase();
     const passend = Z2.offerten.find((o) => (o.lieferant || "").toLowerCase() === gesucht);
-    if (passend) entwurf5.offerte_id = passend.id;
+    if (passend) entwurf6.offerte_id = passend.id;
   }
   const koerperEl = document.querySelector(".modal-koerper");
   if (koerperEl) koerperEl.innerHTML = koerper5(Z2);
@@ -2969,7 +3812,7 @@ async function analysieren2(Z2) {
   );
 }
 async function speichern5(Z2) {
-  const b = entwurf5;
+  const b = entwurf6;
   if (!b.lieferant.trim() && !b.nummer.trim()) {
     meldung("Bitte mindestens Lieferant oder Rechnungsnummer angeben.", true);
     return false;
@@ -3001,39 +3844,39 @@ async function speichern5(Z2) {
     return false;
   }
 }
-function eingabe6(e) {
-  if (!document.querySelector(".modal") || !entwurf5) return;
+function eingabe7(e) {
+  if (!document.querySelector(".modal") || !entwurf6) return;
   const feld = e.target.closest("[data-feld]");
   if (!feld) return;
   const name = feld.dataset.feld;
   const wert = feld.type === "checkbox" ? feld.checked : feld.value;
   if (name === "budgetposition_id" || name === "offerte_id") {
-    entwurf5[name] = wert || null;
+    entwurf6[name] = wert || null;
     return;
   }
-  entwurf5[name] = wert;
+  entwurf6[name] = wert;
   if (name === "mwst") mwstManuell = true;
   if (feld.dataset.betrag) betraegeAbgleichen(name);
-  if (name === "bezahlt" && wert && !entwurf5.zahlungsdatum) {
-    entwurf5.zahlungsdatum = heuteISO();
+  if (name === "bezahlt" && wert && !entwurf6.zahlungsdatum) {
+    entwurf6.zahlungsdatum = heuteISO();
     const zd = document.querySelector('[data-feld="zahlungsdatum"]');
-    if (zd) zd.value = entwurf5.zahlungsdatum;
+    if (zd) zd.value = entwurf6.zahlungsdatum;
   }
 }
-function aenderung3(e, Z2) {
-  if (e.target.id === "b-ohne-mwst" && entwurf5) {
+function aenderung5(e, Z2) {
+  if (e.target.id === "b-ohne-mwst" && entwurf6) {
     if (e.target.checked) {
-      entwurf5.mwst = null;
-      entwurf5.netto = zahl(entwurf5.brutto);
+      entwurf6.mwst = null;
+      entwurf6.netto = zahl(entwurf6.brutto);
     } else {
-      entwurf5.mwst = 0;
+      entwurf6.mwst = 0;
       betraegeAbgleichen("brutto");
     }
     const koerperEl = document.querySelector(".modal-koerper");
     if (koerperEl) koerperEl.innerHTML = koerper5(Z2);
   }
 }
-function aktion8(a, knopf, Z2) {
+function aktion9(a, knopf, Z2) {
   if (a === "beleg-neu") return formular6(Z2, null);
   if (a === "beleg-bearbeiten") return formular6(Z2, Z2.belege.find((b) => b.id === knopf.dataset.id));
   if (a === "beleg-loeschen") {
@@ -3054,10 +3897,10 @@ function aktion8(a, knopf, Z2) {
   }
   if (a === "b-analysieren") return analysieren2(Z2);
   if (a === "b-datei-entfernen") {
-    if (entwurf5.datei_pfad) loeschen(entwurf5.datei_pfad).catch(() => {
+    if (entwurf6.datei_pfad) loeschen(entwurf6.datei_pfad).catch(() => {
     });
-    entwurf5.datei_pfad = null;
-    entwurf5.datei_name = null;
+    entwurf6.datei_pfad = null;
+    entwurf6.datei_name = null;
     dateiWartend4 = null;
     document.getElementById("b-analyse").innerHTML = analyseBlock2();
     return;
@@ -3068,7 +3911,7 @@ function aktion8(a, knopf, Z2) {
     }).catch((e) => meldung(e.message, true));
   }
 }
-var entwurf5, dateiWartend4, letzterHinweis2, mwstManuell;
+var entwurf6, dateiWartend4, letzterHinweis2, mwstManuell;
 var init_belege = __esm({
   "app/js/ansichten/belege.js"() {
     init_format();
@@ -3078,7 +3921,7 @@ var init_belege = __esm({
     init_ki();
     init_app();
     init_konfig();
-    entwurf5 = null;
+    entwurf6 = null;
     dateiWartend4 = null;
     letzterHinweis2 = "";
     mwstManuell = false;
@@ -3088,7 +3931,7 @@ var init_belege = __esm({
 // app/js/ansichten/dokumente.js
 var dokumente_exports = {};
 __export(dokumente_exports, {
-  aktion: () => aktion9,
+  aktion: () => aktion10,
   render: () => render9
 });
 function render9(Z2) {
@@ -3201,7 +4044,7 @@ function bearbeitenFormular(Z2, d) {
     }
   });
 }
-function aktion9(a, knopf, Z2) {
+function aktion10(a, knopf, Z2) {
   if (a === "dokument-neu") return hochladenFormular(Z2);
   if (a === "dokument-bearbeiten") return bearbeitenFormular(Z2, Z2.dokumente.find((d) => d.id === knopf.dataset.id));
   if (a === "dokument-loeschen") {
@@ -3295,6 +4138,9 @@ async function neuLaden(teile) {
   holen("foerdergelder", foerdergelderLaden, "foerdergelder");
   holen("anschaffungen", anschaffungenLaden, "anschaffungen");
   holen("arbeiten", arbeitenLaden, "arbeiten");
+  holen("checkliste", checklisteLaden, "checkliste");
+  holen("raeume", raeumeLaden, "raeume");
+  holen("plaene", plaeneLaden, "plaene");
   holen("budget", budgetLaden, "budget");
   holen("offerten", offertenLaden, "offerten");
   holen("belege", belegeLaden, "belege");
@@ -3587,6 +4433,9 @@ var init_app = __esm({
       foerdergelder: [],
       anschaffungen: [],
       arbeiten: [],
+      checkliste: [],
+      raeume: [],
+      plaene: [],
       aktuelleAnsicht: "uebersicht",
       online: navigator.onLine,
       ladeVorgaenge: 0,
@@ -3662,8 +4511,8 @@ var init_app = __esm({
         }
         if (!Z.session) return aktion(a, aktionsKnopf, Z);
         const modul = ANSICHTS_MODULE[Z.aktuelleAnsicht];
-        if (modul && modul.aktion) return modul.aktion(a, aktionsKnopf, Z);
-        return aktion3(a, aktionsKnopf, Z);
+        if (modul && modul.aktion) return modul.aktion(a, aktionsKnopf, Z, e);
+        return aktion4(a, aktionsKnopf, Z);
       }
       if (e.target.id === "modal-hg") modalSchliessen();
     });

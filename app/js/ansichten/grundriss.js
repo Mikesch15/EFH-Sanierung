@@ -20,8 +20,8 @@ let setzenAuf = null;
 export function setzModus() { return setzenAuf; }
 export function setzModusSetzen(planId) { setzenAuf = planId; }
 
-export function istGemessen(r) { return !!(zahl(r.breite) && zahl(r.laenge)); }
-function flaeche(r) { return zahl(r.breite) * zahl(r.laenge); }
+export function istGemessen(r) { return zahl(r.flaeche) > 0; }
+function flaeche(r) { return zahl(r.flaeche); }
 
 /** Kurzform für die Marke: Name, dazu die Fläche, sobald gemessen. */
 function markenText(r) {

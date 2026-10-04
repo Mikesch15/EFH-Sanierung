@@ -19,6 +19,7 @@ dieses auch nicht.
 | Anschaffungen ausserhalb des Budgets (Kredit) | fertig, siehe «Anschaffungen» |
 | Zeitplan der Arbeiten, Pendenzen und Mängel | fertig, siehe «Arbeiten» |
 | Besichtigungs-Checkliste und Raum-Messblatt | fertig, siehe «Aufnahme» |
+| Nicht rechtwinklige Räume vermessen | fertig, siehe «Räume vermessen» |
 | Grundrisse mit Messpunkten zum Vermessen | fertig, siehe «Grundriss» |
 | Echte Dokumentenanalyse (Gemini) | fertig in der App, siehe «KI-Auswertung»; im Prototyp weiterhin simuliert |
 
@@ -51,7 +52,7 @@ projekte                 Objekt, Adresse, Kaufpreis, Gesamtbudget, Kreditrahmen
    ├─ arbeiten           Zeitplan der Gewerke sowie Pendenzen und Mängel (mit Foto)
 └─ checkliste            Besichtigung: Punkt, Mass/Feststellung, abgehakt
 └─ plaene                hochgeladene Grundrisse (Bild je Geschoss)
-└─ raeume                Raum-Messblatt, bei Bedarf mit Messpunkt auf einem Plan
+└─ raeume                Raum-Messblatt: Wände rundum, Fläche, Umfang, Messpunkt im Plan
    └─ dokumente          Kaufvertrag, Pläne, Bewilligungen, Garantien
 ```
 
@@ -146,6 +147,7 @@ app/
   js/import.js          Übernahme der Prototyp-Sicherung
   js/app.js             Start, Navigation, Modal, Realtime
   js/vorschau.js        Vorschaubilder: signierte Adressen gebündelt holen und merken
+  js/raumgeometrie.js   Umriss aus Wandlängen und Winkeln: Fläche, Umfang, Skizze
   js/checkliste-vorlage.js  Besichtigungs-Checkliste als Vorlage (12 Gruppen, 88 Punkte)
   js/ansichten/*.js     Anmeldung, Übersicht, Budget, Fördergelder, Anschaffungen,
                         Offerten, Belege, Arbeiten, Aufnahme, Grundriss, Dokumente
@@ -499,9 +501,41 @@ danach gehört die Liste dem Projekt: Punkte löschen, ändern oder mit *+ Punkt
 ergänzen (die sind als *eigener Punkt* gekennzeichnet). Die Vorlage selbst bleibt
 unverändert in `app/js/checkliste-vorlage.js`.
 
-**Raum-Messblatt.** Je Raum eine Zeile mit Geschoss, Länge, Breite, Höhe, Wandstärke,
+**Raum-Messblatt.** Je Raum eine Zeile mit Geschoss, Fläche, Umfang, Höhe, Wandstärke,
 Fenster, Türen, Boden und Bemerkungen. Längen in Metern, Wandstärke in Zentimetern – so
-misst man es auch. Die Fläche wird gerechnet, ebenso das Total über alle Räume.
+misst man es auch. Fläche und Umfang kommen aus dem gemessenen Umriss (siehe unten), das
+Total über alle Räume steht am Fuss der Tabelle.
+
+### Räume vermessen: Wand für Wand rundum
+
+Länge × Breite reicht nur für Schuhschachteln. Gemessen wird deshalb der Reihe nach
+rundum: je Wand die **Länge** und der **Winkel zur nächsten Wand**.
+
+| Winkel | Bedeutung |
+|---|---|
+| 90° | normale Ecke (Voreinstellung) |
+| 270° | einspringende Ecke – der L-Raum |
+| 135° / 225° | Schräge |
+| frei | alles andere, z.B. 100° bei einer schiefen Aussenwand |
+
+Daraus rechnet die App **Fläche und Umfang**, während man tippt, und zeichnet den
+gemessenen Umriss als kleine Skizze. Die Skizze ist kein Plan, sondern die Kontrolle:
+
+- **«Umriss geht auf»** – die Masse passen zusammen.
+- **«Lücke 40 cm»** – der Rundgang kommt nicht am Anfang heraus, die offene Stelle wird
+  rot gestrichelt gezeigt. Dann stimmt eine Wandlänge nicht oder eine Ecke ist keine 90°.
+  Das ist die beste Kontrolle, die man vor Ort hat: Man merkt den Messfehler im Haus und
+  nicht daheim am Tisch. Die Fläche wird trotzdem gerechnet (Umriss gedanklich
+  geschlossen), damit ein unfertiger Raum nicht leer bleibt.
+
+Gerechnet wird in `app/js/raumgeometrie.js`: Startrichtung nach rechts, an jeder Ecke um
+(180° − Innenwinkel) weiterdrehen, Fläche über die Gauss'sche Trapezformel. `npm run
+geometrie` rechnet Rechteck, L-Raum, Schräge und einen Messfehler nach.
+
+Gespeichert werden die Wände als JSON in `raeume.waende` – sie werden immer zusammen mit
+dem Raum geladen und gespeichert, nie einzeln abgefragt; dazu `flaeche` und `umfang`
+für Tabellen und Totale. Bestehende Räume aus Länge × Breite hat Migration 0019 in vier
+rechtwinklige Wände umgeschrieben.
 
 ## Grundriss: der eigene Plan mit Messpunkten
 
@@ -579,9 +613,10 @@ Am besten auf zwei Geräten (oder einem normalen Fenster und einem privaten Fens
     steht noch da. Mit *+ Punkt* einen eigenen Punkt ergänzen, unter *Raum-Messblatt*
     einen Raum erfassen (Fläche wird gerechnet).
 12. **Grundriss**: Tab *Arbeiten* → *Plan hochladen* (Bild eines Geschosses). Dann
-    *+ Messpunkt*, in den Plan auf einen Raum tippen, Name sowie Breite und Länge
+    *+ Messpunkt*, in den Plan auf einen Raum tippen, Name und die Wände rundum
     eintragen – die Marke wird grün und zeigt die Fläche; der Raum steht auch im
-    Messblatt.
+    Messblatt. Für einen L-Raum eine Wand mit *+ Wand* ergänzen und die
+    einspringende Ecke auf 270° setzen; die Skizze muss aufgehen.
 13. **Zahlen prüfen**: Übersicht und *Kostenvergleich* (Tab Budget) müssen zu den erfassten
    Werten passen. Der Kostenvergleich kommt aus der View `v_kostenvergleich`.
 14. **Zweites Gerät**: Änderungen erscheinen dank Realtime ohne Neuladen (die dafür

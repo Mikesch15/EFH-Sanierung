@@ -18,6 +18,7 @@ import { hochladen, loeschen as dateiLoeschen, dateiPruefen } from "../dateien.j
 import { modalOeffnen, neuLaden, neuZeichnen, kannBearbeiten } from "../app.js";
 import { vorlagePunkte, FOTO_REGEL, CHECKLISTE_HINWEIS } from "../checkliste-vorlage.js";
 import { setzModus, setzModusSetzen } from "./grundriss.js";
+import { umrissRechnen, skizzeSvg, schliesst, gemesseneWaende, STANDARD_WINKEL } from "../raumgeometrie.js";
 export { grundrissAbschnitt } from "./grundriss.js";
 
 let entwurf = null;                  // Raum im Formular
@@ -105,35 +106,43 @@ export function checklisteAbschnitt(Z) {
 
 /* ---------------------------------------------------------- Raum-Messblatt */
 
-function flaeche(r) {
-  const l = zahl(r.laenge), b = zahl(r.breite);
-  return l && b ? (l * b).toFixed(2).replace(".", ".") + " m²" : "–";
-}
 function mass(wert, einheit) {
   return wert === null || wert === undefined || wert === "" ? "–" : zahl(wert).toFixed(2) + " " + einheit;
+}
+
+/** Was im Messblatt über den Umriss steht: Zahl der Wände, offen oder geschlossen. */
+function umrissStand(r) {
+  const u = umrissRechnen(r.waende);
+  if (!u.vollstaendig) return '<span style="color:var(--grau)">offen</span>';
+  const n = u.punkte.length;
+  return n + " Wände" + (schliesst(u)
+    ? ""
+    : ' <span class="badge rot" title="Umriss geht nicht auf">Lücke ' + (u.luecke * 100).toFixed(0) + " cm</span>");
 }
 
 export function raumAbschnitt(Z) {
   const liste = Z.raeume || [];
   const bearbeitbar = kannBearbeiten();
-  const gesamt = liste.reduce((s, r) => s + zahl(r.laenge) * zahl(r.breite), 0);
+  const gesamt = liste.reduce((s, r) => s + zahl(r.flaeche), 0);
 
   let h = '<section class="abschnitt" id="abschnitt-raeume"><div class="abschnitt-kopf"><div><h2>Raum-Messblatt</h2>' +
     "<p>" + (liste.length
       ? liste.length + (liste.length === 1 ? " Raum" : " Räume") + (gesamt ? " · " + gesamt.toFixed(1) + " m² erfasst" : "")
-      : "Länge, Breite, Höhe je Raum") + "</p></div>" +
+      : "Wände rundum, Höhe, Boden je Raum") + "</p></div>" +
     (bearbeitbar ? '<button class="btn klein" type="button" data-aktion="raum-neu">+ Raum</button>' : "") +
     "</div>";
 
   if (!liste.length) {
     h += leerZustand("Noch keine Räume vermessen",
-      "Je Raum eine Zeile: Länge, Breite, Höhe, Wandstärke, Fenster, Türen, Boden und Bemerkungen.",
+      "Je Raum die Wände rundum – Länge und Winkel zur nächsten Wand. Daraus rechnet die App " +
+      "Fläche und Umfang, auch bei L-Räumen und Schrägen. Dazu Höhe, Wandstärke, Fenster, " +
+      "Türen, Boden und Bemerkungen.",
       bearbeitbar ? '<button class="btn" type="button" data-aktion="raum-neu">Ersten Raum erfassen</button>' : "");
     return h + "</section>";
   }
 
   h += '<div class="karte"><div class="tab-scroll"><table><thead><tr>' +
-    "<th>Raum</th><th class=\"num\">Länge</th><th class=\"num\">Breite</th><th class=\"num\">Fläche</th>" +
+    "<th>Raum</th><th class=\"num\">Fläche</th><th class=\"num\">Umfang</th><th>Umriss</th>" +
     "<th class=\"num\">Höhe</th><th class=\"num\">Wand</th><th>Fenster</th><th>Türen</th><th>Boden</th><th></th>" +
     "</tr></thead><tbody>";
   liste.forEach((r) => {
@@ -141,9 +150,9 @@ export function raumAbschnitt(Z) {
       (r.geschoss ? '<div style="font-size:.76rem;color:var(--grau)">' + esc(r.geschoss) + "</div>" : "") +
       (r.bemerkung ? '<div style="font-size:.76rem;color:var(--grau);white-space:normal;max-width:220px">' + esc(r.bemerkung) + "</div>" : "") +
       "</td>" +
-      '<td class="num">' + mass(r.laenge, "m") + "</td>" +
-      '<td class="num">' + mass(r.breite, "m") + "</td>" +
-      '<td class="num"><b>' + flaeche(r) + "</b></td>" +
+      '<td class="num"><b>' + (zahl(r.flaeche) ? zahl(r.flaeche).toFixed(2) + " m²" : "–") + "</b></td>" +
+      '<td class="num">' + mass(r.umfang, "m") + "</td>" +
+      "<td>" + umrissStand(r) + "</td>" +
       '<td class="num">' + mass(r.hoehe, "m") + "</td>" +
       '<td class="num">' + (r.wandstaerke == null || r.wandstaerke === "" ? "–" : zahl(r.wandstaerke) + " cm") + "</td>" +
       "<td>" + esc(r.fenster || "–") + "</td>" +
@@ -154,18 +163,69 @@ export function raumAbschnitt(Z) {
         '<button class="btn still klein" type="button" data-aktion="raum-loeschen" data-id="' + r.id + '">Löschen</button>' +
         "</div>" : "") + "</td></tr>";
   });
-  h += '</tbody><tfoot><tr><td colspan="3">Total Bodenfläche</td><td class="num">' +
-    (gesamt ? gesamt.toFixed(2) + " m²" : "–") + '</td><td colspan="6"></td></tr></tfoot>';
+  h += '</tbody><tfoot><tr><td>Total Bodenfläche</td><td class="num">' +
+    (gesamt ? gesamt.toFixed(2) + " m²" : "–") + '</td><td colspan="8"></td></tr></tfoot>';
   return h + "</table></div></div></section>";
 }
 
 /* ---------------------------------------------------------------- Formular */
 
+function neueWand(winkel) { return { laenge: "", winkel: winkel === undefined ? STANDARD_WINKEL : winkel, bezeichnung: "" }; }
+
+/**
+ * Eine Wandzeile: Länge und der Innenwinkel zur nächsten Wand – eine Zeile pro
+ * Wand, ohne Beschriftung je Feld. Auf dem Handy stehen sonst bei sechs Wänden
+ * drei Bildschirme voller Formular, und man sieht das Ergebnis nicht mehr.
+ */
+function wandZeile(w, i) {
+  return '<div class="wand-zeile"><span class="wand-nr">' + (i + 1) + "</span>" +
+    '<input inputmode="decimal" aria-label="Länge Wand ' + (i + 1) + '" data-wand="' + i +
+    '" data-wfeld="laenge" value="' + esc(w.laenge ?? "") + '" placeholder="4.20">' +
+    '<input inputmode="decimal" aria-label="Ecke nach Wand ' + (i + 1) + '" list="winkel-liste" data-wand="' + i +
+    '" data-wfeld="winkel" value="' + esc(w.winkel ?? STANDARD_WINKEL) + '">' +
+    '<button class="btn still klein" type="button" data-aktion="raum-wand-weg" data-wand="' + i +
+    '" aria-label="Wand ' + (i + 1) + ' entfernen">✕</button></div>';
+}
+
+/** Fläche, Umfang, Kontrolle und Skizze – rechnet bei jeder Eingabe neu. */
+function geometrieHtml() {
+  const u = umrissRechnen(entwurf.waende);
+  if (!u.vollstaendig) {
+    return '<div class="hinweis info"><div>Mindestens drei Wände mit Mass eintragen, dann rechnet ' +
+      "die App Fläche und Umfang.</div></div>";
+  }
+  const zu = schliesst(u);
+  return '<div class="geo-werte"><div><span>Fläche</span><b>' + u.flaeche.toFixed(2) + " m²</b></div>" +
+    "<div><span>Umfang</span><b>" + u.umfang.toFixed(2) + " m</b></div>" +
+    '<div><span>Kontrolle</span><b class="' + (zu ? "gut" : "schlecht") + '">' +
+    (zu ? "Umriss geht auf" : "Lücke " + (u.luecke * 100).toFixed(0) + " cm") + "</b></div></div>" +
+    skizzeSvg(entwurf.waende) +
+    (zu ? "" : '<div class="hinweis warn"><div>Der Umriss schliesst nicht. Meist stimmt eine ' +
+      "Wandlänge nicht oder eine Ecke ist keine 90° – z.B. 270° bei einer einspringenden Ecke, " +
+      "135° bei einer Schräge. Die Fläche wird trotzdem gerechnet, der Umriss dafür geschlossen.</div></div>");
+}
+
+function geometrieAktualisieren() {
+  const kasten = document.getElementById("raum-geo");
+  if (kasten) kasten.innerHTML = geometrieHtml();
+}
+
+function waendeAktualisieren() {
+  const liste = document.getElementById("raum-waende");
+  if (liste) liste.innerHTML = entwurf.waende.map(wandZeile).join("");
+  geometrieAktualisieren();
+}
+
 function raumFormular(Z, r, vorgabe) {
   entwurf = r ? JSON.parse(JSON.stringify(r)) : Object.assign({
-    id: null, name: "", geschoss: "", laenge: "", breite: "", hoehe: "",
+    id: null, name: "", geschoss: "", hoehe: "",
     wandstaerke: "", fenster: "", tueren: "", boden: "", bemerkung: "",
   }, vorgabe || {});
+  // Ein neuer Raum beginnt mit vier rechten Winkeln – der häufigste Fall. Wer
+  // einen L-Raum oder eine Schräge hat, ergänzt Wände und ändert die Winkel.
+  if (!Array.isArray(entwurf.waende) || !entwurf.waende.length) {
+    entwurf.waende = [neueWand(), neueWand(), neueWand(), neueWand()];
+  }
   modalOeffnen({
     titel: entwurf.id ? "Raum bearbeiten" : "Neuer Raum",
     koerper:
@@ -174,12 +234,19 @@ function raumFormular(Z, r, vorgabe) {
       '<label class="feld"><span>Geschoss</span><input list="geschoss-liste" data-feld="geschoss" value="' + esc(entwurf.geschoss) + '" placeholder="EG">' +
       '<datalist id="geschoss-liste"><option value="Keller"><option value="EG"><option value="OG"><option value="Dachstock"><option value="Aussen"></datalist></label>' +
       "</div>" +
-      '<div class="feld-paar">' +
-      '<label class="feld"><span>Länge (m)</span><input inputmode="decimal" data-feld="laenge" value="' + esc(entwurf.laenge ?? "") + '" placeholder="4.20"></label>' +
-      '<label class="feld"><span>Breite (m)</span><input inputmode="decimal" data-feld="breite" value="' + esc(entwurf.breite ?? "") + '" placeholder="3.60"></label>' +
-      "</div>" +
-      '<div class="feld-paar">' +
-      '<label class="feld"><span>Höhe (m)</span><input inputmode="decimal" data-feld="hoehe" value="' + esc(entwurf.hoehe ?? "") + '" placeholder="2.40"></label>' +
+
+      '<div class="abschnitt-kopf" style="margin:16px 2px 8px"><div><h3>Wände rundum</h3>' +
+      "<p>Der Reihe nach messen: Länge der Wand, dann der Winkel zur nächsten</p></div>" +
+      '<button class="btn zweit klein" type="button" data-aktion="raum-wand-neu">+ Wand</button></div>' +
+      '<datalist id="winkel-liste"><option value="90" label="rechtwinklig"><option value="270" label="einspringende Ecke">' +
+      '<option value="135"><option value="225"><option value="45"><option value="315"></datalist>' +
+      '<div class="geo-box" id="raum-geo">' + geometrieHtml() + "</div>" +
+      '<div class="wand-kopf"><span></span><span>Länge (m)</span><span>Ecke danach (°)</span><span></span></div>' +
+      '<div class="wand-liste" id="raum-waende">' + entwurf.waende.map(wandZeile).join("") + "</div>" +
+      '<p class="wand-hinweis">90° = rechtwinklig · 270° = einspringende Ecke (L-Raum) · 135°/225° = Schräge</p>' +
+
+      '<div class="feld-paar" style="margin-top:14px">' +
+      '<label class="feld"><span>Raumhöhe (m)</span><input inputmode="decimal" data-feld="hoehe" value="' + esc(entwurf.hoehe ?? "") + '" placeholder="2.40"></label>' +
       '<label class="feld"><span>Wandstärke (cm)</span><input inputmode="decimal" data-feld="wandstaerke" value="' + esc(entwurf.wandstaerke ?? "") + '" placeholder="24"></label>' +
       "</div>" +
       '<div class="feld-paar">' +
@@ -190,7 +257,7 @@ function raumFormular(Z, r, vorgabe) {
       '<label class="feld"><span>Bemerkungen</span><textarea data-feld="bemerkung" placeholder="Balkenrichtung, Auffälligkeiten …">' + esc(entwurf.bemerkung || "") + "</textarea></label>" +
       (entwurf.plan_id
         ? '<div class="hinweis info"><div>Dieser Raum hängt an einem Messpunkt im Grundriss. ' +
-          "Sobald <b>Länge</b> und <b>Breite</b> stehen, zeigt der Punkt im Plan die Fläche.</div></div>"
+          "Sobald der Umriss steht, zeigt der Punkt im Plan die Fläche.</div></div>"
         : ""),
     speichern: () => raumSpeichern(Z),
   });
@@ -199,10 +266,18 @@ function raumFormular(Z, r, vorgabe) {
 async function raumSpeichern(Z) {
   const r = entwurf;
   if (!r.name.trim()) { meldung("Bitte einen Raumnamen angeben.", true); return false; }
+  // Nur Wände mit Mass werden gespeichert; leere Zeilen sind Eingabehilfe, keine Daten.
+  const waende = gemesseneWaende(r.waende).map((w) => ({
+    laenge: zahl(w.laenge),
+    winkel: zahl(w.winkel) > 0 ? zahl(w.winkel) : STANDARD_WINKEL,
+    bezeichnung: (w.bezeichnung || "").trim(),
+  }));
+  const u = umrissRechnen(waende);
   const daten = {
     name: r.name.trim(), geschoss: (r.geschoss || "").trim(),
-    laenge: r.laenge === "" ? "" : zahl(r.laenge),
-    breite: r.breite === "" ? "" : zahl(r.breite),
+    waende,
+    flaeche: u.vollstaendig ? u.flaeche : "",
+    umfang: waende.length ? u.umfang : "",
     hoehe: r.hoehe === "" ? "" : zahl(r.hoehe),
     wandstaerke: r.wandstaerke === "" ? "" : zahl(r.wandstaerke),
     fenster: (r.fenster || "").trim(), tueren: (r.tueren || "").trim(),
@@ -325,6 +400,14 @@ export function eingabe(e) {
   // Mass-Felder speichern sich selbst, sobald man weiterklickt (change), nicht
   // bei jedem Tastendruck – sonst schreibt man pro Zahl zehnmal in die Datenbank.
   if (!document.querySelector(".modal") || !entwurf) return;
+  const wand = e.target.closest("[data-wand][data-wfeld]");
+  if (wand) {
+    // Die Zeilen bleiben stehen (sonst verlöre das Feld den Fokus), nur die
+    // Rechnung und die Skizze werden neu gezeichnet.
+    entwurf.waende[+wand.dataset.wand][wand.dataset.wfeld] = wand.value;
+    geometrieAktualisieren();
+    return;
+  }
   const feld = e.target.closest("[data-feld]");
   if (!feld) return;
   entwurf[feld.dataset.feld] = feld.value;
@@ -412,6 +495,16 @@ export function aktion(a, knopf, Z, ereignis) {
     return raumFormular(Z, null, Object.assign({ plan_id: planId }, lage));
   }
   if (a === "plan-marke") return raumFormular(Z, (Z.raeume || []).find((r) => r.id === knopf.dataset.id));
+  if (a === "raum-wand-neu") {
+    const letzte = entwurf.waende[entwurf.waende.length - 1];
+    entwurf.waende.push(neueWand(letzte ? letzte.winkel : undefined));
+    return waendeAktualisieren();
+  }
+  if (a === "raum-wand-weg") {
+    entwurf.waende.splice(+knopf.dataset.wand, 1);
+    if (!entwurf.waende.length) entwurf.waende.push(neueWand());
+    return waendeAktualisieren();
+  }
   if (a === "raum-neu") return raumFormular(Z, null);
   if (a === "raum-bearbeiten") return raumFormular(Z, (Z.raeume || []).find((r) => r.id === knopf.dataset.id));
   if (a === "raum-loeschen") {

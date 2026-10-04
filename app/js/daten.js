@@ -297,8 +297,10 @@ function raumFelder(daten) {
   return {
     name: daten.name || "",
     geschoss: daten.geschoss || "",
-    laenge: zahlOderNull(daten.laenge),
-    breite: zahlOderNull(daten.breite),
+    // Umriss: je Wand Länge und Innenwinkel zur nächsten Wand.
+    waende: Array.isArray(daten.waende) ? daten.waende : [],
+    flaeche: zahlOderNull(daten.flaeche),
+    umfang: zahlOderNull(daten.umfang),
     hoehe: zahlOderNull(daten.hoehe),
     wandstaerke: zahlOderNull(daten.wandstaerke),
     fenster: daten.fenster || "",
