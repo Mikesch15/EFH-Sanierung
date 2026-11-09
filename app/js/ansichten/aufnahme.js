@@ -10,7 +10,7 @@
 import { esc, zahl, meldung, bestaetigen, heuteISO } from "../format.js";
 import { leerZustand } from "./gemeinsam.js";
 import {
-  checklisteAnlegen, checklistePunktAktualisieren, checklistePunktLoeschen,
+  checklisteAnlegen, checklistePunktAktualisieren, checklistePunktLoeschen, checklisteLeeren,
   raumAnlegen, raumAktualisieren, raumLoeschen,
 } from "../daten.js";
 import { modalOeffnen, neuLaden, neuZeichnen, kannBearbeiten } from "../app.js";
@@ -43,6 +43,12 @@ export function checklisteAbschnitt(Z) {
       : "Besichtigung und Bestandsaufnahme") + "</p></div>" +
     (bearbeitbar && liste.length ? '<button class="btn klein" type="button" data-aktion="chk-neu">+ Punkt</button>' : "") +
     "</div>";
+
+  // Die ganze Liste wegräumen können, ohne 88-mal auf ✕ zu tippen.
+  if (bearbeitbar && liste.length) {
+    h += '<div class="karte-pad" style="padding:0 14px 10px;display:flex;justify-content:flex-end">' +
+      '<button class="btn still klein" type="button" data-aktion="chk-alle-weg">Alle Punkte löschen</button></div>';
+  }
 
   if (!liste.length) {
     h += leerZustand("Noch keine Checkliste",
@@ -274,6 +280,19 @@ export function aktion(a, knopf, Z) {
       .then(() => { meldung("Checkliste angelegt."); return neuLaden(["checkliste"]); })
       .catch((err) => meldung(err.message, true))
       .finally(() => { vorlageLaeuft = false; });
+    return;
+  }
+  if (a === "chk-alle-weg") {
+    const anzahl = (Z.checkliste || []).length;
+    if (!anzahl) return;
+    const erfasst = (Z.checkliste || []).filter((p) => p.erledigt || (p.wert || "").trim()).length;
+    if (!bestaetigen("Alle " + anzahl + " Punkte der Checkliste löschen?" +
+      (erfasst ? " Davon sind " + erfasst + " abgehakt oder mit einem Mass versehen." : "") +
+      " Die Vorlage lässt sich danach jederzeit neu anlegen.")) return;
+    knopf.disabled = true;
+    checklisteLeeren(Z.projektId)
+      .then(() => { offeneGruppen.clear(); meldung("Checkliste geleert."); return neuLaden(["checkliste"]); })
+      .catch((err) => { knopf.disabled = false; meldung(err.message, true); });
     return;
   }
   if (a === "chk-neu") return punktFormular(Z);

@@ -279,6 +279,12 @@ export function checklistePunktLoeschen(id) {
   return schreiben(async () => pruefen(await supabase.from("checkliste").delete().eq("id", id)));
 }
 
+/** Leert die ganze Checkliste eines Projekts – 88 Punkte einzeln wären Unsinn. */
+export function checklisteLeeren(projektId) {
+  return schreiben(async () =>
+    pruefen(await supabase.from("checkliste").delete().eq("projekt_id", projektId)));
+}
+
 export function raeumeLaden(projektId) {
   return lesen(async () =>
     pruefen(
